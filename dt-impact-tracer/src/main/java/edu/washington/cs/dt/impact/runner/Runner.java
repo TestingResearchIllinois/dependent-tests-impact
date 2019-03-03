@@ -31,38 +31,45 @@ import edu.washington.cs.dt.impact.util.Constants.TEST_TYPE;
 import edu.washington.cs.dt.main.ImpactMain;
 
 public abstract class Runner {
-    protected static TECHNIQUE techniqueName = null;
-    protected static COVERAGE coverage = null;
-    protected static ORDER order = null;
-    protected static File testInputDir = new File(Constants.DEFAULT_TEST_DIR);
-    protected static File outputDir = new File(".");
-    protected static String outputFileName = null;
-    protected static File origOrder = null;
-    protected static File selectionOutput1 = null;
-    protected static File selectionOutput2 = null;
-    protected static Constants.MACHINES numOfMachines = MACHINES.ONE;
-    protected static int timesToRun = 1;
-    protected static String project = "CRYSTAL";
-    protected static Constants.TEST_TYPE testType = TEST_TYPE.ORIG;
-    protected static List<String> allDTList;
-    protected static File dependentTestFile = null;
-    protected static File resolveDependences = null;
-    protected static String filesToDeleteStr = null;
-    protected static boolean getCoverage = false;
-    protected static List<String> filesToDelete = null;
-    protected static List<String> argsList = null;
-    protected static double TLGTime = 0.0;
-    protected static List<WrapperTestList> listTestList = new ArrayList<>();
-    protected static List<String> origOrderTestList = null;
-    protected static File timeOrder = null;
-    protected static String classPath = System.getProperty("java.class.path");
-    protected static boolean postProcessDTs = false;
+    protected InstrumentingSmartRunner runner;
+    protected TECHNIQUE techniqueName = null;
+    protected COVERAGE coverage = null;
+    protected ORDER order = null;
+    protected File testInputDir = new File(Constants.DEFAULT_TEST_DIR);
+    protected File outputDir = new File(".");
+    protected String outputFileName = null;
+    protected File origOrder = null;
+    protected File selectionOutput1 = null;
+    protected File selectionOutput2 = null;
+    protected Constants.MACHINES numOfMachines = MACHINES.ONE;
+    protected int timesToRun = 1;
+    protected String project = "CRYSTAL";
+    protected Constants.TEST_TYPE testType = TEST_TYPE.ORIG;
+    protected List<String> allDTList;
+    protected File dependentTestFile = null;
+    protected File resolveDependences = null;
+    protected String filesToDeleteStr = null;
+    protected boolean getCoverage = false;
+    protected List<String> filesToDelete = null;
+    protected List<String> argsList = null;
+    protected double TLGTime = 0.0;
+    protected List<WrapperTestList> listTestList = new ArrayList<>();
+    protected List<String> origOrderTestList = null;
+    protected File timeOrder = null;
+    protected String classPath = System.getProperty("java.class.path");
+    protected boolean postProcessDTs = false;
 
-    public static void nullOutputFileName(){
-        outputFileName = null;
+    private static final int MAX_ARRAY_SIZE_TO_WRITE = 5000; // 5,000
+
+    public Runner(InstrumentingSmartRunner runner) {
+        this.runner = runner;
     }
 
-    protected static void parseArgs(String[] args) {
+    public void setOutputFileName(String outputFileName) {
+        this.outputFileName = outputFileName;
+    }
+
+    protected void parseArgs(String[] args) {
         argsList = new ArrayList<String>(Arrays.asList(args));
         if (argsList.contains("-help")) {
             System.out.println("Main class that relies on program arguments to generate a regression testing "
@@ -483,13 +490,11 @@ public abstract class Runner {
         postProcessDTs = argsList.contains("-postProcessDTs");
     }
 
-    protected static void output(boolean outputDTListSeparately) {
+    protected void output(boolean outputDTListSeparately) {
         output(outputDTListSeparately, null, null);
     }
 
-    private static final int MAX_ARRAY_SIZE_TO_WRITE = 5000; // 5,000
-
-    protected static void output(boolean outputDTListSeparately, String withNIterationTime,
+    protected void output(boolean outputDTListSeparately, String withNIterationTime,
             String withoutNIterationTime) {
         FileTools.clearEnv(filesToDelete);
         double totalTime = TLGTime;
@@ -571,7 +576,7 @@ public abstract class Runner {
         }
     }
 
-    private static void writeToFile(List<String> outputArr, boolean outputDTListSeparately) {
+    private void writeToFile(List<String> outputArr, boolean outputDTListSeparately) {
         FileWriter output = null;
         BufferedWriter writer = null;
         try {
@@ -622,12 +627,7 @@ public abstract class Runner {
         }
     }
 
-    public static String nanosecondToSecond(double nanoseconds) {
-        double sec = nanoseconds / 1E9;
-        return String.format("%.3f", sec);
-    }
-
-    protected static Map<Double, List<Double>> setTestListMedianTime(int timesToRun, List<String> filesToDelete,
+    protected Map<Double, List<Double>> setTestListMedianTime(int timesToRun, List<String> filesToDelete,
             List<String> currentOrderTestList, WrapperTestList testList, boolean printTestLists) {
         // Get time each test took
         Map<Double, List<Double>> totalTimeToCumulTime = new TreeMap<>();
@@ -651,6 +651,50 @@ public abstract class Runner {
         return totalTimeToCumulTime;
     }
 
+    protected double getSumStr(List<String> list) {
+        List<Double> doubleList = new ArrayList<>();
+        for (String val : list) {
+            doubleList.add(Double.valueOf(val));
+        }
+        return getSum(doubleList);
+    }
+
+    protected TestExecResult getCurrentOrderTestListResults(List<String> currentOrderTestList,
+                                                            List<String> filesToDelete) {
+        // ImpactMain
+        FileTools.clearEnv(filesToDelete);
+        TestExecResults results = ImpactMain.getResults(classPath, currentOrderTestList);
+        return results.getExecutionRecords().get(0);
+    }
+
+    protected List<String> getCurrentTestList(Test testObj, int numOfMachines) {
+        return getCurrentTestList(testObj, numOfMachines, true);
+    }
+
+    protected List<String> getCurrentTestList(Test testObj, int numOfMachines, boolean mergeDTCoverage) {
+        // TestListGenerator
+        List<String> currentOrderTestList = new LinkedList<String>();
+        for (TestFunctionStatement tfs : testObj.getResults(numOfMachines)) {
+            currentOrderTestList.add(tfs.getName());
+        }
+        return currentOrderTestList;
+    }
+
+    protected List<String> getCurrentCoverage(Test testObj, int numOfMachines) {
+        List<String> currentOrderTestList = new LinkedList<String>();
+        for (TestFunctionStatement tfs : testObj.getCoverage(numOfMachines)) {
+            currentOrderTestList.add(tfs.getName());
+        }
+        return currentOrderTestList;
+    }
+
+    // Helper static methods
+
+    public static String nanosecondToSecond(double nanoseconds) {
+        double sec = nanoseconds / 1E9;
+        return String.format("%.3f", sec);
+    }
+
     public static double getAPFD(List<Double> cumulTime, List<Double> cumulCoverage) {
         if (cumulTime.size() < 2 || cumulCoverage.size() < 1) {
             throw new IllegalArgumentException("cumulTime or cumulCoverage is too small to get APFD.\ncumulTime is: "
@@ -671,14 +715,6 @@ public abstract class Runner {
             sum += val;
         }
         return sum;
-    }
-
-    protected static double getSumStr(List<String> list) {
-        List<Double> doubleList = new ArrayList<>();
-        for (String val : list) {
-            doubleList.add(Double.valueOf(val));
-        }
-        return getSum(doubleList);
     }
 
     public static List<Double> getCumulList(List<String> list) {
@@ -704,33 +740,5 @@ public abstract class Runner {
             cumulList.add(list.get(i) + cumulList.get(i - 1));
         }
         return cumulList;
-    }
-
-    protected static TestExecResult getCurrentOrderTestListResults(List<String> currentOrderTestList,
-                                                                   List<String> filesToDelete) {
-        // ImpactMain
-        FileTools.clearEnv(filesToDelete);
-        TestExecResults results = ImpactMain.getResults(classPath, currentOrderTestList);
-        return results.getExecutionRecords().get(0);
-    }
-    protected static List<String> getCurrentTestList(Test testObj, int numOfMachines) {
-        return getCurrentTestList(testObj, numOfMachines, true);
-    }
-
-    protected static List<String> getCurrentTestList(Test testObj, int numOfMachines, boolean mergeDTCoverage) {
-        // TestListGenerator
-        List<String> currentOrderTestList = new LinkedList<String>();
-        for (TestFunctionStatement tfs : testObj.getResults(numOfMachines)) {
-            currentOrderTestList.add(tfs.getName());
-        }
-        return currentOrderTestList;
-    }
-
-    protected static List<String> getCurrentCoverage(Test testObj, int numOfMachines) {
-        List<String> currentOrderTestList = new LinkedList<String>();
-        for (TestFunctionStatement tfs : testObj.getCoverage(numOfMachines)) {
-            currentOrderTestList.add(tfs.getName());
-        }
-        return currentOrderTestList;
     }
 }
