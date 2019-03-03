@@ -43,10 +43,7 @@ import edu.washington.cs.dt.impact.util.Constants.COVERAGE;
 
 public class RandomizeRunner extends Runner {
 
-    public static void main(String[] args) {
-        // Parse the input arguments
-        parseArgs(args);
-
+    public void execute() {
         int nIterations = -1;
         int nIterationsIndex = argsList.indexOf("-nIterations");
         if (nIterationsIndex != -1) {
@@ -127,7 +124,7 @@ public class RandomizeRunner extends Runner {
         }
     }
 
-    private static String DT_LIST_STRING = null;
+    private String DT_LIST_STRING = null;
 
     /**
      * Returns true if the iteration found new dependent tests, false otherwise
@@ -138,7 +135,7 @@ public class RandomizeRunner extends Runner {
      * @param start
      * @return
      */
-    private static boolean runIteration(int i, int randomTimes, Random rand, Map<String, RESULT> nameToOrigResults,
+    private boolean runIteration(int i, int randomTimes, Random rand, Map<String, RESULT> nameToOrigResults,
             double start, boolean printTestLists) {
         boolean didFindNewTests = false;
         WrapperTestList testList = new WrapperTestList();
@@ -215,4 +212,13 @@ public class RandomizeRunner extends Runner {
         listTestList.add(testList);
         return didFindNewTests;
     }
+
+    public static void main(String[] args) {
+        RandomizeRunner runner = new RandomizeRunner();
+
+        // Parse the input arguments and then execute
+        runner.parseArgs(args);
+        runner.execute();
+    }
+
 }

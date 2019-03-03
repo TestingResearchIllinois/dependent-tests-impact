@@ -48,9 +48,7 @@ import edu.washington.cs.dt.runners.FixedOrderRunner;
 
 public class OneConfigurationRunner extends Runner {
 
-    public static void main(String[] args) {
-        parseArgs(args);
-
+    public void execute() {
         TestExecResult origResults = getCurrentOrderTestListResults(origOrderTestList, filesToDelete);
         Map<String, RESULT> nameToOrigResults = origResults.getNameToResultsMap();
 
@@ -198,5 +196,11 @@ public class OneConfigurationRunner extends Runner {
         }
 
         output(false);
+    }
+
+    public static void main(String[] args) {
+        OneConfigurationRunner runner = new OneConfigurationRunner();
+        runner.parseArgs(args);
+        runner.execute();
     }
 }
