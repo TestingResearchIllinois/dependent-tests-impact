@@ -1,11 +1,16 @@
 package edu.washington.cs.dt.impact.plugins;
 
+import com.reedoei.testrunner.configuration.Configuration;
+import com.reedoei.testrunner.data.results.TestRunResult;
 import com.reedoei.testrunner.mavenplugin.TestPluginPlugin;
+import com.reedoei.testrunner.mavenplugin.TestPlugin;
+import edu.illinois.cs.dt.tools.runner.InstrumentingSmartRunner;
 import edu.washington.cs.dt.impact.runner.OneConfigurationRunner;
 import edu.washington.cs.dt.impact.runner.Runner;
 import edu.washington.cs.dt.main.ImpactMain;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.cli.MavenCli;
 import org.apache.maven.project.MavenProject;
 
@@ -17,13 +22,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class Plugins {
+public abstract class Plugins extends TestPlugin {
     protected enum Mode {DEBUG, NORMAL}
 
     protected String projectName;
+
+    protected InstrumentingSmartRunner runner;
+    protected MavenProject project;
 
     // Old version main Directories
     protected String dtSubjectSource;
@@ -62,6 +74,15 @@ public class Plugins {
     protected final String[] PRIOORDERS = { "absolute", "relative" };
     protected final String[] SELEORDERS = { "original", "absolute", "relative"};
 
+    protected String classpath;
+
+    protected void setProject(MavenProject project) {
+        this.project = project;
+    }
+
+    protected MavenProject getProject(MavenProject project) {
+        return this.project;
+    }
 
     protected void setupNewVers(MavenProject project) {
         setupPaths(project, System.getProperty("path"));
@@ -107,16 +128,26 @@ public class Plugins {
         String dtSubject = dtSubjectSource.concat("/target");
         new File(dtSubject).mkdirs();
 
-        String libsDir = project.getProperties().getProperty("dt.lib.dir");
+        String libsDir = Configuration.config().getProperty("dt.lib.dir");
         if (libsDir == null || libsDir.isEmpty()) {
             throw new RuntimeException("Could not find necessary dependencies for plugin. " +
                                                "Please see the following link to download and setup the necessary libs." +
                                                "https://sites.google.com/view/test-dependence-impact/guidelines");
         }
+        classpath = classpath();
         dtTools = buildClassPath(libsDir + "/*");
-        dtLibs = buildClassPath(dtSubject.concat("/dependency/*"));
-        dtClass = dtSubject.concat("/classes");
-        dtTests = dtSubject.concat("/test-classes");
+
+        dtLibs = "";
+        for (String element : classpathElements()) {
+            if (element.contains("/classes")) {
+                dtClass = element;
+            } else if (element.contains("/test-classes")) {
+                dtTests = element;
+            } else {
+                dtLibs += element + File.pathSeparator;
+            }
+        }
+        dtLibs = dtLibs.substring(0, dtLibs.length() - 1);
 
         dtResults = dtSubjectSource.concat("/results");
         new File(dtResults).mkdirs();
@@ -221,9 +252,26 @@ public class Plugins {
                 sb.append(System.getProperty("path.separator"));
             }
         }
+        if (sb.length() > 0) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
         return sb.toString();
     }
 
+    protected List<String> classpathElements() {
+        final List<String> elements = new ArrayList<>();
+        try {
+            elements.addAll(project.getTestClasspathElements());
+        } catch (DependencyResolutionRequiredException drre) {
+            TestPluginPlugin.error("Failed to get dependencies and construct classpath!");
+        }
+
+        return elements;
+    }
+
+    protected String classpath() {
+        return String.join(File.pathSeparator, classpathElements());
+    }
 
     protected void runOneConfigurationRunner(String[] args,
                                                     String outputFile) {
@@ -244,6 +292,52 @@ public class Plugins {
             System.out.println(paramsString);
             OneConfigurationRunner.main(args);
             System.setOut(stdout);
+        }
+    }
+
+    protected void runTestsForResults(final String cp, String inputFile, String outputFile) {
+        try {
+            // Collect results
+            TestRunResult res = runner.runListWithCp(cp, Files.readAllLines(Paths.get(inputFile))).get();
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            for (String test : res.testOrder()) {
+                sb.append(test);
+                sb.append("=");
+                sb.append(res.results().get(test).result());
+                sb.append(",");
+            }
+            sb.setCharAt(sb.length() - 1, '}');
+
+            // Write these results into the output file
+            List<String> lines = new ArrayList<String>();
+            lines.add(sb.toString());
+            Files.write(Paths.get(outputFile), lines);
+        } catch (IOException ioe) {
+            TestPluginPlugin.error("Could not deal with files " + inputFile + ", " + outputFile);
+        }
+    }
+
+    protected void runTestsForTime(final String cp, String inputFile, String outputFile) {
+        try {
+            // Collect results
+            TestRunResult res = runner.runListWithCp(cp, Files.readAllLines(Paths.get(inputFile))).get();
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            for (String test : res.testOrder()) {
+                sb.append(test);
+                sb.append("=");
+                sb.append((long)(res.results().get(test).time() * 1000));
+                sb.append(",");
+            }
+            sb.setCharAt(sb.length() - 1, '}');
+
+            // Write these results into the output file
+            List<String> lines = new ArrayList<String>();
+            lines.add(sb.toString());
+            Files.write(Paths.get(outputFile), lines);
+        } catch (IOException ioe) {
+            TestPluginPlugin.error("Could not deal with files " + inputFile + ", " + outputFile);
         }
     }
 
@@ -285,4 +379,6 @@ public class Plugins {
             }
         }
     }
+
+    public abstract void execute(final MavenProject project);
 }
