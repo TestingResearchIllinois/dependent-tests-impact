@@ -156,7 +156,7 @@ public class Parallelization extends Test {
 
                     final String message = "List of tests is empty for " + order + " order (" + i + "! " +
                             "Probable cause: " + causeStr;
-                    throw new RuntimeException("List of tests is empty for " + order + " order (" + i + "!");
+                    throw new RuntimeException(message);
                 }
 
                 splitTests.add(new Standard(outputFileName + i, sortedList, getCoverage, allCoverageLines));
