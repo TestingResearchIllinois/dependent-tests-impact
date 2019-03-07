@@ -31,7 +31,6 @@ import edu.washington.cs.dt.impact.util.Constants.TEST_TYPE;
 import edu.washington.cs.dt.main.ImpactMain;
 
 public abstract class Runner {
-    protected InstrumentingSmartRunner runner;
     protected TECHNIQUE techniqueName = null;
     protected COVERAGE coverage = null;
     protected ORDER order = null;
@@ -60,10 +59,6 @@ public abstract class Runner {
     protected boolean postProcessDTs = false;
 
     private static final int MAX_ARRAY_SIZE_TO_WRITE = 5000; // 5,000
-
-    public Runner(InstrumentingSmartRunner runner) {
-        this.runner = runner;
-    }
 
     public void setOutputFileName(String outputFileName) {
         this.outputFileName = outputFileName;
