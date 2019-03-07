@@ -278,7 +278,6 @@ public abstract class Plugins extends TestPlugin {
         String paramsString = "OneConfigurationRunner Parameters\n\t" + StringUtils.join(args, "\n\t");
         if (outputFile == null) {
             TestPluginPlugin.info(paramsString);
-            Runner.nullOutputFileName();
             OneConfigurationRunner.main(args);
         } else {
             PrintStream stdout = System.out;
@@ -288,7 +287,6 @@ public abstract class Plugins extends TestPlugin {
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-            Runner.nullOutputFileName();
             System.out.println(paramsString);
             OneConfigurationRunner.main(args);
             System.setOut(stdout);
