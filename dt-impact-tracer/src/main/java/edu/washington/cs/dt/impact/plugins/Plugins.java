@@ -85,7 +85,7 @@ public abstract class Plugins extends TestPlugin {
     }
 
     protected void setupNewVers(MavenProject project) {
-        setupPaths(project, System.getProperty("path"));
+        setupPaths(project, Configuration.config().getProperty("dt.path"));
 
         // New Version
         newDTSubjectSource = System.getProperty("user.dir");

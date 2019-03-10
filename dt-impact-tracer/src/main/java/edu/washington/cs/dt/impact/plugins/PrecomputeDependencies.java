@@ -30,6 +30,7 @@ public class PrecomputeDependencies extends Plugins {
 
     public void execute(MavenProject project) {
         // Project Setup
+        setProject(project);
         setupOldVers(project);
         gatherDependencies(cli, dtSubjectSource);
         gatherTests(project);
