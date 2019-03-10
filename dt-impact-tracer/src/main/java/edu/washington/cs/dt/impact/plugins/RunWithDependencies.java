@@ -26,6 +26,7 @@ public class RunWithDependencies extends Plugins {
 
     public void execute(MavenProject project) {
         // Project Setup
+        setProject(project);
         setupNewVers(project);
         gatherDependencies(cli, newDTSubjectSource);
         gatherTests(project);
