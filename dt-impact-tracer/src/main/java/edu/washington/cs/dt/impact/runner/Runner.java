@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import edu.illinois.cs.testrunner.data.results.TestRunResult;
+import edu.illinois.cs.testrunner.runner.SmartRunner;
+
 import edu.washington.cs.dt.TestExecResult;
 import edu.washington.cs.dt.TestExecResults;
 import edu.washington.cs.dt.impact.data.TestFunctionStatement;
@@ -60,8 +63,14 @@ public abstract class Runner {
 
     private static final int MAX_ARRAY_SIZE_TO_WRITE = 5000; // 5,000
 
+    protected SmartRunner runner;
+
     public void setOutputFileName(String outputFileName) {
         this.outputFileName = outputFileName;
+    }
+
+    public void setRunner(SmartRunner runner) {
+        this.runner = runner;
     }
 
     protected void parseArgs(String[] args) {
@@ -630,8 +639,11 @@ public abstract class Runner {
         for (int j = 0; j < timesToRun; j++) {
             System.out.println("Getting median in iteration: " + (j + 1) + " / " + timesToRun);
             FileTools.clearEnv(filesToDelete);
-            List<String> timeEachTest =
-                    ImpactMain.getResults(classPath, currentOrderTestList, true).getExecutionRecords().get(0).getValues();
+            List<String> timeEachTest = new ArrayList<String>();
+            TestRunResult result = runner.runListWithCp(classPath, currentOrderTestList).get();
+            for (String test : result.results().keySet()) {
+                timeEachTest.add(String.valueOf((long)(result.results().get(test).time() * 1000)));
+            }
             List<Double> cumulTime = getCumulList(timeEachTest);
             double totalTimeNewOrder = getSumStr(timeEachTest);
             totalTimeToCumulTime.put(totalTimeNewOrder, cumulTime);
