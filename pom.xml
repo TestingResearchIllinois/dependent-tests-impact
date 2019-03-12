@@ -45,7 +45,6 @@
     </distributionManagement>
 
     <modules>
-        <module>dt-fixer</module>
         <module>dt-impact-tracer</module>
     </modules>
 
