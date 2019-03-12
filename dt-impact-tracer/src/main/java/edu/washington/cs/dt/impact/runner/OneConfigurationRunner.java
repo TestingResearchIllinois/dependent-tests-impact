@@ -28,10 +28,14 @@ package edu.washington.cs.dt.impact.runner;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import edu.illinois.cs.testrunner.data.results.Result;
+import edu.illinois.cs.testrunner.data.results.TestRunResult;
 
 import edu.washington.cs.dt.RESULT;
 import edu.washington.cs.dt.TestExecResult;
@@ -49,8 +53,11 @@ import edu.washington.cs.dt.runners.FixedOrderRunner;
 public class OneConfigurationRunner extends Runner {
 
     public void execute() {
-        TestExecResult origResults = getCurrentOrderTestListResults(origOrderTestList, filesToDelete);
-        Map<String, RESULT> nameToOrigResults = origResults.getNameToResultsMap();
+        TestRunResult origResults = getCurrentOrderTestListResults(origOrderTestList, filesToDelete);
+        Map<String, Result> nameToOrigResults = new HashMap<>();
+        for (String test : origResults.results().keySet()) {
+            nameToOrigResults.put(test, origResults.results().get(test).result());
+        }
 
         // capture start time
         double start = System.nanoTime();
@@ -84,8 +91,11 @@ public class OneConfigurationRunner extends Runner {
             List<String> currentOrderTestList = getCurrentTestList(testObj, i);
 
             // ImpactMain
-            Map<String, RESULT> nameToTestResults =
-                    getCurrentOrderTestListResults(currentOrderTestList, filesToDelete).getNameToResultsMap();
+            TestRunResult result =  getCurrentOrderTestListResults(currentOrderTestList, filesToDelete);
+            Map<String, Result> nameToTestResults = new HashMap<>();
+            for (String test : result.results().keySet()) {
+                nameToTestResults.put(test, result.results().get(test).result());
+            }
 
             testList.setOrigOrderResults(origResults);
             testList.setTestOrderResults(nameToTestResults);
@@ -140,7 +150,11 @@ public class OneConfigurationRunner extends Runner {
                     testObj.resetDTList(allDTList);
                     currentOrderTestList = getCurrentTestList(testObj, i);
                     // ImpactMain
-                    nameToTestResults = getCurrentOrderTestListResults(currentOrderTestList, filesToDelete).getNameToResultsMap();
+                    nameToTestResults = new HashMap<>();
+                    result = getCurrentOrderTestListResults(currentOrderTestList, filesToDelete);
+                    for (String test : result.results().keySet()) {
+                        nameToTestResults.put(test, result.results().get(test).result());
+                    }
                     // Cross Referencer
                     changedTests = CrossReferencer.compareResults(nameToOrigResults, nameToTestResults, false);
 

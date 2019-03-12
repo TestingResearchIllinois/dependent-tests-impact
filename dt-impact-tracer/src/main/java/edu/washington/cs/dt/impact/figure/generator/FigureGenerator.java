@@ -16,7 +16,9 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import com.reedoei.eunomia.collections.ListUtil;
-import edu.washington.cs.dt.RESULT;
+
+import edu.illinois.cs.testrunner.data.results.Result;
+
 import edu.washington.cs.dt.impact.data.TestInfo;
 import edu.washington.cs.dt.impact.data.Project;
 import edu.washington.cs.dt.impact.data.ProjectEnhancedResults;
@@ -166,10 +168,10 @@ public abstract class FigureGenerator {
         return namesToResults; // none of the lines contained the keyword
     }
 
-    public static Map<String, RESULT> convertStrMapToRESULTMap(Map<String, String> map) {
-        Map<String, RESULT> namesToResults = new HashMap<>();
+    public static Map<String, Result> convertStrMapToResultMap(Map<String, String> map) {
+        Map<String, Result> namesToResults = new HashMap<>();
         for (String s : map.keySet()) {
-            RESULT result = FileTools.getRESULTFromString(map.get(s));
+            Result result = FileTools.getResultFromString(map.get(s));
             namesToResults.put(s, result);
         }
         return namesToResults;
@@ -183,7 +185,7 @@ public abstract class FigureGenerator {
         return namesToResults;
     }
 
-    public static Map<String, TestInfo> convertMapsToIsolationDataMap(Map<String, RESULT> namesToResults,
+    public static Map<String, TestInfo> convertMapsToIsolationDataMap(Map<String, Result> namesToResults,
                                                                       Map<String, Long> nameToTime) {
         Map<String, TestInfo> namesToIsolationData = new HashMap<>();
         for (String s : namesToResults.keySet()) {
@@ -526,7 +528,7 @@ public abstract class FigureGenerator {
 				maxTimeInFile = parseFileForMaxTime(file, Constants.TIME_INCL_DTF);
 				avgDepFindTime = parseFileForMaxTime(file, Constants.AVG_DEP_FIND_TIME_STRING);
 
-                Map<String, RESULT> namesToResults = convertStrMapToRESULTMap(
+                Map<String, Result> namesToResults = convertStrMapToResultMap(
                         parseFileForResult(file, Constants.ISOLATION_RESULTS));
                 Map<String, Long> namesToTime = convertStrMapToLongMap(
                         parseFileForResult(file, Constants.ISOLATION_TIMES));
@@ -536,7 +538,7 @@ public abstract class FigureGenerator {
 
                 dtToInfo = convertMapsToIsolationDataMap(namesToResults, namesToTime);
 
-                Map<String, RESULT> allTestResults= convertStrMapToRESULTMap(
+                Map<String, Result> allTestResults= convertStrMapToResultMap(
                         parseFileForResult(file, Constants.ALL_TEST_RESULTS));
 
                 Long[] testTimes = strArrayToLongArray(getRidSquareBrackets(timeInFile));
@@ -547,7 +549,7 @@ public abstract class FigureGenerator {
                 }
                 allTestToInfo = convertMapsToIsolationDataMap(allTestResults, allTestTimes);
 
-                Map<String, RESULT> origTestResults = convertStrMapToRESULTMap(
+                Map<String, Result> origTestResults = convertStrMapToResultMap(
                         parseFileForResult(file, Constants.ORIG_TEST_RESULTS));
                 origToInfo = convertMapsToIsolationDataMap(origTestResults, origOrderTimes);
 

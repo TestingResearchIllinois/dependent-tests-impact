@@ -9,7 +9,9 @@ import com.reedoei.eunomia.string.matching.LineMatch;
 import com.reedoei.eunomia.string.searching.Searcher;
 import com.reedoei.eunomia.string.searching.StringSearch;
 import com.reedoei.eunomia.util.OptUtil;
-import edu.washington.cs.dt.RESULT;
+
+import edu.illinois.cs.testrunner.data.results.Result;
+
 import edu.washington.cs.dt.impact.data.EnhancedValues;
 import edu.washington.cs.dt.impact.data.TestInfo;
 import edu.washington.cs.dt.impact.util.Constants;
@@ -154,11 +156,11 @@ public class ConfigurationData {
         final List<Long> testTimes = ListUtil.read(Long::parseLong, nextLine(search, Constants.TIME_STRING));
 
         final Map<String, Long> testTimesMap = PairStream.zip(testOrder, testTimes).collect(Collectors.toMap(Pair::getKey, Pair::getValue));
-        final Map<String, RESULT> testResults = MapUtil.valueRead(RESULT::valueOf, nextLine(search, Constants.ALL_TEST_RESULTS));
+        final Map<String, Result> testResults = MapUtil.valueRead(Result::valueOf, nextLine(search, Constants.ALL_TEST_RESULTS));
 
         final Map<String, TestInfo> reorderInfo = FigureGenerator.convertMapsToIsolationDataMap(testResults, testTimesMap);
 
-        final Map<String, RESULT> origResults = MapUtil.valueRead(RESULT::valueOf, nextLine(search, Constants.ORIG_TEST_RESULTS));
+        final Map<String, Result> origResults = MapUtil.valueRead(Result::valueOf, nextLine(search, Constants.ORIG_TEST_RESULTS));
         final Map<String, Long> origTimes = MapUtil.valueRead(Long::parseLong, nextLine(search, Constants.ORIG_TEST_TIMES));
 
         final Map<String, TestInfo> origInfo = FigureGenerator.convertMapsToIsolationDataMap(origResults, origTimes);
@@ -168,7 +170,7 @@ public class ConfigurationData {
 
         Map<String, TestInfo> isolationInfo = new HashMap<>();
         OptUtil.ifAllPresent(isolationResLine, isolationTimeLine, (resLine, timeLine) -> {
-            final Map<String, RESULT> results = MapUtil.valueRead(RESULT::valueOf, resLine);
+            final Map<String, Result> results = MapUtil.valueRead(Result::valueOf, resLine);
             final Map<String, Long> times = MapUtil.valueRead(Long::parseLong, timeLine);
 
             isolationInfo.putAll(FigureGenerator.convertMapsToIsolationDataMap(results, times));

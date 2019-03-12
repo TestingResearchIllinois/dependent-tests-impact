@@ -1,5 +1,8 @@
 package edu.washington.cs.dt.impact.data;
 
+import edu.illinois.cs.testrunner.data.results.Result;
+import edu.illinois.cs.testrunner.data.results.TestRunResult;
+
 import edu.washington.cs.dt.RESULT;
 import edu.washington.cs.dt.TestExecResult;
 import edu.washington.cs.dt.impact.runner.Runner;
@@ -26,9 +29,9 @@ public class WrapperTestList {
     private int testListSize;
 
     private double avgDepFindTime = -1; // -1 if we didn't look for dependent tests at all. Time is in seconds.
-    private Map<String, RESULT> origOrderResults;
+    private Map<String, Result> origOrderResults;
     private Map<String, Long> origOrderTimes = new HashMap<>();
-    private Map<String, RESULT> testOrderResults;
+    private Map<String, Result> testOrderResults;
 
     private final Map<String, RESULT> isolationResults = new HashMap<>();
     private final Map<String, Long> isolationTimes = new HashMap<>();
@@ -198,22 +201,25 @@ public class WrapperTestList {
         return origOrderTimes;
     }
 
-    public void setOrigOrderResults(final TestExecResult nameToOrigResults) {
-        origOrderResults = nameToOrigResults.getNameToResultsMap();
+    public void setOrigOrderResults(final TestRunResult nameToOrigResults) {
+        origOrderResults = new HashMap<>();
+        for (String test : nameToOrigResults.results().keySet()) {
+            origOrderResults.put(test, nameToOrigResults.results().get(test).result());
+        }
 
-        nameToOrigResults.getAllTests().forEach(testName ->
-                origOrderTimes.put(testName, nameToOrigResults.getResult(testName).getExecTime()));
+        nameToOrigResults.testOrder().forEach(testName ->
+                origOrderTimes.put(testName, (long)(nameToOrigResults.results().get(testName).time() * 1000)));
     }
 
-    public Map<String, RESULT> getOrigOrderResults() {
+    public Map<String, Result> getOrigOrderResults() {
         return origOrderResults;
     }
 
-    public void setTestOrderResults(final Map<String,RESULT> nameToTestResults) {
+    public void setTestOrderResults(final Map<String, Result> nameToTestResults) {
         testOrderResults = nameToTestResults;
     }
 
-    public Map<String, RESULT> getTestOrderResults() {
+    public Map<String, Result> getTestOrderResults() {
         return testOrderResults;
     }
 

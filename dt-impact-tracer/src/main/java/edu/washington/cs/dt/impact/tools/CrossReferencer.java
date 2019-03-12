@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.washington.cs.dt.RESULT;
+import edu.illinois.cs.testrunner.data.results.Result;
 
 public class CrossReferencer {
 
@@ -83,8 +83,8 @@ public class CrossReferencer {
         compareResults(processFile(file1), processFile(file2), true);
     }
 
-    public static Set<String> compareResults(Map<String, RESULT> origOrderResults,
-            Map<String, RESULT> testOrderResults, boolean printResults) {
+    public static Set<String> compareResults(Map<String, Result> origOrderResults,
+            Map<String, Result> testOrderResults, boolean printResults) {
         Set<String> changedTests = new HashSet<String>();
         Set<String> origOrderResultsCopy = new HashSet<String>(origOrderResults.keySet());
         Set<String> testOrderOnly = new HashSet<String>();
@@ -148,12 +148,12 @@ public class CrossReferencer {
         return changedTests;
     }
 
-    private static Map<String, RESULT> processFile(File f) {
+    private static Map<String, Result> processFile(File f) {
         if (!f.isFile()) {
             throw new RuntimeException(f.getName() + " file is invalid.");
         }
 
-        Map<String, RESULT> testsToResults = new HashMap<String, RESULT>();
+        Map<String, Result> testsToResults = new HashMap<>();
         BufferedReader br;
         try {
             br = new BufferedReader(new FileReader(f));
@@ -183,7 +183,7 @@ public class CrossReferencer {
 
                     for (String s : testResults) {
                         String[] testAndResult = s.split("=");
-                        testsToResults.put(testAndResult[0], FileTools.getRESULTFromString(testAndResult[1]));
+                        testsToResults.put(testAndResult[0], FileTools.getResultFromString(testAndResult[1]));
                     }
                 }
                 line = br.readLine();
