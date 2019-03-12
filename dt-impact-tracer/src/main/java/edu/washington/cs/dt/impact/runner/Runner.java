@@ -666,12 +666,12 @@ public abstract class Runner {
         return getSum(doubleList);
     }
 
-    protected TestExecResult getCurrentOrderTestListResults(List<String> currentOrderTestList,
-                                                            List<String> filesToDelete) {
+    protected TestRunResult getCurrentOrderTestListResults(List<String> currentOrderTestList,
+                                                           List<String> filesToDelete) {
         // ImpactMain
         FileTools.clearEnv(filesToDelete);
-        TestExecResults results = ImpactMain.getResults(classPath, currentOrderTestList);
-        return results.getExecutionRecords().get(0);
+        TestRunResult result = runner.runListWithCp(classPath, currentOrderTestList).get();
+        return result;
     }
 
     protected List<String> getCurrentTestList(Test testObj, int numOfMachines) {

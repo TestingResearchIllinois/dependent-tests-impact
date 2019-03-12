@@ -1,6 +1,6 @@
 package edu.washington.cs.dt.impact.data;
 
-import edu.washington.cs.dt.RESULT;
+import edu.illinois.cs.testrunner.data.results.Result;
 
 /**
  * Created by winglam on 7/1/18.
@@ -10,9 +10,9 @@ import edu.washington.cs.dt.RESULT;
  */
 public class TestInfo {
     private final long time;
-    private final RESULT result;
+    private final Result result;
 
-    public TestInfo(long time, RESULT result) {
+    public TestInfo(long time, Result result) {
         this.result = result;
         this.time = time;
     }
@@ -20,7 +20,7 @@ public class TestInfo {
     public long getTime() {
         return time;
     }
-    public RESULT getResult() {
+    public Result getResult() {
         return result;
     }
 }

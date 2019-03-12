@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import edu.washington.cs.dt.RESULT;
+import edu.illinois.cs.testrunner.data.results.Result;
 
 public class FileTools {
 
@@ -69,15 +69,15 @@ public class FileTools {
         }
     }
 
-    public static RESULT getRESULTFromString(String s) {
+    public static Result getResultFromString(String s) {
         if (s.equals("PASS")) {
-            return RESULT.PASS;
+            return Result.PASS;
         } else if (s.equals("FAILURE")) {
-            return RESULT.FAILURE;
+            return Result.FAILURE;
         } else if (s.equals("ERROR")) {
-            return RESULT.ERROR;
+            return Result.ERROR;
         } else if (s.equals("SKIPPED")) {
-            return RESULT.SKIPPED;
+            return Result.SKIPPED;
         }
         return null;
     }

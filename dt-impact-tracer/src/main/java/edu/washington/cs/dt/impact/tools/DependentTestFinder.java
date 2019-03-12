@@ -19,6 +19,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import edu.illinois.cs.testrunner.data.results.Result;
+
 import edu.washington.cs.dt.RESULT;
 import edu.washington.cs.dt.TestExecResult;
 import edu.washington.cs.dt.TestExecResults;
@@ -32,7 +34,7 @@ public class DependentTestFinder {
     private static List<String> FILES_TO_DELETE;
     private static List<String> ORIGINAL_ORDER_TESTS;
     private static List<String> CURRENT_ORDER_TESTS;
-    private static RESULT DEPENDENT_TEST_RESULT;
+    private static Result DEPENDENT_TEST_RESULT;
     private static List<String> ALL_DT_LIST;
     private static String CLASSPATH;
 
@@ -56,7 +58,7 @@ public class DependentTestFinder {
             System.exit(0);
         }
 
-        RESULT dependentTestResult = null;
+        Result dependentTestResult = null;
         int dependentTestResultIndex = argsList.indexOf("-dependentTestResult");
         if (dependentTestResultIndex != -1) {
             // get index of output file
@@ -70,11 +72,11 @@ public class DependentTestFinder {
             dependentTestResultString = dependentTestResultString.toLowerCase();
 
             if (dependentTestResultString.equals("pass")) {
-                dependentTestResult = RESULT.PASS;
+                dependentTestResult = Result.PASS;
             } else if (dependentTestResultString.equals("error")) {
-                dependentTestResult = RESULT.ERROR;
+                dependentTestResult = Result.ERROR;
             } else if (dependentTestResultString.equals("fail")) {
-                dependentTestResult = RESULT.FAILURE;
+                dependentTestResult = Result.FAILURE;
             } else {
                 System.err.println(
                         "No such test result argument exist." + " Possible options are: pass, error and fail.");
@@ -159,7 +161,7 @@ public class DependentTestFinder {
                 FileTools.parseFileToList(DT_FILE), System.getProperty("java.class.path"));
     }
 
-    public static void runDTF(String dependentTestName, RESULT dependentTestResult, List<String> currentOrderTests,
+    public static void runDTF(String dependentTestName, Result dependentTestResult, List<String> currentOrderTests,
             List<String> originalOrderTests, List<String> filesToDelete, List<String> allDTList,
                               String CLASSPATH) {
         DependentTestFinder.CLASSPATH = CLASSPATH;
