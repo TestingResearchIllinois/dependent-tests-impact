@@ -73,7 +73,7 @@ public abstract class Runner {
         this.runner = runner;
     }
 
-    protected void parseArgs(String[] args) {
+    public void parseArgs(String[] args) {
         argsList = new ArrayList<String>(Arrays.asList(args));
         if (argsList.contains("-help")) {
             System.out.println("Main class that relies on program arguments to generate a regression testing "

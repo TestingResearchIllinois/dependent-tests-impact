@@ -153,7 +153,7 @@ public class RunWithDependencies extends Plugins {
                     "-origOrder", newDTResults + "/" + k + "-order.txt",
                     "-testInputDir", dtResults + "/sootTestOutput-" + k,
                     "-filesToDelete", newDTResults + "/env-files",
-                    "-project", "",
+                    "-project", projectName,
                     "-testType", k,
                     "-outputDir", newPrioResults,
                     "-timeToRun", Integer.toString(MEDIANTIMES),
@@ -166,7 +166,7 @@ public class RunWithDependencies extends Plugins {
                 for (String j : PRIOORDERS) {
                     // TODO: -dependentTestFile is static, so it doesn't get reset between runs -> dependent tests always re-ordered even without dependent test file
                     TestPluginPlugin.info("Running Prioritization Without Dependent Test File");
-                    String fileName = "prioritization-" + "" + "-" + k + "-" + i + "-" + j;
+                    String fileName = "prioritization-" + projectName + "-" + k + "-" + i + "-" + j;
                     args = new String[]{
                             "-technique", "prioritization",
                             "-coverage", i,
@@ -175,7 +175,7 @@ public class RunWithDependencies extends Plugins {
                             "-testInputDir", dtResults + "/sootTestOutput-" + k,
                             "-filesToDelete", newDTResults + "/env-files",
                             "-getCoverage",
-                            "-project", "",
+                            "-project", projectName,
                             "-testType", k,
                             "-outputDir", newPrioResults,
                             "-timeToRun", Integer.toString(MEDIANTIMES),
@@ -193,7 +193,7 @@ public class RunWithDependencies extends Plugins {
                             "-testInputDir", dtResults + "/sootTestOutput-" + k,
                             "-filesToDelete", newDTResults + "/env-files",
                             "-getCoverage",
-                            "-project", "",
+                            "-project", projectName,
                             "-testType", k,
                             "-outputDir", newPrioResults,
                             "-timeToRun", Integer.toString(MEDIANTIMES),
@@ -227,7 +227,7 @@ public class RunWithDependencies extends Plugins {
                     "-origOrder", newDTResults + "/" + k + "-order.txt",
                     "-testInputDir", dtResults + "/sootTestOutput-" + k + "-selection",
                     "-filesToDelete", newDTResults + "/env-files",
-                    "-project", "",
+                    "-project", projectName,
                     "-testType", k,
                     "-outputDir", newSeleResults,
                     "-timeToRun", Integer.toString(MEDIANTIMES),
@@ -240,7 +240,7 @@ public class RunWithDependencies extends Plugins {
                 for (String j : SELEORDERS) {
                     // TODO: -dependentTestFile is static, so it doesn't get reset between runs -> dependent tests always re-ordered even without dependent test file
                     TestPluginPlugin.info("Running Selection Without Dependent Test File");
-                    String fileName = "selection-" + "" + "-" + k + "-" + i + "-" + j;
+                    String fileName = "selection-" + projectName + "-" + k + "-" + i + "-" + j;
                     args = new String[]{
                             "-technique", "selection",
                             "-coverage", i,
@@ -248,7 +248,7 @@ public class RunWithDependencies extends Plugins {
                             "-origOrder", newDTResults + "/" + k + "-order.txt",
                             "-testInputDir", dtResults + "/sootTestOutput-" + k + "-selection",
                             "-filesToDelete", newDTResults + "/env-files",
-                            "-project", "",
+                            "-project", projectName,
                             "-testType", k,
                             "-oldVersCFG", dtResults + "/selectionOutput",
                             "-newVersCFG", newDTResults + "/selectionOutput",
@@ -268,7 +268,7 @@ public class RunWithDependencies extends Plugins {
                             "-origOrder", newDTResults + "/" + k + "-order.txt",
                             "-testInputDir", dtResults + "/sootTestOutput-" + k + "-selection",
                             "-filesToDelete", newDTResults + "/env-files",
-                            "-project", "",
+                            "-project", projectName,
                             "-testType", k,
                             "-oldVersCFG", dtResults + "/selectionOutput",
                             "-newVersCFG", newDTResults + "/selectionOutput",
@@ -299,7 +299,7 @@ public class RunWithDependencies extends Plugins {
                     "-origOrder", newDTResults + "/" + j + "-order.txt",
                     "-testInputDir", dtResults + "/sootTestOutput-" + j,
                     "-filesToDelete", newDTResults + "/env-files",
-                    "-project", "",
+                    "-project", projectName,
                     "-testType", j,
                     "-outputDir", newParaResults,
                     "-timeToRun", Integer.toString(MEDIANTIMES),
@@ -326,7 +326,7 @@ public class RunWithDependencies extends Plugins {
                             "-origOrder", newDTResults + "/" + j + "-order.txt",
                             "-testInputDir", dtResults + "/sootTestOutput-" + j,
                             "-filesToDelete", newDTResults + "/env-files",
-                            "-project", "",
+                            "-project", projectName,
                             "-testType", j,
                             "-numOfMachines", k,
                             "-outputDir", newParaResults,
@@ -344,7 +344,7 @@ public class RunWithDependencies extends Plugins {
                             "-origOrder", newDTResults + "/" + j + "-order.txt",
                             "-testInputDir", dtResults + "/sootTestOutput-" + j,
                             "-filesToDelete", newDTResults + "/env-files",
-                            "-project", "",
+                            "-project", projectName,
                             "-testType", j,
                             "-numOfMachines", k,
                             "-outputDir", newParaResults,

@@ -87,7 +87,7 @@ public class OneConfigurationRunner extends Runner {
         for (int i = 0; i < numOfMachines.getValue(); i++) {
             start = System.nanoTime();
 
-            WrapperTestList testList = new WrapperTestList();
+            WrapperTestList testList = new WrapperTestList(runner);
             List<String> currentOrderTestList = getCurrentTestList(testObj, i);
 
             // ImpactMain
