@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.illinois.cs.testrunner.data.results.Result;
-import edu.illinois.cs.testrunner.data.results.TestRunResult;
+import com.reedoei.testrunner.data.results.Result;
+import com.reedoei.testrunner.data.results.TestRunResult;
 
 import edu.washington.cs.dt.RESULT;
 import edu.washington.cs.dt.TestExecResult;

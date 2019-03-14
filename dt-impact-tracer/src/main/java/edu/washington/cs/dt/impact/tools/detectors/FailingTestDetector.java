@@ -1,6 +1,7 @@
 package edu.washington.cs.dt.impact.tools.detectors;
 
 import com.reedoei.eunomia.util.StandardMain;
+
 import com.reedoei.testrunner.data.results.Result;
 import com.reedoei.testrunner.data.results.TestResult;
 import com.reedoei.testrunner.data.results.TestRunResult;

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 import com.reedoei.eunomia.collections.ListUtil;
 
-import edu.illinois.cs.testrunner.data.results.Result;
+import com.reedoei.testrunner.data.results.Result;
 
 import edu.washington.cs.dt.impact.data.TestInfo;
 import edu.washington.cs.dt.impact.data.Project;

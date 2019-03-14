@@ -1,8 +1,8 @@
 package edu.washington.cs.dt.impact.data;
 
-import edu.illinois.cs.testrunner.data.results.Result;
-import edu.illinois.cs.testrunner.data.results.TestRunResult;
-import edu.illinois.cs.testrunner.runner.SmartRunner;
+import com.reedoei.testrunner.data.results.Result;
+import com.reedoei.testrunner.data.results.TestRunResult;
+import com.reedoei.testrunner.runner.SmartRunner;
 
 import edu.washington.cs.dt.RESULT;
 import edu.washington.cs.dt.TestExecResult;
