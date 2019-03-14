@@ -4,7 +4,10 @@ import com.reedoei.testrunner.configuration.Configuration;
 import com.reedoei.testrunner.data.results.TestRunResult;
 import com.reedoei.testrunner.mavenplugin.TestPluginPlugin;
 import com.reedoei.testrunner.mavenplugin.TestPlugin;
-import edu.illinois.cs.dt.tools.runner.InstrumentingSmartRunner;
+import edu.illinois.cs.dt.testrunner.runner.RunnerFactory;
+import edu.illinois.cs.dt.testrunner.runner.SmartRunner;
+import edu.illinois.cs.dt.testrunner.runner.TestInfoStore;
+
 import edu.washington.cs.dt.impact.runner.OneConfigurationRunner;
 import edu.washington.cs.dt.impact.runner.Runner;
 import edu.washington.cs.dt.main.ImpactMain;
@@ -34,8 +37,8 @@ public abstract class Plugins extends TestPlugin {
 
     protected String projectName;
 
-    protected InstrumentingSmartRunner runner;
     protected MavenProject project;
+    protected SmartRunner runner;
 
     // Old version main Directories
     protected String dtSubjectSource;
@@ -78,6 +81,9 @@ public abstract class Plugins extends TestPlugin {
 
     protected void setProject(MavenProject project) {
         this.project = project;
+        edu.illinois.cs.testrunner.runner.Runner testrunner = RunnerFactory.from(project).get();
+        this.runner = new SmartRunner(testrunner.framework(), new TestInfoStore(), testrunner.classpath(),
+                                      testrunner.environment(), testrunner.outputPath());
     }
 
     protected MavenProject getProject(MavenProject project) {
@@ -97,7 +103,7 @@ public abstract class Plugins extends TestPlugin {
         newDTClass = newDTSubject.concat("/classes");
         newDTTests = newDTSubject.concat("/test-classes");
 
-        newDTResults = newDTSubjectSource.concat("/results");
+        newDTResults = newDTSubjectSource.concat("/new-results");
         FileUtils.deleteQuietly(new File(newDTResults));
         new File(newDTResults).mkdirs();
         newPrioResults = newDTResults.concat("/prioritization-results");
@@ -239,7 +245,6 @@ public abstract class Plugins extends TestPlugin {
                 path = path.substring(0, path.length() - 1);
                 File pathFile = new File(path);
                 pathFile.mkdirs();
-                System.out.println(path);
                 for (File file : Objects.requireNonNull(pathFile.listFiles())) {
                     if (file.isFile() && file.getName().endsWith(".jar")) {
                         sb.append(path);
@@ -276,21 +281,22 @@ public abstract class Plugins extends TestPlugin {
     protected void runOneConfigurationRunner(String[] args,
                                                     String outputFile) {
         String paramsString = "OneConfigurationRunner Parameters\n\t" + StringUtils.join(args, "\n\t");
-        if (outputFile == null) {
-            TestPluginPlugin.info(paramsString);
-            OneConfigurationRunner.main(args);
-        } else {
-            PrintStream stdout = System.out;
+        PrintStream stdout = System.out;
+        OneConfigurationRunner oneconfigrunner = new OneConfigurationRunner();
+        if (outputFile != null) {
             try {
                 PrintStream out = new PrintStream(new FileOutputStream(outputFile));
                 System.setOut(out);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-            System.out.println(paramsString);
-            OneConfigurationRunner.main(args);
-            System.setOut(stdout);
         }
+        TestPluginPlugin.info(paramsString);
+        oneconfigrunner.parseArgs(args);
+        oneconfigrunner.setRunner(runner);
+        oneconfigrunner.execute();
+
+        System.setOut(stdout);
     }
 
     protected void runTestsForResults(final String cp, String inputFile, String outputFile) {

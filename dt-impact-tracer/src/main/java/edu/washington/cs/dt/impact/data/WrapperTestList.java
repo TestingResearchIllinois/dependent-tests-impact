@@ -2,6 +2,7 @@ package edu.washington.cs.dt.impact.data;
 
 import edu.illinois.cs.testrunner.data.results.Result;
 import edu.illinois.cs.testrunner.data.results.TestRunResult;
+import edu.illinois.cs.testrunner.runner.SmartRunner;
 
 import edu.washington.cs.dt.RESULT;
 import edu.washington.cs.dt.TestExecResult;
@@ -33,8 +34,14 @@ public class WrapperTestList {
     private Map<String, Long> origOrderTimes = new HashMap<>();
     private Map<String, Result> testOrderResults;
 
-    private final Map<String, RESULT> isolationResults = new HashMap<>();
+    private final Map<String, Result> isolationResults = new HashMap<>();
     private final Map<String, Long> isolationTimes = new HashMap<>();
+
+    private SmartRunner runner;
+
+    public WrapperTestList(SmartRunner runner) {
+        this.runner = runner;
+    }
 
     public int getTestListSize() {
         return testListSize;
@@ -224,14 +231,12 @@ public class WrapperTestList {
     }
 
     public void isolationResult(final String changedTest, final String classPath) {
-        final TestExecResult result =
-                new FixedOrderRunner(classPath, Collections.singletonList(changedTest))
-                .run().getExecutionRecords().get(0);
+        final TestRunResult result = runner.runListWithCp(classPath, Collections.singletonList(changedTest)).get();
 
-        final RESULT testResult = result.getResult(changedTest).result;
+        final Result testResult = result.results().get(changedTest).result();
         isolationResults.put(changedTest, testResult);
 
-        final long time = result.getResult(changedTest).getExecTime();
+        final long time = (long)(result.results().get(changedTest).time() * 1000);
         isolationTimes.put(changedTest, time);
     }
 
@@ -239,7 +244,7 @@ public class WrapperTestList {
         return isolationTimes;
     }
 
-    public Map<String, RESULT> getIsolationResults() {
+    public Map<String, Result> getIsolationResults() {
         return isolationResults;
     }
 }
