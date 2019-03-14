@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import edu.illinois.cs.testrunner.data.results.Result;
+import com.reedoei.testrunner.data.results.Result;
 
 public class FileTools {
 

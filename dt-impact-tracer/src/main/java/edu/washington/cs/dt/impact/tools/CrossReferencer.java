@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.illinois.cs.testrunner.data.results.Result;
+import com.reedoei.testrunner.data.results.Result;
 
 public class CrossReferencer {
 

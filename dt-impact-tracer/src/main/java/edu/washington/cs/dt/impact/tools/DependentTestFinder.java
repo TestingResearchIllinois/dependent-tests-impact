@@ -19,7 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import edu.illinois.cs.testrunner.data.results.Result;
+import com.reedoei.testrunner.data.results.Result;
 
 import edu.washington.cs.dt.RESULT;
 import edu.washington.cs.dt.TestExecResult;
