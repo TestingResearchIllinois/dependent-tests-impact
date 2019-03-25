@@ -26,6 +26,7 @@
 
 package edu.washington.cs.dt.impact.runner;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,10 +35,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.reedoei.testrunner.configuration.Configuration;
+import com.reedoei.testrunner.data.framework.TestFramework;
 import com.reedoei.testrunner.data.results.Result;
 import com.reedoei.testrunner.data.results.TestRunResult;
+import com.reedoei.testrunner.runner.SmartRunner;
+import com.reedoei.testrunner.runner.TestInfoStore;
 
-import edu.washington.cs.dt.RESULT;
 import edu.washington.cs.dt.TestExecResult;
 import edu.washington.cs.dt.TestExecResults;
 import edu.washington.cs.dt.impact.data.WrapperTestList;
@@ -215,6 +219,8 @@ public class OneConfigurationRunner extends Runner {
     public static void main(String[] args) {
         OneConfigurationRunner runner = new OneConfigurationRunner();
         runner.parseArgs(args);
+        runner.setRunner(new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), runner.classPath(), new HashMap<String, String>(), Paths.get(runner.outputFileName())));
+        Configuration.config().setDefault("testplugin.classpath", "");
         runner.execute();
     }
 }
