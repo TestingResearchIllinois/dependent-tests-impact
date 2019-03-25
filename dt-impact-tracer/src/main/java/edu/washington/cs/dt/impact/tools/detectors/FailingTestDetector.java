@@ -12,7 +12,6 @@ import com.reedoei.testrunner.runner.RunnerFactory;
 import com.reedoei.testrunner.runner.SmartRunner;
 import com.reedoei.testrunner.runner.TestInfoStore;
 
-import edu.washington.cs.dt.main.ImpactMain;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.project.MavenProject;
 import scala.Option;
@@ -79,8 +78,6 @@ public class FailingTestDetector extends StandardMain {
 
     public Set<String> notPassingTests(List<String> tests) throws IOException {
         final Set<String> notPassingTests = new HashSet<>();
-
-        ImpactMain.skipMissingTests = true;
 
         while (!tests.isEmpty()) {
             final TestRunResult result = runner.runListWithCp(classpath, tests).get();
