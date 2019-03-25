@@ -2,15 +2,17 @@ package edu.washington.cs.dt.impact.tools.detectors;
 
 import com.reedoei.eunomia.util.StandardMain;
 
+import com.reedoei.testrunner.configuration.Configuration;
+import com.reedoei.testrunner.data.framework.TestFramework;
 import com.reedoei.testrunner.data.results.Result;
 import com.reedoei.testrunner.data.results.TestResult;
 import com.reedoei.testrunner.data.results.TestRunResult;
 import com.reedoei.testrunner.runner.Runner;
 import com.reedoei.testrunner.runner.RunnerFactory;
-import edu.washington.cs.dt.RESULT;
-import edu.washington.cs.dt.TestExecResult;
+import com.reedoei.testrunner.runner.SmartRunner;
+import com.reedoei.testrunner.runner.TestInfoStore;
+
 import edu.washington.cs.dt.main.ImpactMain;
-import edu.washington.cs.dt.runners.FixedOrderRunner;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.project.MavenProject;
 import scala.Option;
@@ -29,6 +31,7 @@ public class FailingTestDetector extends StandardMain {
     private final String classpath;
     private Path testList = null;
     private Path outputPath = null;
+    private SmartRunner runner;
 
     public FailingTestDetector(final String[] args) throws IOException {
         super(args);
@@ -36,6 +39,9 @@ public class FailingTestDetector extends StandardMain {
         this.classpath = getClasspathArg();
         this.testList = Paths.get(getArgRequired("tests"));
         this.outputPath = Paths.get(getArgRequired("output"));
+
+        this.runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), this.classpath, new HashMap<String, String>(), this.outputPath);
+        Configuration.config().setDefault("testplugin.classpath", "");
     }
 
     public static void main(final String[] args) {
@@ -77,10 +83,10 @@ public class FailingTestDetector extends StandardMain {
         ImpactMain.skipMissingTests = true;
 
         while (!tests.isEmpty()) {
-            final TestExecResult result = new FixedOrderRunner(classpath, tests).run().getExecutionRecords().get(0);
+            final TestRunResult result = runner.runListWithCp(classpath, tests).get();
 
             final int beforeSize = tests.size();
-            notPassingTests.addAll(tests.stream().filter(t -> !result.getResult(t).result.equals(RESULT.PASS)).collect(Collectors.toList()));
+            notPassingTests.addAll(tests.stream().filter(t -> !result.results().get(t).result().equals(Result.PASS)).collect(Collectors.toList()));
 
             tests.removeAll(notPassingTests);
             final int afterSize = tests.size();
