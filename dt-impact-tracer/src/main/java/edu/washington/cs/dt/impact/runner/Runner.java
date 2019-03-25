@@ -748,4 +748,12 @@ public abstract class Runner {
         }
         return cumulList;
     }
+
+    public String classPath() {
+        return this.classPath;
+    }
+
+    public String outputFileName() {
+        return this.outputFileName;
+    }
 }
