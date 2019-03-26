@@ -92,6 +92,7 @@ public class RunnerMain {
 
         // TODO: Allow handling of randomize option; for now just run in fixed order
         SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), classpath, new HashMap<String, String>(), Paths.get("/dev/null"));
+        Configuration.config().setDefault("testplugin.classpath", "");
         /*if (randomize) {
             runner = new RandomOrderRunner(classpath, tests);
         } else {
