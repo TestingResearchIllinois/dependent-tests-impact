@@ -42,6 +42,10 @@ import com.reedoei.testrunner.data.results.TestRunResult;
 import com.reedoei.testrunner.runner.SmartRunner;
 import com.reedoei.testrunner.runner.TestInfoStore;
 
+import edu.illinois.cs.dt.tools.minimizer.MinimizeTestsResult;
+import edu.illinois.cs.dt.tools.minimizer.PolluterData;
+import edu.illinois.cs.dt.tools.minimizer.TestMinimizer;
+
 import edu.washington.cs.dt.TestExecResult;
 import edu.washington.cs.dt.TestExecResults;
 import edu.washington.cs.dt.impact.data.WrapperTestList;
@@ -50,7 +54,7 @@ import edu.washington.cs.dt.impact.technique.Prioritization;
 import edu.washington.cs.dt.impact.technique.Selection;
 import edu.washington.cs.dt.impact.technique.Test;
 import edu.washington.cs.dt.impact.tools.CrossReferencer;
-import edu.washington.cs.dt.impact.tools.DependentTestFinder;
+import edu.washington.cs.dt.impact.util.Constants;
 import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
 import edu.washington.cs.dt.runners.FixedOrderRunner;
 
@@ -95,7 +99,7 @@ public class OneConfigurationRunner extends Runner {
             List<String> currentOrderTestList = getCurrentTestList(testObj, i);
 
             // ImpactMain
-            TestRunResult result =  getCurrentOrderTestListResults(currentOrderTestList, filesToDelete);
+            TestRunResult result = getCurrentOrderTestListResults(currentOrderTestList, filesToDelete);
             Map<String, Result> nameToTestResults = new HashMap<>();
             for (String test : result.results().keySet()) {
                 nameToTestResults.put(test, result.results().get(test).result());
@@ -141,15 +145,29 @@ public class OneConfigurationRunner extends Runner {
 
                     fixedDT.add(testName);
 
-                    // DependentTestFinder
+                    // Minimizer
                     final long startDepFind = System.nanoTime();
-                    DependentTestFinder.runDTF(testName, nameToOrigResults.get(testName), currentOrderTestList,
-                            origOrderTestList, filesToDelete, allDTList, classPath);
+                    TestMinimizer minimizer = new TestMinimizer(currentOrderTestList, this.runner, testName);
+                    MinimizeTestsResult minimizerResult;
+                    try {
+                        minimizerResult = minimizer.run();
+                    } catch (Exception ex) {
+                        // If somehow some exception happens, assume no dependent test, make sure no polluters, move on
+                        minimizerResult = new MinimizeTestsResult(null, null, null, testName, new ArrayList<PolluterData>(), null);
+                    }
                     final long endDepFind = System.nanoTime();
 
                     totalDepTime += endDepFind - startDepFind;
 
-                    allDTList = DependentTestFinder.getAllDTs();
+                    // Write the results of the minimizer into the format that is needed
+                    allDTList = new ArrayList<>();
+                    for (PolluterData pd : minimizerResult.polluters()) {
+                        allDTList.add(Constants.TEST_LINE + testName);
+                        allDTList.add("Intended behavior: PASS");   // Assume intended behavior is always PASS
+                        allDTList.add("[]");                        // TODO: For now assume victims
+                        allDTList.add("The revealed different behavior: " + minimizerResult.expected());
+                        allDTList.add(Constants.EXECUTE_AFTER + pd.deps());
+                    }
                     // TestListGenerator
                     testObj.resetDTList(allDTList);
                     currentOrderTestList = getCurrentTestList(testObj, i);
