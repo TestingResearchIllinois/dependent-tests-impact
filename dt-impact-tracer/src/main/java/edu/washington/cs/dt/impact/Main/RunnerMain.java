@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.reedoei.testrunner.configuration.Configuration;
 import com.reedoei.testrunner.data.framework.TestFramework;
 import com.reedoei.testrunner.data.results.Result;
 import com.reedoei.testrunner.data.results.TestRunResult;
