@@ -53,7 +53,6 @@ import edu.washington.cs.dt.impact.tools.CrossReferencer;
 import edu.washington.cs.dt.impact.tools.DependentTestFinder;
 import edu.washington.cs.dt.impact.util.Constants;
 import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
-import edu.washington.cs.dt.runners.FixedOrderRunner;
 
 public class OneConfigurationRunner extends Runner {
 
