@@ -8,6 +8,7 @@
  */
 package edu.washington.cs.dt.impact.tools;
 
+import java.nio.file.Paths;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -19,14 +20,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.reedoei.testrunner.data.framework.TestFramework;
 import com.reedoei.testrunner.data.results.Result;
+import com.reedoei.testrunner.data.results.TestRunResult;
+import com.reedoei.testrunner.runner.SmartRunner;
+import com.reedoei.testrunner.runner.TestInfoStore;
 
-import edu.washington.cs.dt.RESULT;
-import edu.washington.cs.dt.TestExecResult;
-import edu.washington.cs.dt.TestExecResults;
 import edu.washington.cs.dt.impact.util.Constants;
-import edu.washington.cs.dt.runners.AbstractTestRunner;
-import edu.washington.cs.dt.runners.FixedOrderRunner;
 
 public class DependentTestFinder {
 
@@ -378,14 +378,12 @@ public class DependentTestFinder {
             botHalf.add(dependentTestName);
 
             FileTools.clearEnv(FILES_TO_DELETE);
-            AbstractTestRunner runner = new FixedOrderRunner(CLASSPATH, topHalf);
+            SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), CLASSPATH, new HashMap<String, String>(), Paths.get("/dev/null"));
             boolean topResults =
-                    checkTestMatch(isOriginalOrder, runner.run().getExecutionRecords().get(0), dependentTestName);
-
+                    checkTestMatch(isOriginalOrder, runner.runListWithCp(CLASSPATH, topHalf).get(), dependentTestName);
             FileTools.clearEnv(FILES_TO_DELETE);
-            runner = new FixedOrderRunner(CLASSPATH, botHalf);
             boolean botResults =
-                    checkTestMatch(isOriginalOrder, runner.run().getExecutionRecords().get(0), dependentTestName);
+                    checkTestMatch(isOriginalOrder, runner.runListWithCp(CLASSPATH, botHalf).get(), dependentTestName);
 
             // dependent test depends on more than one test in tests
             if (topResults == botResults) {
@@ -515,14 +513,12 @@ public class DependentTestFinder {
             botHalf.add(dependentTestName);
 
             FileTools.clearEnv(FILES_TO_DELETE);
-            AbstractTestRunner runner = new FixedOrderRunner(CLASSPATH, topHalf);
+            SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), CLASSPATH, new HashMap<String, String>(), Paths.get("/dev/null"));
             boolean topResults =
-                    checkTestMatch(isOriginalOrder, runner.run().getExecutionRecords().get(0), dependentTestName);
-
+                    checkTestMatch(isOriginalOrder, runner.runListWithCp(CLASSPATH, topHalf).get(), dependentTestName);
             FileTools.clearEnv(FILES_TO_DELETE);
-            runner = new FixedOrderRunner(CLASSPATH, botHalf);
             boolean botResults =
-                    checkTestMatch(isOriginalOrder, runner.run().getExecutionRecords().get(0), dependentTestName);
+                    checkTestMatch(isOriginalOrder, runner.runListWithCp(CLASSPATH, botHalf).get(), dependentTestName);
 
             // dependent test depends on more than one test in tests
             if (topResults == botResults) {
@@ -841,17 +837,16 @@ public class DependentTestFinder {
     // does not match DEPENDENT_TEST_RESULT, false otherwise
     private static boolean isTestResultDifferent(String dependentTestName, List<String> orderedTests) {
         FileTools.clearEnv(FILES_TO_DELETE);
-        AbstractTestRunner runner = new FixedOrderRunner(CLASSPATH, orderedTests);
-        TestExecResults results = runner.run();
+        SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), CLASSPATH, new HashMap<String, String>(), Paths.get("/dev/null"));
+        TestRunResult results = runner.runListWithCp(CLASSPATH, orderedTests).get();
 
-        RESULT dtIsolateResult = null;
-        TestExecResult result = results.getExecutionRecords().get(0);
-        if (result.isTestPassed(dependentTestName)) {
-            dtIsolateResult = RESULT.PASS;
-        } else if (result.isTestError(dependentTestName)) {
-            dtIsolateResult = RESULT.ERROR;
+        Result dtIsolateResult = null;
+        if (results.results().get(dependentTestName).result().equals(Result.PASS)) {
+            dtIsolateResult = Result.PASS;
+        } else if (results.results().get(dependentTestName).result().equals(Result.ERROR)) {
+            dtIsolateResult = Result.ERROR;
         } else {
-            dtIsolateResult = RESULT.FAILURE;
+            dtIsolateResult = Result.FAILURE;
         }
 
         return !dtIsolateResult.equals(DEPENDENT_TEST_RESULT);
@@ -859,14 +854,14 @@ public class DependentTestFinder {
 
     // returns true if dependentTestName's result in results is the same as
     // DEPENDENT_TEST_RESULT and if it is original order, false otherwise
-    private static boolean checkTestMatch(boolean isOriginalOrder, TestExecResult results, String dependentTestName) {
+    private static boolean checkTestMatch(boolean isOriginalOrder, TestRunResult results, String dependentTestName) {
         boolean testResult;
-        if (DEPENDENT_TEST_RESULT.equals(RESULT.PASS)) {
-            testResult = results.isTestPassed(dependentTestName);
-        } else if (DEPENDENT_TEST_RESULT.equals(RESULT.ERROR)) {
-            testResult = results.isTestError(dependentTestName);
+        if (DEPENDENT_TEST_RESULT.equals(Result.PASS)) {
+            testResult = results.results().get(dependentTestName).result().equals(Result.PASS);
+        } else if (DEPENDENT_TEST_RESULT.equals(Result.ERROR)) {
+            testResult = results.results().get(dependentTestName).result().equals(Result.ERROR);
         } else {
-            testResult = results.isTestFailed(dependentTestName);
+            testResult = results.results().get(dependentTestName).result().equals(Result.FAILURE);
         }
 
         return testResult == isOriginalOrder;
