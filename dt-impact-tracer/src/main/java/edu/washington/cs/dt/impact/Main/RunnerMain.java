@@ -129,7 +129,20 @@ public class RunnerMain {
         }
         sb.append("Pass: " + passing + ", Fail: " + failing + ", Error: " + error + ", Skipped: " + skipped + ", Ignored: " + ignored);
         sb.append(System.getProperty("line.separator"));
-        sb.append(result.toString());
+        // Format the result into the expected form with simple map
+        sb.append("{");
+        for (String test : result.results().keySet()) {
+            sb.append(test);
+            sb.append("=");
+            if (useTimer) {
+                sb.append((long)(result.results().get(test).time() * 1000));
+            } else {
+                sb.append(result.results().get(test).result());
+            }
+            sb.append(", ");
+        }
+        sb.setLength(sb.length() - 2);  // Remove last two characters, since end has extra ", ", assume at least one test
+        sb.append("}");
         sb.append(System.getProperty("line.separator"));
         System.out.println(sb.toString());
     }
