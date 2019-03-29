@@ -50,7 +50,9 @@ import edu.washington.cs.dt.impact.technique.Prioritization;
 import edu.washington.cs.dt.impact.technique.Selection;
 import edu.washington.cs.dt.impact.technique.Test;
 import edu.washington.cs.dt.impact.tools.CrossReferencer;
-import edu.washington.cs.dt.impact.tools.DependentTestFinder;
+import edu.washington.cs.dt.impact.tools.minimizer.MinimizeTestsResult;
+import edu.washington.cs.dt.impact.tools.minimizer.PolluterData;
+import edu.washington.cs.dt.impact.tools.minimizer.TestMinimizer;
 import edu.washington.cs.dt.impact.util.Constants;
 import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
 
@@ -143,14 +145,21 @@ public class OneConfigurationRunner extends Runner {
 
                     // Minimizer
                     final long startDepFind = System.nanoTime();
-                    DependentTestFinder.runDTF(testName, nameToOrigResults.get(testName), currentOrderTestList,
-                            origOrderTestList, filesToDelete, allDTList, classPath);
+                    TestMinimizer minimizer = new TestMinimizer(currentOrderTestList, runner, testName);
+                    MinimizeTestsResult minimizerResult = minimizer.run();
                     final long endDepFind = System.nanoTime();
 
                     totalDepTime += endDepFind - startDepFind;
 
-                    // Get the results of the DependentTestFinder
-                    allDTList = DependentTestFinder.getAllDTs();
+                    // Get the results of the TestMinimizer, force it into format
+                    allDTList = new ArrayList<>();
+                    for (PolluterData pd : minimizerResult.polluters()) {
+                        allDTList.add(Constants.TEST_LINE + testName);
+                        allDTList.add("Intended behavior: " + minimizerResult.expected());
+                        allDTList.add(pd.deps().toString());
+                        allDTList.add("The revealed different behavior: PASS"); // Assume result is PASS
+                        allDTList.add(Constants.EXECUTE_AFTER + "[]");  // TODO: For now assume victims
+                    }
 
                     // TestListGenerator
                     testObj.resetDTList(allDTList);
