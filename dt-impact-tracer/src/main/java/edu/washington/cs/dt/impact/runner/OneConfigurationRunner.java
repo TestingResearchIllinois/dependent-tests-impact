@@ -152,11 +152,14 @@ public class OneConfigurationRunner extends Runner {
                     totalDepTime += endDepFind - startDepFind;
 
                     // Get the results of the TestMinimizer, force it into format
-                    allDTList = new ArrayList<>();
+                    if (allDTList == null) {
+                        allDTList = new ArrayList<>();
+                    }
                     for (PolluterData pd : minimizerResult.polluters()) {
-                        allDTList.add(Constants.TEST_LINE + testName);
+                        // Later algorithm tries to move tests before the dependent test, so force first polluter to be that dependent test
+                        allDTList.add(Constants.TEST_LINE + pd.deps().get(0).toString());
                         allDTList.add("Intended behavior: " + minimizerResult.expected());
-                        allDTList.add(pd.deps().toString());
+                        allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");  // Put actual dependent test here, it must come before the polluter
                         allDTList.add("The revealed different behavior: PASS"); // Assume result is PASS
                         allDTList.add(Constants.EXECUTE_AFTER + "[]");  // TODO: For now assume victims
                     }
