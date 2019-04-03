@@ -11,6 +11,7 @@ package edu.washington.cs.dt.impact.order;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,6 +44,7 @@ public class Standard {
     public void applyDeps() {
         List<TestFunctionStatement> orderedListOfTests = new LinkedList<TestFunctionStatement>();
         Set<String> alreadyAddedTests = new HashSet<String>();
+        Collections.sort(methodList);
         System.out.println(methodList);
         for (TestFunctionStatement test : methodList) {
             System.out.println(test.getName() + ": " + test.getDependentTests(true) + " " + test.getDependentTests(false));

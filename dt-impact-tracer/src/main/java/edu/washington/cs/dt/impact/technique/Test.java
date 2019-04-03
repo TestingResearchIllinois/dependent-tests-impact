@@ -107,7 +107,7 @@ public class Test {
                     nameToMethodData.put(dtTest, tmd);
                 }
                 if (nameToMethodData.get(testName) != null && tmd != null) {
-                    nameToMethodData.get(testName).addDependentTest(tmd, true);                	
+                    nameToMethodData.get(testName).addDependentTest(tmd, true);
                 }
             }
             if (nameToMethodData.get(testName) != null) {
