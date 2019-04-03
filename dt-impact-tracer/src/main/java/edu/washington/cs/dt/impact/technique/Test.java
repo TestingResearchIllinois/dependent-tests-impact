@@ -190,7 +190,10 @@ public class Test {
                 String afterTestsStr = line.split(Constants.EXECUTE_AFTER)[1];
                 if (afterTestsStr.length() > 2) {
                     afterTestsStr = afterTestsStr.substring(1, afterTestsStr.length() - 1);
-                    execAfter.put(testName, Arrays.asList(afterTestsStr.split(Constants.TEST_SEP)));
+                    if (!execAfter.containsKey(testName)) {
+                        execAfter.put(testName, new ArrayList<String>());
+                    }
+                    execAfter.get(testName).addAll(Arrays.asList(afterTestsStr.split(Constants.TEST_SEP)));
                 }
 
                 // revealed behavior line
@@ -201,7 +204,10 @@ public class Test {
                 String beforeTestsStr = line.split(Constants.EXECUTE_AFTER)[1];
                 if (beforeTestsStr.length() > 2) {
                     beforeTestsStr = beforeTestsStr.substring(1, beforeTestsStr.length() - 1);
-                    execBefore.put(testName, Arrays.asList(beforeTestsStr.split(Constants.TEST_SEP)));
+                    if (!execBefore.containsKey(testName)) {
+                        execBefore.put(testName, new ArrayList<String>());
+                    }
+                    execBefore.get(testName).addAll(Arrays.asList(beforeTestsStr.split(Constants.TEST_SEP)));
                 }
             }
             br.close();
