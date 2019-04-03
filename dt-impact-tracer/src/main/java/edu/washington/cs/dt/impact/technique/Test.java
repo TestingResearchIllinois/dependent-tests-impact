@@ -141,6 +141,7 @@ public class Test {
         for (int j = 0; j < allDTList.size();) {
             String line = allDTList.get(j);
             if (line.length() == 0) {
+                j++;
                 continue;
             }
             String testName = line.split(Constants.TEST_LINE)[1];
