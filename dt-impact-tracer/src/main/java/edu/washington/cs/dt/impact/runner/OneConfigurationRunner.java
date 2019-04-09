@@ -164,8 +164,17 @@ public class OneConfigurationRunner extends Runner {
                         allDTList.add(Constants.EXECUTE_AFTER + "[]");  // TODO: For now assume victims
                     }
 
-                    // TestListGenerator
-                    testObj.resetDTList(allDTList);
+                    // Make new test object, but make sure to use new instances that use in memory data objects (not files)
+                    if (techniqueName == TECHNIQUE.PRIORITIZATION) {
+                        testObj = new Prioritization(order, outputFileName, coverage, allDTList, false,
+                                origOrderTestList, testInputDir, false, !postProcessDTs);
+                    } else if (techniqueName == TECHNIQUE.SELECTION) {
+                        testObj = new Selection(order, outputFileName, testInputDir, coverage, selectionOutput1, selectionOutput2,
+                                origOrderTestList, allDTList, getCoverage, !postProcessDTs);
+                    } else {
+                        testObj = new Parallelization(order, outputFileName, testInputDir, coverage, allDTList,
+                                numOfMachines.getValue(), origOrderTestList, timeOrder, getCoverage, origOrderTestList, !postProcessDTs);
+                    }
                     currentOrderTestList = getCurrentTestList(testObj, i);
                     // ImpactMain
                     nameToTestResults = new HashMap<>();
