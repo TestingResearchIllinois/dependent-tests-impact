@@ -22,13 +22,20 @@ public class MinimizeTestsResult {
     private final Result expected;
     private final String dependentTest;
     private final List<PolluterData> polluters;
+    private final FlakyClass flakyClass;    // The classification of this one's dependent test can be "OD" or "NOD" (if reruns found it to be not order-dependent)
 
     public MinimizeTestsResult(final TestRunResult expectedRun, final Result expected,
-                               final String dependentTest, final List<PolluterData> polluters) {
+                               final String dependentTest, final List<PolluterData> polluters,
+                               final FlakyClass flakyClass) {
         this.expectedRun = expectedRun;
         this.expected = expected;
         this.dependentTest = dependentTest;
         this.polluters = polluters;
+        this.flakyClass = flakyClass;
+    }
+
+    public FlakyClass flakyClass() {
+        return this.flakyClass;
     }
 
     private boolean isExpected(final Runner runner, final List<String> deps) {

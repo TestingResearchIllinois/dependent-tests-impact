@@ -61,6 +61,16 @@ public class TestMinimizer {
         final List<String> order =
                 testOrder.contains(dependentTest) ? ListUtil.beforeInc(testOrder, dependentTest) : new ArrayList<>(testOrder);
 
+        // Run the single test 10 times to be more confident that the test is deterministic in its result
+        Result isolationResult = result(Collections.singletonList(dependentTest));
+        for (int i = 0; i < 9; i++) {
+            final Result r = result(Collections.singletonList(dependentTest));
+            // Result does not match, so return a form that is NOD
+            if (r != isolationResult) {
+                return new MinimizeTestsResult(expectedRun, expected, dependentTest, new ArrayList<PolluterData>(), FlakyClass.NOD);
+            }
+        }
+
         // Keep going as long as there are tests besides dependent test to run
         List<PolluterData> polluters = new ArrayList<>();
         int index = 0;
@@ -82,14 +92,14 @@ public class TestMinimizer {
         }
 
         final MinimizeTestsResult minimizedResult =
-                new MinimizeTestsResult(expectedRun, expected, dependentTest, polluters);
+                new MinimizeTestsResult(expectedRun, expected, dependentTest, polluters, FlakyClass.OD);
 
         // If the verifying does not work, then mark this test as NOD
         boolean verifyStatus = minimizedResult.verify(runner);
         if (verifyStatus) {
             return minimizedResult;
         } else {
-            return new MinimizeTestsResult(expectedRun, expected, dependentTest, polluters);
+            return new MinimizeTestsResult(expectedRun, expected, dependentTest, polluters, FlakyClass.NOD);
         }
     }
 
