@@ -65,7 +65,7 @@ public class Prioritization extends Test {
     public Prioritization(ORDER order, String outputFilename, COVERAGE coverage, List<String> allDTList,
             boolean getCoverage, List<String> origOrder, File inputTestFolder, boolean randomizeOriginal,
                           boolean mergeDTsCoverage) {
-        super(coverage, allDTList, inputTestFolder, mergeDTsCoverage);
+        super(coverage, allDTList, inputTestFolder, origOrder, mergeDTsCoverage);
         if (order == ORDER.ABSOLUTE || order == ORDER.RELATIVE) {
             Collections.sort(methodList);
             if (order == ORDER.RELATIVE) {

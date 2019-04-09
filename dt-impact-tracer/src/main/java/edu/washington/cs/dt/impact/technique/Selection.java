@@ -24,6 +24,7 @@ import java.util.Set;
 import edu.washington.cs.dt.impact.data.TestFunctionStatement;
 import edu.washington.cs.dt.impact.order.Relative;
 import edu.washington.cs.dt.impact.order.Standard;
+import edu.washington.cs.dt.impact.tools.FileTools;
 import edu.washington.cs.dt.impact.util.Constants.COVERAGE;
 import edu.washington.cs.dt.impact.util.Constants.ORDER;
 
@@ -44,7 +45,12 @@ public class Selection extends Test {
      */
     public Selection(ORDER order, String outputFileName, File inputTestFolder, COVERAGE coverage, File selectionOutput1,
             File selectionOutput2, File origOrder, File dependentTestsFile, boolean getCoverage, boolean mergeDTsCoverage) {
-        super(inputTestFolder, coverage, dependentTestsFile, origOrder, mergeDTsCoverage);
+        this(order, outputFileName, inputTestFolder, coverage, selectionOutput1, selectionOutput2, FileTools.parseFileToList(origOrder), FileTools.parseFileToList(dependentTestsFile), getCoverage, mergeDTsCoverage);
+    }
+
+    public Selection(ORDER order, String outputFileName, File inputTestFolder, COVERAGE coverage, File selectionOutput1,
+            File selectionOutput2, List<String> origOrder, List<String> allDTList, boolean getCoverage, boolean mergeDTsCoverage) {
+        super(coverage, allDTList, inputTestFolder, origOrder, mergeDTsCoverage);
 
         Set<String> changedCoverage = findCoverage(selectionOutput1, selectionOutput2, coverage);
 

@@ -58,7 +58,8 @@ public class Test {
         }
     }
 
-    public Test(COVERAGE coverage, List<String> allDTList, File folder, boolean mergeDTsCoverage) {
+    public Test(COVERAGE coverage, List<String> allDTList, File folder, List<String> origOrder, boolean mergeDTsCoverage) {
+        origOrderList = origOrder;
         testToAllLines = new HashMap<String, Set<String>>();
         allCoverageLines = new HashSet<String>();
         setAllLines(folder);

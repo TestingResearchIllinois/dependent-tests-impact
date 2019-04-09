@@ -27,6 +27,7 @@ import edu.washington.cs.dt.impact.data.TestList;
 import edu.washington.cs.dt.impact.data.TestTime;
 import edu.washington.cs.dt.impact.order.Relative;
 import edu.washington.cs.dt.impact.order.Standard;
+import edu.washington.cs.dt.impact.tools.FileTools;
 import edu.washington.cs.dt.impact.util.Constants.COVERAGE;
 import edu.washington.cs.dt.impact.util.Constants.ORDER;
 
@@ -48,7 +49,14 @@ public class Parallelization extends Test {
     public Parallelization(ORDER order, String outputFileName, File inputTestFolder, COVERAGE coverage,
             File dependentTestsFile, int k, File origOrder, File timeOrder, boolean getCoverage, List<String> origList,
                            boolean mergeDTsCoverage) {
-        super(inputTestFolder, coverage, dependentTestsFile, origOrder, mergeDTsCoverage);
+        this(order, outputFileName, inputTestFolder, coverage, FileTools.parseFileToList(dependentTestsFile), k, FileTools.parseFileToList(origOrder),
+                timeOrder, getCoverage, origList, mergeDTsCoverage);
+    }
+
+    public Parallelization(ORDER order, String outputFileName, File inputTestFolder, COVERAGE coverage,
+            List<String> allDTList, int k, List<String> origOrder, File timeOrder, boolean getCoverage, List<String> origList,
+                           boolean mergeDTsCoverage) {
+        super(coverage, allDTList, inputTestFolder, origOrder, mergeDTsCoverage);
 
         splitTests = new LinkedList<>();
         if (outputFileName == null) {
