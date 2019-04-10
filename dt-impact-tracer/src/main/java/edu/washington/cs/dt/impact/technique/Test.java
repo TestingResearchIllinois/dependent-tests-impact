@@ -60,14 +60,16 @@ public class Test {
 
     public Test(COVERAGE coverage, List<String> allDTList, File folder, List<String> origOrder, boolean mergeDTsCoverage) {
         origOrderList = origOrder;
-        testToAllLines = new HashMap<String, Set<String>>();
         allCoverageLines = new HashSet<String>();
-        setAllLines(folder);
-        allMethodList = listFilesForFolder(coverage);
+        testToAllLines = new HashMap<>();
+        if (allMethodList == null) {
+            setAllLines(folder);
+            allMethodList = listFilesForFolder(coverage);
+        }
         for (TestFunctionStatement tfs : allMethodList) {
             tfs.setMergeDTCoverage(mergeDTsCoverage);
         }
-        methodList = new ArrayList<TestFunctionStatement>(allMethodList);
+        methodList = new ArrayList<>(allMethodList);
         if (allDTList != null) {
             processDependentTests(null, allDTList, allMethodList);
         }
