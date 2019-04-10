@@ -50,6 +50,7 @@ import edu.washington.cs.dt.impact.technique.Prioritization;
 import edu.washington.cs.dt.impact.technique.Selection;
 import edu.washington.cs.dt.impact.technique.Test;
 import edu.washington.cs.dt.impact.tools.CrossReferencer;
+import edu.washington.cs.dt.impact.tools.minimizer.FlakyClass;
 import edu.washington.cs.dt.impact.tools.minimizer.MinimizeTestsResult;
 import edu.washington.cs.dt.impact.tools.minimizer.PolluterData;
 import edu.washington.cs.dt.impact.tools.minimizer.TestMinimizer;
@@ -141,8 +142,6 @@ public class OneConfigurationRunner extends Runner {
                             + dtToFix.size());
                     counter += 1;
 
-                    fixedDT.add(testName);
-
                     // Minimizer
                     final long startDepFind = System.nanoTime();
                     TestMinimizer minimizer = new TestMinimizer(currentOrderTestList, runner, testName);
@@ -151,10 +150,16 @@ public class OneConfigurationRunner extends Runner {
 
                     totalDepTime += endDepFind - startDepFind;
 
-                    // Get the results of the TestMinimizer, force it into format
+                    // If the result is NOD, then skip this dependent test
+                    if (minimizerResult.flakyClass() == FlakyClass.NOD) {
+                        dtToFix.remove(testName);
+                        continue;
+                    }
+
                     if (allDTList == null) {
                         allDTList = new ArrayList<>();
                     }
+                    // Get the results of the TestMinimizer, force it into format
                     for (PolluterData pd : minimizerResult.polluters()) {
                         // Later algorithm tries to move tests before the dependent test, so force first polluter to be that dependent test
                         allDTList.add(Constants.TEST_LINE + pd.deps().get(0).toString());
@@ -184,6 +189,9 @@ public class OneConfigurationRunner extends Runner {
                     }
                     // Cross Referencer
                     changedTests = CrossReferencer.compareResults(nameToOrigResults, nameToTestResults, false);
+
+                    // The test has been fixed
+                    fixedDT.add(testName);
 
                     dtToFix.clear();
                     for (String test : changedTests) {
