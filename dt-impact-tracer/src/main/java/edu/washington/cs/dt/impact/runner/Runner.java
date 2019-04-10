@@ -469,7 +469,7 @@ public abstract class Runner {
         if (outputFileName == null) {
             outputFileName = Constants.getOutputFileName(coverage, techniqueName, order, project, testType,
                     numOfMachines, resolveDependences != null ? DT_SETTING.FIXED_DT : DT_SETTING.CONTAINS_DT,
-                    allDTList == null ? TD_SETTING.OMITTED_TD : TD_SETTING.GIVEN_TD);
+                    allDTList == null ? TD_SETTING.OMITTED_TD : TD_SETTING.GIVEN_TD, postProcessDTs);
         }
 
         filesToDelete = FileTools.parseFileToList(new File(filesToDeleteStr));

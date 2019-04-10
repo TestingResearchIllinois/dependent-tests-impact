@@ -47,14 +47,14 @@ public class Constants {
     public static final String ORIG_TEST_TIMES = "Original order times:";
 
     public static String getOutputFileName(COVERAGE coverage, TECHNIQUE technique, ORDER order, String project,
-            TEST_TYPE test_type, MACHINES machines, DT_SETTING dt_setting, TD_SETTING td_setting) {
+            TEST_TYPE test_type, MACHINES machines, DT_SETTING dt_setting, TD_SETTING td_setting, boolean postProcessDTs) {
         String ret_str;
         if (technique == TECHNIQUE.PARALLELIZATION) {
             ret_str = technique + "-" + test_type + "-" + project.replace(" ", "_").toUpperCase() + "-" + order + "-" + dt_setting + "-" + td_setting
-                    + "-" + machines;
+                    + "-" + machines + "-" + postProcessDTs;
         } else {
             ret_str = technique + "-" + test_type + "-" + project.replace(" ", "_").toUpperCase() + "-" + coverage + "-" + order + "-" + dt_setting
-                    + "-" + td_setting;
+                    + "-" + td_setting + "-" + postProcessDTs;
         }
         return ret_str.concat(".txt");
     }
