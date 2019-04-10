@@ -11,6 +11,7 @@ package edu.washington.cs.dt.impact.order;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,9 +62,10 @@ public class Standard {
     // test dependences
     private void applyDepsHelper(List<TestFunctionStatement> orderedListOfTests, TestFunctionStatement newTest, Set<String> alreadyAddedTests) {
         if (!orderedListOfTests.contains(newTest)) {
-            Set<TestFunctionStatement> testsThatNeedsToExecuteBeforeNewTest = newTest.getDependentTests(false);
+            List<TestFunctionStatement> testsThatNeedToExecuteBeforeNewTest = new LinkedList<>(newTest.getDependentTests(false));
+            Collections.sort(testsThatNeedToExecuteBeforeNewTest);  // Sort list of tests that come before based on their weights
             // Add all tests that needs to come before newTest to the orderedListOfTests
-            for (TestFunctionStatement positiveDependee : testsThatNeedsToExecuteBeforeNewTest) {
+            for (TestFunctionStatement positiveDependee : testsThatNeedToExecuteBeforeNewTest) {
                 applyDepsHelper(orderedListOfTests, positiveDependee, alreadyAddedTests);
             }
 
