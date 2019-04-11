@@ -15,6 +15,7 @@ import java.util.Random;
 import edu.washington.cs.dt.impact.data.TestFunctionStatement;
 import edu.washington.cs.dt.impact.order.Relative;
 import edu.washington.cs.dt.impact.order.Standard;
+import edu.washington.cs.dt.impact.tools.FileTools;
 import edu.washington.cs.dt.impact.util.Constants.COVERAGE;
 import edu.washington.cs.dt.impact.util.Constants.ORDER;
 
@@ -33,7 +34,7 @@ public class Prioritization extends Test {
     public Prioritization(ORDER order, String outputFilename, File inputTestFolder, COVERAGE coverage,
             File dependentTestsFile, boolean getCoverage, File origOrder, boolean mergeDTsCoverage) {
         this(order, outputFilename, inputTestFolder, coverage, dependentTestsFile, getCoverage, origOrder,
-                new Random().nextInt(), mergeDTsCoverage);
+                0, mergeDTsCoverage);
         for (TestFunctionStatement testFunctionStatement : methodList) {
             System.out.println(testFunctionStatement.getName() + "\t" + testFunctionStatement.getLineCount());
         }
@@ -41,7 +42,14 @@ public class Prioritization extends Test {
 
     public Prioritization(ORDER order, String outputFilename, File inputTestFolder, COVERAGE coverage,
             File dependentTestsFile, boolean getCoverage, File origOrder, int seed, boolean mergeDTsCoverage) {
-        super(inputTestFolder, coverage, dependentTestsFile, origOrder, mergeDTsCoverage);
+        this(order, outputFilename, inputTestFolder, coverage, FileTools.parseFileToList(dependentTestsFile),
+                getCoverage, FileTools.parseFileToList(origOrder), seed, false, mergeDTsCoverage);
+    }
+
+    public Prioritization(ORDER order, String outputFilename, File inputTestFolder, COVERAGE coverage,
+            List<String> allDTList, boolean getCoverage, List<String> origOrder, int seed, boolean randomizeOriginal,
+                          boolean mergeDTsCoverage) {
+        super(coverage, allDTList, inputTestFolder, origOrder, mergeDTsCoverage);
 
         if (order == ORDER.ABSOLUTE || order == ORDER.RELATIVE) {
             Collections.sort(methodList);
@@ -53,32 +61,9 @@ public class Prioritization extends Test {
             Collections.shuffle(methodList, new Random(seed));
             orderObj = new Standard(outputFilename, methodList);
         } else if (order == ORDER.ORIGINAL) {
-        	parseOrigOrderListToMethodList(origOrderList, getNameToMethodData(methodList));
-            orderObj = new Standard(outputFilename, methodList, getCoverage, allCoverageLines);
-        } else {
-            System.err.println("Test prioritization is specified with an incompatible order."
-                    + " Compatible orders are: absolute, relative and random.");
-            System.exit(0);
-        }
-    }
-
-    public Prioritization(ORDER order, String outputFilename, COVERAGE coverage, List<String> allDTList,
-            boolean getCoverage, List<String> origOrder, File inputTestFolder, boolean randomizeOriginal,
-                          boolean mergeDTsCoverage) {
-        super(coverage, allDTList, inputTestFolder, origOrder, mergeDTsCoverage);
-        if (order == ORDER.ABSOLUTE || order == ORDER.RELATIVE) {
-            Collections.sort(methodList);
-            if (order == ORDER.RELATIVE) {
-                methodList = new Relative(outputFilename, methodList, getCoverage, allCoverageLines).getMethodList();
-            }
-            orderObj = new Standard(outputFilename, methodList, getCoverage, allCoverageLines);
-        } else if (order == ORDER.RANDOM) {
-            Collections.shuffle(methodList);
-            orderObj = new Standard(outputFilename, methodList);
-        } else if (order == ORDER.ORIGINAL) {
             parseOrigOrderListToMethodList(origOrder, getNameToMethodData(methodList));
             if (randomizeOriginal) {
-                Collections.shuffle(methodList);
+                Collections.shuffle(methodList, new Random(seed));
             }
             orderObj = new Standard(outputFilename, methodList, getCoverage, allCoverageLines);
         } else {
