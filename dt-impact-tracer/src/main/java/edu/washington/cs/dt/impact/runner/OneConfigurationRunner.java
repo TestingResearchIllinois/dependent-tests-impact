@@ -189,8 +189,8 @@ public class OneConfigurationRunner extends Runner {
 
                     // Make new test object, but make sure to use new instances that use in memory data objects (not files)
                     if (techniqueName == TECHNIQUE.PRIORITIZATION) {
-                        testObj = new Prioritization(order, outputFileName, coverage, allDTList, false,
-                                origOrderTestList, testInputDir, false, !postProcessDTs);
+                        testObj = new Prioritization(order, outputFileName, testInputDir, coverage, allDTList, false,
+                                origOrderTestList, 0, false, !postProcessDTs);
                     } else if (techniqueName == TECHNIQUE.SELECTION) {
                         testObj = new Selection(order, outputFileName, testInputDir, coverage, selectionOutput1, selectionOutput2,
                                 origOrderTestList, allDTList, getCoverage, !postProcessDTs);
