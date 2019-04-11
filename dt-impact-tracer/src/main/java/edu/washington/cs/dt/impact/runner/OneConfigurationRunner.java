@@ -144,7 +144,15 @@ public class OneConfigurationRunner extends Runner {
 
                     // Minimizer
                     final long startDepFind = System.nanoTime();
-                    TestMinimizer minimizer = new TestMinimizer(currentOrderTestList, runner, testName);
+                    List<String> orderTestList;
+                    Result isolationResult = testList.getIsolationResults().get(testName);
+                    // If isolated result of test is PASS, then is victim, so minimize on failing order and put after
+                    if (isolationResult == Result.PASS) {
+                        orderTestList = currentOrderTestList;
+                    } else {
+                        orderTestList = origOrderTestList;
+                    }
+                    TestMinimizer minimizer = new TestMinimizer(orderTestList, runner, testName);
                     MinimizeTestsResult minimizerResult = minimizer.run();
                     final long endDepFind = System.nanoTime();
 
@@ -164,10 +172,20 @@ public class OneConfigurationRunner extends Runner {
                         // Later algorithm tries to move tests before the dependent test, so force first polluter to be that dependent test
                         allDTList.add(Constants.TEST_LINE + pd.deps().get(0).toString());
                         allDTList.add("Intended behavior: " + minimizerResult.expected());
-                        allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");  // Put actual dependent test here, it must come before the polluter
+                        // If victim (isolation result PASS), then dependent test goes here, meaning it must come after polluter
+                        if (isolationResult == Result.PASS) {
+                            allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");
+                        } else {    // Otherwise, for brittle, logic is reversed
+                            allDTList.add(Constants.EXECUTE_AFTER + "[]");
+                        }
                         allDTList.add("The revealed different behavior: PASS"); // Assume result is PASS
-                        allDTList.add(Constants.EXECUTE_AFTER + "[]");  // TODO: For now assume victims
+                        if (isolationResult == Result.PASS) {
+                            allDTList.add(Constants.EXECUTE_AFTER + "[]");
+                        } else {
+                            allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");
+                        }
                     }
+                    System.out.println("AWSHI2 ALLDTLIST: " + allDTList);
 
                     // Make new test object, but make sure to use new instances that use in memory data objects (not files)
                     if (techniqueName == TECHNIQUE.PRIORITIZATION) {
@@ -181,6 +199,7 @@ public class OneConfigurationRunner extends Runner {
                                 numOfMachines.getValue(), origOrderTestList, timeOrder, getCoverage, origOrderTestList, !postProcessDTs);
                     }
                     currentOrderTestList = getCurrentTestList(testObj, i);
+                    System.out.println("AWSHI2 NEW ORDER: " + currentOrderTestList);
                     // ImpactMain
                     nameToTestResults = new HashMap<>();
                     result = getCurrentOrderTestListResults(currentOrderTestList, filesToDelete);
