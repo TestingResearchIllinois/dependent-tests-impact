@@ -466,6 +466,8 @@ public abstract class Runner {
         // totalTimeOrigOrder = origOrderTestListData.getNewOrderTime();
         // }
 
+        postProcessDTs = argsList.contains("-postProcessDTs");
+
         if (outputFileName == null) {
             outputFileName = Constants.getOutputFileName(coverage, techniqueName, order, project, testType,
                     numOfMachines, resolveDependences != null ? DT_SETTING.FIXED_DT : DT_SETTING.CONTAINS_DT,
@@ -490,8 +492,6 @@ public abstract class Runner {
         }
 
         origOrderTestList.removeAll(extraFiles);
-
-        postProcessDTs = argsList.contains("-postProcessDTs");
     }
 
     protected void output(boolean outputDTListSeparately) {
