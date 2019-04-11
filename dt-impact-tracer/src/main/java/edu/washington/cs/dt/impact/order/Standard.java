@@ -63,6 +63,7 @@ public class Standard {
     private void applyDepsHelper(List<TestFunctionStatement> orderedListOfTests, TestFunctionStatement newTest, Set<String> alreadyAddedTests) {
         if (!orderedListOfTests.contains(newTest)) {
             List<TestFunctionStatement> testsThatNeedToExecuteBeforeNewTest = new LinkedList<>(newTest.getDependentTests(false));
+            testsThatNeedToExecuteBeforeNewTest.retainAll(methodList);  // Only use the ones that are in methodList, the selected ones
             Collections.sort(testsThatNeedToExecuteBeforeNewTest);  // Sort list of tests that come before based on their weights
             // Add all tests that needs to come before newTest to the orderedListOfTests
             for (TestFunctionStatement positiveDependee : testsThatNeedToExecuteBeforeNewTest) {
