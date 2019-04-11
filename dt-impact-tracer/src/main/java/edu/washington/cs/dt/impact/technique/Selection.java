@@ -64,6 +64,20 @@ public class Selection extends Test {
             }
         }
 
+        // go through the methodList, find those that need to run before any that are in
+        // the changed list, and include those as well
+        for (TestFunctionStatement methodData : methodList) {
+            for (TestFunctionStatement beforeData : methodData.getDependentTests(true)) {
+                // one of the ones that this test must run before is in the changed list,
+                // so ensure that the test is in the methodList, if not in there already
+                if (nameToMethodData.containsKey(beforeData.getName())) {
+                    if (!nameToMethodData.containsKey(methodData.getName())) {
+                        nameToMethodData.put(methodData.getName(), methodData);
+                    }
+                }
+            }
+        }
+
         if (order == ORDER.RELATIVE) {
             methodList.retainAll(nameToMethodData.values());
             allCoverageLines.retainAll(changedCoverage);
