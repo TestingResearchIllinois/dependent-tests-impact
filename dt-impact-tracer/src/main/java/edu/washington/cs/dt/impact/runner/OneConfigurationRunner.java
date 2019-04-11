@@ -185,7 +185,6 @@ public class OneConfigurationRunner extends Runner {
                             allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");
                         }
                     }
-                    System.out.println("AWSHI2 ALLDTLIST: " + allDTList);
 
                     // Make new test object, but make sure to use new instances that use in memory data objects (not files)
                     if (techniqueName == TECHNIQUE.PRIORITIZATION) {
@@ -199,7 +198,6 @@ public class OneConfigurationRunner extends Runner {
                                 numOfMachines.getValue(), origOrderTestList, timeOrder, getCoverage, origOrderTestList, !postProcessDTs);
                     }
                     currentOrderTestList = getCurrentTestList(testObj, i);
-                    System.out.println("AWSHI2 NEW ORDER: " + currentOrderTestList);
                     // ImpactMain
                     nameToTestResults = new HashMap<>();
                     result = getCurrentOrderTestListResults(currentOrderTestList, filesToDelete);
