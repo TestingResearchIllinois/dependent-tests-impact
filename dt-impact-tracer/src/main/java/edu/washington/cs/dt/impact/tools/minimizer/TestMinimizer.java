@@ -74,7 +74,7 @@ public class TestMinimizer {
         // Keep going as long as there are tests besides dependent test to run
         List<PolluterData> polluters = new ArrayList<>();
         int index = 0;
-        /*while (!order.isEmpty()) {
+        while (!order.isEmpty()) {
             // First need to check if remaining tests in order still lead to expected value
             if (result(order) != expected) {
                 break;
@@ -89,15 +89,15 @@ public class TestMinimizer {
 
             order.removeAll(deps);  // Look for other deps besides the ones already found
             index++;
-        }*/
-        for (int i = 0; i < order.size(); i++) {
+        }
+        /*for (int i = 0; i < order.size(); i++) {
             String test = order.get(i);
             final Result r = result(Collections.singletonList(test));
             if (r == expected) {
                 polluters.add(new PolluterData(index, Collections.singletonList(test)));
                 index++;
             }
-        }
+        }*/
 
         final MinimizeTestsResult minimizedResult =
                 new MinimizeTestsResult(expectedRun, expected, dependentTest, polluters, FlakyClass.OD);
@@ -156,10 +156,6 @@ public class TestMinimizer {
         final List<String> deps = new ArrayList<>();
 
         if (order.isEmpty()) {
-            return deps;
-        }
-
-        if (tryIsolated(deps, order)) {
             return deps;
         }
 
