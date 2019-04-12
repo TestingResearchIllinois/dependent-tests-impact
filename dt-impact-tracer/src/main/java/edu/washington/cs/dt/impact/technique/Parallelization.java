@@ -56,7 +56,7 @@ public class Parallelization extends Test {
     public Parallelization(ORDER order, String outputFileName, File inputTestFolder, COVERAGE coverage,
             List<String> allDTList, int k, List<String> origOrder, File timeOrder, boolean getCoverage, List<String> origList,
                            boolean mergeDTsCoverage) {
-        super(coverage, allDTList, inputTestFolder, origOrder, mergeDTsCoverage);
+        super(inputTestFolder, coverage, allDTList, origOrder, mergeDTsCoverage);
 
         splitTests = new LinkedList<>();
         if (outputFileName == null) {

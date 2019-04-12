@@ -42,23 +42,15 @@ public class Test {
     }
 
     public Test(File folder, COVERAGE coverage, File dependentTestsFile, List<String> origOrder, boolean mergeDTsCoverage) {
-        origOrderList = origOrder;
-        allCoverageLines = new HashSet<>();
-        testToAllLines = new HashMap<>();
-        if (allMethodList == null) {
-            setAllLines(folder);
-            allMethodList = listFilesForFolder(coverage);
-        }
-        for (TestFunctionStatement tfs : allMethodList) {
-            tfs.setMergeDTCoverage(mergeDTsCoverage);
-        }
-        methodList = new ArrayList<>(allMethodList);
-        if (dependentTestsFile != null) {
-            processDependentTests(dependentTestsFile, null, allMethodList);
-        }
+        this(folder, coverage, dependentTestsFile, null, origOrder, mergeDTsCoverage);
     }
 
-    public Test(COVERAGE coverage, List<String> allDTList, File folder, List<String> origOrder, boolean mergeDTsCoverage) {
+    public Test(File folder, COVERAGE coverage, List<String> allDTList, List<String> origOrder, boolean mergeDTsCoverage) {
+        this(folder, coverage, null, allDTList, origOrder, mergeDTsCoverage);
+    }
+
+    // Private constructor to help reduce redundancy of logic, which only depends on if dependentTestsFile or allDTList
+    private Test(File folder, COVERAGE coverage, File dependentTestsFile, List<String> allDTList, List<String> origOrder, boolean mergeDTsCoverage) {
         origOrderList = origOrder;
         allCoverageLines = new HashSet<String>();
         testToAllLines = new HashMap<>();
@@ -70,8 +62,9 @@ public class Test {
             tfs.setMergeDTCoverage(mergeDTsCoverage);
         }
         methodList = new ArrayList<>(allMethodList);
-        if (allDTList != null) {
-            processDependentTests(null, allDTList, allMethodList);
+        // Need one of these to be not null
+        if (dependentTestsFile != null && allDTList != null) {
+            processDependentTests(dependentTestsFile, allDTList, allMethodList);
         }
     }
 

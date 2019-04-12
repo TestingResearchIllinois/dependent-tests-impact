@@ -50,7 +50,7 @@ public class Selection extends Test {
 
     public Selection(ORDER order, String outputFileName, File inputTestFolder, COVERAGE coverage, File selectionOutput1,
             File selectionOutput2, List<String> origOrder, List<String> allDTList, boolean getCoverage, boolean mergeDTsCoverage) {
-        super(coverage, allDTList, inputTestFolder, origOrder, mergeDTsCoverage);
+        super(inputTestFolder, coverage, allDTList, origOrder, mergeDTsCoverage);
 
         Set<String> changedCoverage = findCoverage(selectionOutput1, selectionOutput2, coverage);
 
