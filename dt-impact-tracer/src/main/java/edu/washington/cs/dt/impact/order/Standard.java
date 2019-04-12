@@ -46,18 +46,6 @@ public class Standard {
         Set<String> alreadyAddedTests = new HashSet<String>();
         System.out.println(methodList);
 
-        // First go through method list and convert the befores format to the afters format assumed later (for ease)
-        for (TestFunctionStatement test : methodList) {
-            for (TestFunctionStatement before : test.getDependentTests(true)) {
-                // Find the test in the list that is the before and add the current test to that one's after
-                for (TestFunctionStatement other : methodList) {
-                    if (other.getName().equals(before.getName())) {
-                        other.addDependentTest(test, false);
-                    }
-                }
-            }
-        }
-
         // Go through list and sort it out (now everything should follow the afters format
         for (TestFunctionStatement test : methodList) {
             System.out.println(test.getName() + ": " + test.getDependentTests(true) + " " + test.getDependentTests(false));

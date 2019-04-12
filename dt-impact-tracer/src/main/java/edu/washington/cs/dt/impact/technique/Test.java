@@ -68,6 +68,19 @@ public class Test {
         if (dependentTestsFile != null && allDTList != null) {
             processDependentTests(dependentTestsFile, allDTList, allMethodList);
         }
+
+        // After processing the dependent tests, convert the befores format into the afters format
+        // The only reason to keep the befores format around is to help with determining later by technique what tests must be included
+        for (TestFunctionStatement test : methodList) {
+            for (TestFunctionStatement before : test.getDependentTests(true)) {
+                // Find the test in the list that is the before and add the current test to that one's after
+                for (TestFunctionStatement other : methodList) {
+                    if (other.getName().equals(before.getName())) {
+                        other.addDependentTest(test, false);
+                    }
+                }
+            }
+        }
     }
 
     public void resetDTList(List<String> allDTList) {

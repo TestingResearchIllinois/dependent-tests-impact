@@ -65,13 +65,15 @@ public class TestFunctionStatement extends Observable implements Comparable<Test
     public void addDependentTest(TestFunctionStatement tmd, boolean isBefore) {
         if (tmd != null) {
             tmd.customAddObserver(this);
-            setOfCurrentLines.addAll(tmd.getTests());
             setChanged();
             notifyObservers(new HashSet<Object>());
             if (isBefore) {
                 execBefore.add(tmd);
             } else {
                 execAfter.add(tmd);
+                // Only update setOfCurrentLines that modifies weight for after,
+                // since later the logic only uses after (for ease)
+                setOfCurrentLines.addAll(tmd.getTests());
             }
         }
     }
