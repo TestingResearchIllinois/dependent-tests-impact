@@ -34,6 +34,9 @@ public class TestFunctionStatement extends Observable implements Comparable<Test
     // list of tests that when executed after reveals methodName as a dependent test
     protected Set<TestFunctionStatement> execAfter;
 
+    // Position of test in original order, to be used in comparing for sorting
+    protected int origOrderIndex;
+
     public TestFunctionStatement(String name) {
         this.methodName = name;
         currentLines = new LinkedHashSet<String>();
@@ -44,6 +47,14 @@ public class TestFunctionStatement extends Observable implements Comparable<Test
         setOfCurrentLines = new LinkedHashSet<Set<String>>();
         setOfCurrentLines.add(currentLines);
         mergeDTCoverage = true;
+    }
+
+    public void setOrigOrderIndex(int origOrderIndex) {
+        this.origOrderIndex = origOrderIndex;
+    }
+
+    public int getOrigOrderIndex() {
+        return this.origOrderIndex;
     }
 
     /**
@@ -177,7 +188,9 @@ public class TestFunctionStatement extends Observable implements Comparable<Test
         } else if (mLineCount > oLineCount) {
             return -1;
         } else {
-            return getName().compareTo(o.getName());
+            // Sort based on their position in the original order
+            // Subtract the two indices to get right sign of value
+            return getOrigOrderIndex() - o.getOrigOrderIndex();
         }
     }
 
