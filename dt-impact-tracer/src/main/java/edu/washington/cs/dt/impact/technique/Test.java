@@ -58,8 +58,10 @@ public class Test {
             setAllLines(folder);
             allMethodList = listFilesForFolder(coverage);
         }
+        // Set merge configuration for each method and set each one's orig order index
         for (TestFunctionStatement tfs : allMethodList) {
             tfs.setMergeDTCoverage(mergeDTsCoverage);
+            tfs.setOrigOrderIndex(origOrderList.indexOf(tfs.getName()));
         }
         methodList = new ArrayList<>(allMethodList);
         // Need one of these to be not null
