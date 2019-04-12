@@ -65,7 +65,7 @@ public class Test {
         }
         methodList = new ArrayList<>(allMethodList);
         // Need one of these to be not null
-        if (dependentTestsFile != null && allDTList != null) {
+        if (dependentTestsFile != null || allDTList != null) {
             processDependentTests(dependentTestsFile, allDTList, allMethodList);
         }
 
