@@ -60,7 +60,7 @@ public class Parallelization extends Test {
 
         splitTests = new LinkedList<>();
         if (outputFileName == null) {
-            throw new RuntimeException("Test parallelization cannot be ran" + " without a specified output file name.");
+            throw new RuntimeException("Test parallelization cannot be run without a specified output file name.");
         }
 
         if (order == ORDER.RELATIVE || order == ORDER.ABSOLUTE || order == ORDER.TIME) {
@@ -142,6 +142,18 @@ public class Parallelization extends Test {
             for (int i = 0; i < tmdLists.size(); i++) {
                 Map<String, TestFunctionStatement> nameToMethodData = getNameToMethodData(tmdLists.get(i).getTestList());
 
+                // For each test included here, make sure it also includes those that need to be added
+                // TODO: Right now it duplicates tests to be run across machines, consider removing as to not double run
+                for (TestFunctionStatement test : allMethodList) {
+                    for (TestFunctionStatement beforeData : test.getDependentTests(true)) {
+                        if (nameToMethodData.containsKey(beforeData.getName())) {
+                            if (!nameToMethodData.containsKey(test.getName())) {
+                                nameToMethodData.put(test.getName(), nameToMethodData.get(test));
+                            }
+                        }
+                    }
+                }
+
                 // Sort the list with respect to the original order
                 List<TestFunctionStatement> sortedList = new ArrayList<>();
                 for (final String name : origList) {
@@ -199,6 +211,17 @@ public class Parallelization extends Test {
                 }
                 if (tests.isEmpty()) {
                     throw new RuntimeException("List of tests is empty for " + order + " order!");
+                }
+                // For each test included here, make sure it also includes those that need to be added
+                // TODO: Right now it duplicates tests to be run across machines, consider removing as to not double run
+                for (TestFunctionStatement test : allMethodList) {
+                    for (TestFunctionStatement beforeData : test.getDependentTests(true)) {
+                        if (tests.contains(beforeData)) {
+                            if (!tests.contains(test)) {
+                                tests.add(test);
+                            }
+                        }
+                    }
                 }
                 splitTests.add(new Standard(outputFileName + j, tests, getCoverage, allCoverageLines));
             }
