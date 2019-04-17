@@ -103,12 +103,13 @@ public class TestMinimizer {
                 new MinimizeTestsResult(expectedRun, expected, dependentTest, polluters, FlakyClass.OD);
 
         // If the verifying does not work, then mark this test as NOD
-        boolean verifyStatus = minimizedResult.verify(runner);
+        /*boolean verifyStatus = minimizedResult.verify(runner);
         if (verifyStatus) {
             return minimizedResult;
         } else {
             return new MinimizeTestsResult(expectedRun, expected, dependentTest, polluters, FlakyClass.NOD);
-        }
+        }*/
+        return minimizedResult;
     }
 
     private List<String> deltaDebug(final List<String> deps, int n) {
