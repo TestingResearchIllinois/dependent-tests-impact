@@ -60,21 +60,33 @@ public class OutputPrecomputedDependences extends FigureGenerator {
 		String numMachines_string = flagsList.get(index + 1);
 		int numMachines = Integer.parseInt(numMachines_string);
 
-		outputDependences(techniqueName, numMachines, null, paraOutputDirectoryName);
+		outputDependences(techniqueName, orderName, coverageName, testType, projectName, numMachines,
+                          null, paraOutputDirectoryName,
+                          getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
 		if (numMachines > maxMachines && orderName.equals("original")) {
-			outputDependences("selection", numMachines, "function", seleOutputDirectoryName);
-			outputDependences("selection", numMachines, "statement", seleOutputDirectoryName);
+			outputDependences("selection", orderName, coverageName, testType, projectName, numMachines,
+                              "function", seleOutputDirectoryName,
+                              getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
+			outputDependences("selection", orderName, coverageName, testType, projectName, numMachines,
+                              "statement", seleOutputDirectoryName,
+                              getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
 			maxMachines = numMachines;
 		}
 	}
 
 	@Override
 	public void doPrioCalculations() {
-		outputDependences(techniqueName, -1, null, priorOutputDirectoryName);
-		outputDependences("selection", -1, null, seleOutputDirectoryName);
+		outputDependences(techniqueName, orderName, coverageName, testType, projectName, -1,
+                          null, priorOutputDirectoryName,
+                          getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
+		outputDependences("selection", orderName, coverageName, testType, projectName,
+                          -1, null, seleOutputDirectoryName,
+                          getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
 	}
 
-	private void outputDependences(String techniqueName, int numMachines, String customCoverage, String outputDirStr) {		
+	public static void outputDependences(String techniqueName, String orderName, String coverageName,
+										 String testType, String projectName, int numMachines,
+										 String customCoverage, String outputDirStr, String fileContents) {
 		StringBuilder fileName = new StringBuilder();
 		fileName.append(techniqueName);
 		fileName.append("-");
@@ -95,18 +107,25 @@ public class OutputPrecomputedDependences extends FigureGenerator {
 		fileName.append(orderName);
 		fileName.append(".txt");
 
-		StringBuilder fileContents = new StringBuilder();
-		List<String> dtList = parseFileForDTs(file, Constants.DT_LIST, true);
+        File directory = new File(outputDirStr);
+        if (! directory.exists()){
+            directory.mkdir();
+        }
+
+		writeToLatexFile(fileContents, outputDirStr + File.separator + fileName.toString(), false);
+	}
+
+	public static String getDTFile(List<String> dtList) {
+        StringBuilder fileContents = new StringBuilder();
         for (int j = 0; j < dtList.size();) {
             for (int i = 0; i < 5; j++) {
-            	fileContents.append(dtList.get(j) + "\n");
+                fileContents.append(dtList.get(j) + "\n");
                 i++;
             }
             fileContents.append("\n");
         }
-
-		writeToLatexFile(fileContents.toString(), outputDirStr + File.separator + fileName.toString(), false);
-	}
+        return fileContents.toString();
+    }
 
 	@Override
 	public void doSeleCalculations() {
