@@ -175,13 +175,11 @@ public class OneConfigurationRunner extends Runner {
                         // If victim (isolation result PASS), then dependent test goes here, meaning it must come after polluter
                         if (isolationResult == Result.PASS) {
                             allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");
+                            allDTList.add("The revealed different behavior: PASS"); // Assume result is PASS
+                            allDTList.add(Constants.EXECUTE_AFTER + "[]");
                         } else {    // Otherwise, for brittle, logic is reversed
                             allDTList.add(Constants.EXECUTE_AFTER + "[]");
-                        }
-                        allDTList.add("The revealed different behavior: PASS"); // Assume result is PASS
-                        if (isolationResult == Result.PASS) {
-                            allDTList.add(Constants.EXECUTE_AFTER + "[]");
-                        } else {
+                            allDTList.add("The revealed different behavior: PASS"); // Assume result is PASS
                             allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");
                         }
                     }
