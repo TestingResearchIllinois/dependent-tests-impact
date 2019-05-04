@@ -270,7 +270,11 @@ public class Parallelization extends Test {
 
                     for (String s : testResults) {
                         String[] testAndResult = s.split("=");
-                        testsToResults.put(testAndResult[0], Long.parseLong(testAndResult[1]));
+                        Long time = Long.parseLong(testAndResult[1]);
+                        if (time == 0) {
+                            time = 1L;
+                        }
+                        testsToResults.put(testAndResult[0], time);
                     }
                 }
                 line = br.readLine();
