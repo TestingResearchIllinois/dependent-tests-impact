@@ -537,7 +537,7 @@ public abstract class Runner {
         }
 
         outputArr.add("Total time (of all machines and iterations plus initial TestListGenerator): "
-                + nanosecondToSecond(totalTime));
+                + millisecondToSecond(totalTime));
         if (withNIterationTime != null && withoutNIterationTime != null) {
             outputArr.add(
                     "\nRuntime to generate the dependent test list including nIterations time: " + withNIterationTime);
@@ -545,7 +545,7 @@ public abstract class Runner {
                     "\nRuntime to generate the dependent test list without nIterations time: " + withoutNIterationTime);
         }
         if (techniqueName == TECHNIQUE.PARALLELIZATION) {
-            outputArr.add("\n" + Constants.ORDER_TIME_PARA + " " + nanosecondToSecond(maxTime));
+            outputArr.add("\n" + Constants.ORDER_TIME_PARA + " " + millisecondToSecond(maxTime));
             outputArr.add("\nTotal number of tests executed in all machines out of total in original order: " + numTests
                     + " / " + origOrderTestList.size());
         }
@@ -697,8 +697,8 @@ public abstract class Runner {
 
     // Helper static methods
 
-    public static String nanosecondToSecond(double nanoseconds) {
-        double sec = nanoseconds / 1E9;
+    public static String millisecondToSecond(double milliseconds) {
+        double sec = milliseconds / 1E3;
         return String.format("%.3f", sec);
     }
 

@@ -138,7 +138,7 @@ public class WrapperTestList {
     public List<String> output(final boolean getCoverage, final List<String> origOrderTestList) {
         final List<String> outputArr = new ArrayList<>();
 
-        outputArr.add(Constants.TIME_INCL_DTF + " " + Runner.nanosecondToSecond(getNullifyDTTime()) + "\n");
+        outputArr.add(Constants.TIME_INCL_DTF + " " + Runner.millisecondToSecond(getNullifyDTTime()) + "\n");
         outputArr.add(Constants.NUM_TESTS_OUT_OF_ORIG + " " + getTestListSize()
                 + " / " + origOrderTestList.size() + "\n");
         outputArr.add(Constants.NUM_NOT_FIXED_DTS + " " + getNumNotFixedDT() + "\n");
@@ -153,7 +153,7 @@ public class WrapperTestList {
             outputArr.add(Constants.APFD_VALUE + " " + getAPFD() + "\n");
         }
 
-        outputArr.add(Constants.ORDER_TIME + " " + Runner.nanosecondToSecond(getNewOrderTime()) + "\n");
+        outputArr.add(Constants.ORDER_TIME + " " + Runner.millisecondToSecond(getNewOrderTime()) + "\n");
 
         if (getTestList() != null) {
             outputArr.add("\n" + Constants.TEST_ORDER_LIST + "\n");
