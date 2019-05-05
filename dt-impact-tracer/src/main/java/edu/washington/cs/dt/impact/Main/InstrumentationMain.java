@@ -105,6 +105,7 @@ public class InstrumentationMain {
         argsList.add("-keep-line-number");
         argsList.add("-pp");
         argsList.add("-allow-phantom-refs");
+        argsList.add("-w");
         String[] sootArgs = argsList.toArray(new String[0]);
 
         System.out.println(argsList);
