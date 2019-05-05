@@ -208,11 +208,16 @@ public class OneConfigurationRunner extends Runner {
                     // The test has been fixed
                     fixedDT.add(testName);
 
+                    Set<String> oldDtToFix = new HashSet<>(dtToFix);    // Keep track of what was before, if entirely the same, then we could be looping
                     dtToFix.clear();
                     for (String test : changedTests) {
                         if (currentOrderTestList.contains(test)) {
                             dtToFix.add(test);
                         }
+                    }
+                    if (dtToFix.equals(oldDtToFix)) {
+                        System.out.println("DID NOT REMOVE ANY OLD DTs, LIKELY CANNOT REDUCE ANY MORE");
+                        break;
                     }
                 }
             }
