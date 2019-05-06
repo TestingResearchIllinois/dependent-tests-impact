@@ -114,10 +114,22 @@ public class OneConfigurationRunner extends Runner {
                 hasDependentTest = true;
             }
 
+            Set<String> NODs = new HashSet<>();;
+
             // Run the dependent tests in isolation to get the time/stuff for those
             for (final String changedTest : changedTests) {
                 testList.isolationResult(changedTest, classPath);
+                Result isoResult = testList.getIsolationResults().get(changedTest);
+                // Run a few more times to ensure that the isolation result is consistent, otherwise it is NOD
+                for (int j = 0; j < 10; j++) {
+                    testList.isolationResult(changedTest, classPath);
+                    if (testList.getIsolationResults().get(changedTest) != isoResult) {
+                        NODs.add(changedTest);
+                        break;
+                    }
+                }
             }
+            changedTests.removeAll(NODs);   // Remove from consideration any tests that are NOD
 
             int counter = 0;
 
@@ -158,9 +170,10 @@ public class OneConfigurationRunner extends Runner {
 
                     totalDepTime += endDepFind - startDepFind;
 
-                    // If the result is NOD, then skip this dependent test
+                    // If the result is NOD, then skip this dependent test, but record in list of NODs
                     if (minimizerResult.flakyClass() == FlakyClass.NOD) {
                         dtToFix.remove(testName);
+                        NODs.add(testName);
                         continue;
                     }
 
@@ -227,6 +240,7 @@ public class OneConfigurationRunner extends Runner {
             testList.setNullifyDTTime(runTotal);
             testList.setNumNotFixedDT(changedTests);
             testList.setNumFixedDT(fixedDT.size());
+            testList.setNODs(NODs);
             testList.setTestList(currentOrderTestList);
             testList.setTestListSize(currentOrderTestList.size());
 

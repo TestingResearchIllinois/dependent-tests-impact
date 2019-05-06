@@ -23,6 +23,7 @@ public class Constants {
     public static final String FIXED_DTS = "Number of DTs fixed:";
     public static final String NUM_NOT_FIXED_DTS = "Number of DTs not fixed:";
     public static final String NOT_FIXED_DTS = "DTs not fixed are:";
+    public static final String NUM_NODS = "NODs found:";
 
     // For figure showing the time to get precomputed dependences
     public static final String NUM_TESTS_OUT_OF_ORIG = "Number of tests selected out of total in original order:";

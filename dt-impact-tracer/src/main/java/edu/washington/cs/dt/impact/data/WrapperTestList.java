@@ -20,6 +20,7 @@ import java.util.Set;
 public class WrapperTestList {
     private Set<String> notFixedDT;
     private int numFixedDT;
+    private Set<String> NODs;
     private double nullifyDTTime;
     private List<String> coverage;
     private double APFD;
@@ -103,6 +104,14 @@ public class WrapperTestList {
         this.numFixedDT = numFixedDT;
     }
 
+    public int getNumNODs() {
+        return NODs.size();
+    }
+
+    public void setNODs(Set<String> NODs) {
+        this.NODs = NODs;
+    }
+
     public double getNullifyDTTime() {
         return nullifyDTTime;
     }
@@ -143,6 +152,7 @@ public class WrapperTestList {
                 + " / " + origOrderTestList.size() + "\n");
         outputArr.add(Constants.NUM_NOT_FIXED_DTS + " " + getNumNotFixedDT() + "\n");
         outputArr.add(Constants.FIXED_DTS + " " + getNumFixedDT() + "\n");
+        outputArr.add(Constants.NUM_NODS + " " + getNumNODs() + "\n");
 
         // If negative, we didn't run the dt finder, so shouldn't report this number.
         if (getAvgDepFindTime() >= 0) {
