@@ -1,6 +1,6 @@
 package edu.washington.cs.dt.impact.tools.detectors;
 
-import com.reedoei.eunomia.functional.Func;
+import com.reedoei.eunomia.collections.ListUtil;
 import com.reedoei.eunomia.io.capture.CaptureOutStream;
 import com.reedoei.eunomia.io.capture.CapturedOutput;
 import com.reedoei.eunomia.io.files.FileUtil;
@@ -90,7 +90,7 @@ public abstract class Detector {
 
         System.out.printf("[INFO] Found %d tests, writing list to %s and dt lists to %s\n", detect.size(), listPath, dtListPath);
 
-        Files.write(dtListPath, String.join(System.lineSeparator(), Func.map(TestExecResultsDelta::toString, detect)).getBytes());
-        Files.write(listPath, String.join(System.lineSeparator(), Func.map(t -> t.testName, detect)).getBytes());
+        Files.write(dtListPath, String.join(System.lineSeparator(), ListUtil.map(TestExecResultsDelta::toString, detect)).getBytes());
+        Files.write(listPath, String.join(System.lineSeparator(), ListUtil.map(t -> t.testName, detect)).getBytes());
     }
 }
