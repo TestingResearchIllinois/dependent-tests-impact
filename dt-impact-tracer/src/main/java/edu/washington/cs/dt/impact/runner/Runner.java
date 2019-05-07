@@ -590,11 +590,11 @@ public abstract class Runner {
             System.out.println("Writing results to " + filePathName);
 
             // Loop until outputFile is one that does not exist already
-            int k = 1;
+            /*int k = 1;
             while (outputFile.isFile()) {
                 outputFile = new File(filePathName + k);
                 k += 1;
-            }
+            }*/
 
             output = new FileWriter(outputFile);
             writer = new BufferedWriter(output);
