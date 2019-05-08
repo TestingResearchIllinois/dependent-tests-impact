@@ -65,10 +65,11 @@ public abstract class Detector {
                 if (!currentRoundResult.isEmpty()) {
                     System.out.printf("\r[INFO] Found %d tests in round %d of %d (%.1f seconds elapsed (%.1f total), %d seconds remaining).\n", currentRoundResult.size(), i, rounds, elapsed / 1000, totalElapsed, estimate);
                     result.addAll(currentRoundResult);
-                    i = 0;
+                    //i = 0;
+                    i++;
                     startTimeMs = System.currentTimeMillis();
                 } else {
-                    System.out.printf("\r[INFO] Found %d tests in round %d of %d (%.1f seconds elapsed (%.1f total), %d seconds remaining)", currentRoundResult.size(), i, rounds, elapsed / 1000, totalElapsed, estimate);
+                    System.out.printf("\r[INFO] Found %d tests in round %d of %d (%.1f seconds elapsed (%.1f total), %d seconds remaining).\n", currentRoundResult.size(), i, rounds, elapsed / 1000, totalElapsed, estimate);
                     i++;
                 }
 
