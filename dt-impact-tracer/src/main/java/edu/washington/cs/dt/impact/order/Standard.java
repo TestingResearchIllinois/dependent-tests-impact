@@ -48,6 +48,9 @@ public class Standard {
 
         // Go through list and sort it out (now everything should follow the afters format
         for (TestFunctionStatement test : methodList) {
+            if (test == null) {
+                continue;
+            }
             System.out.println(test.getName() + ": " + test.getDependentTests(true) + " " + test.getDependentTests(false));
             applyDepsHelper(orderedListOfTests, test, alreadyAddedTests);
         }
