@@ -147,6 +147,7 @@ public class OneConfigurationRunner extends Runner {
                 // before a dependent test from the ALL_DT_LIST is not actually putting all tests before the dependent
                 // test. Print botTests in determineSubLists to know for sure if all tests in there are in the
                 // ALL_DT_LIST and is in the current test order.
+                Set<String> notFixable = new HashSet<String>(); // Keep track of those that somehow cannot be addressed by minimizer
                 while (!dtToFix.isEmpty()) {
                     String testName = dtToFix.iterator().next();
 
@@ -218,8 +219,13 @@ public class OneConfigurationRunner extends Runner {
                     // Cross Referencer
                     changedTests = CrossReferencer.compareResults(nameToOrigResults, nameToTestResults, false);
 
-                    // The test has been fixed
-                    fixedDT.add(testName);
+                    // If the test is still not fixed, then include it in the not fixed ones
+                    if (changedTests.contains(testName)) {
+                        notFixable.add(testName);
+                    } else {
+                        // The test has been fixed
+                        fixedDT.add(testName);
+                    }
 
                     Set<String> oldDtToFix = new HashSet<>(dtToFix);    // Keep track of what was before, if entirely the same, then we could be looping
                     dtToFix.clear();
@@ -228,6 +234,8 @@ public class OneConfigurationRunner extends Runner {
                             dtToFix.add(test);
                         }
                     }
+                    // Remove any tests that are not fixable
+                    dtToFix.removeAll(notFixable);
                     if (dtToFix.equals(oldDtToFix)) {
                         System.out.println("DID NOT REMOVE ANY OLD DTs, LIKELY CANNOT REDUCE ANY MORE");
                         break;
