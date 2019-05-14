@@ -52,6 +52,7 @@ public class Selection extends Test {
             File selectionOutput2, List<String> origOrder, List<String> allDTList, boolean getCoverage, boolean mergeDTsCoverage) {
         super(inputTestFolder, coverage, allDTList, origOrder, mergeDTsCoverage);
 
+
         Set<String> changedCoverage = findCoverage(selectionOutput1, selectionOutput2, coverage);
 
         // removes all tests from consideration if they don't execute
@@ -59,6 +60,8 @@ public class Selection extends Test {
         Map<String, TestFunctionStatement> nameToMethodData = new HashMap<String, TestFunctionStatement>();
         for (TestFunctionStatement methodData : methodList) {
             methodData.retainLines(changedCoverage);
+        }
+        for (TestFunctionStatement methodData : methodList) {
             if (methodData.getLineCount() != 0) {
                 nameToMethodData.put(methodData.getName(), methodData);
             }
