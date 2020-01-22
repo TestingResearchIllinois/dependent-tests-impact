@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.HashSet;
 
 import static org.junit.Assert.*;
 
@@ -71,12 +72,12 @@ public class LifetimesTest {
         final List<Path> paraBefore = Util.map(ListUtil.fromArray(V7, V1, V6, V2), Paths::get);
         final List<Path> paraAfter = Util.map(ListUtil.fromArray(V12, V11, V10), Paths::get);
 
-        assertEquals(prioBefore, values.prio().getLeft());
-        assertEquals(prioAfter, values.prio().getRight());
-        assertEquals(seleBefore, values.sele().getLeft());
-        assertEquals(seleAfter, values.sele().getRight());
-        assertEquals(paraBefore, values.para().getLeft());
-        assertEquals(paraAfter, values.para().getRight());
+        assertEquals(new HashSet(prioBefore), new HashSet(values.prio().getLeft()));
+        assertEquals(new HashSet(prioAfter), new HashSet(values.prio().getRight()));
+        assertEquals(new HashSet(seleBefore), new HashSet(values.sele().getLeft()));
+        assertEquals(new HashSet(seleAfter), new HashSet(values.sele().getRight()));
+        assertEquals(new HashSet(paraBefore), new HashSet(values.para().getLeft()));
+        assertEquals(new HashSet(paraAfter), new HashSet(values.para().getRight()));
 
     }
 }
