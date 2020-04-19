@@ -51,8 +51,19 @@ public class Selection extends Test {
     public Selection(ORDER order, String outputFileName, File inputTestFolder, COVERAGE coverage, File selectionOutput1,
             File selectionOutput2, List<String> origOrder, List<String> allDTList, boolean getCoverage, boolean mergeDTsCoverage) {
         super(inputTestFolder, coverage, allDTList, origOrder, mergeDTsCoverage);
+        select(order, outputFileName, coverage, selectionOutput1, selectionOutput2, origOrder, getCoverage);
+    }
 
+    public Selection(ORDER order, String outputFileName, File inputTestFolder, COVERAGE coverage, File selectionOutput1,
+            File selectionOutput2, List<String> origOrder, Map<String, List<String>> execBefore, Map<String, List<String>> execAfter,
+            boolean getCoverage, boolean mergeDTsCoverage) {
+        super(inputTestFolder, coverage, execBefore, execAfter, origOrder, mergeDTsCoverage);
+        select(order, outputFileName, coverage, selectionOutput1, selectionOutput2, origOrder, getCoverage);
+    }
 
+    // Helper method for selecting
+    private void select(ORDER order, String outputFileName, COVERAGE coverage, File selectionOutput1, File selectionOutput2,
+            List<String> origOrder, boolean getCoverage) {
         Set<String> changedCoverage = findCoverage(selectionOutput1, selectionOutput2, coverage);
 
         // removes all tests from consideration if they don't execute

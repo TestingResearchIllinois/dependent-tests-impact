@@ -57,7 +57,19 @@ public class Parallelization extends Test {
             List<String> allDTList, int k, List<String> origOrder, File timeOrder, boolean getCoverage, List<String> origList,
                            boolean mergeDTsCoverage) {
         super(inputTestFolder, coverage, allDTList, origOrder, mergeDTsCoverage);
+        parallelize(order, outputFileName, inputTestFolder, k, timeOrder, getCoverage, origList);
+    }
 
+    public Parallelization(ORDER order, String outputFileName, File inputTestFolder, COVERAGE coverage,
+            Map<String, List<String>> execBefore, Map<String, List<String>> execAfter,
+            int k, List<String> origOrder, File timeOrder, boolean getCoverage, List<String> origList, boolean mergeDTsCoverage) {
+        super(inputTestFolder, coverage, execBefore, execAfter, origOrder, mergeDTsCoverage);
+        parallelize(order, outputFileName, inputTestFolder, k, timeOrder, getCoverage, origList);
+    }
+
+    // Helper method for parallelizing
+    private void parallelize(ORDER order, String outputFileName, File inputTestFolder,
+            int k, File timeOrder, boolean getCoverage, List<String> origList) {
         splitTests = new LinkedList<>();
         if (outputFileName == null) {
             throw new RuntimeException("Test parallelization cannot be run without a specified output file name.");
@@ -296,8 +308,14 @@ public class Parallelization extends Test {
     @Override
     public void resetDTList(List<String> allDTList) {
         if (allDTList != null) {
+            // Parse out contents from list
+            Map<String, List<String>> execBefore = new HashMap<>();
+            Map<String, List<String>> execAfter = new HashMap<>();
+            parseDependentTestsList(allDTList, execBefore, execAfter);
+
+            // Process for each subsequence of tests
             for (Standard obj : splitTests) {
-                processDependentTests(null, allDTList, obj.getMethodList());
+                processDependentTests(obj.getMethodList(), execBefore, execAfter);
             }
         }
     }

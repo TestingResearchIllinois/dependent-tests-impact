@@ -10,6 +10,7 @@ package edu.washington.cs.dt.impact.technique;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import edu.washington.cs.dt.impact.data.TestFunctionStatement;
@@ -50,7 +51,19 @@ public class Prioritization extends Test {
             List<String> allDTList, boolean getCoverage, List<String> origOrder, int seed, boolean randomizeOriginal,
                           boolean mergeDTsCoverage) {
         super(inputTestFolder, coverage, allDTList, origOrder, mergeDTsCoverage);
+        prioritize(order, outputFilename, getCoverage, origOrder, seed, randomizeOriginal);
+    }
 
+    public Prioritization(ORDER order, String outputFilename, File inputTestFolder, COVERAGE coverage,
+            Map<String, List<String>> execBefore, Map<String, List<String>> execAfter,
+            boolean getCoverage, List<String> origOrder, int seed, boolean randomizeOriginal, boolean mergeDTsCoverage) {
+        super(inputTestFolder, coverage, execBefore, execAfter, origOrder, mergeDTsCoverage);
+        prioritize(order, outputFilename, getCoverage, origOrder, seed, randomizeOriginal);
+    }
+
+    // Helper method for prioritizing
+    private void prioritize(ORDER order, String outputFilename, boolean getCoverage, List<String> origOrder,
+            int seed, boolean randomizeOriginal) {
         if (order == ORDER.ABSOLUTE || order == ORDER.RELATIVE) {
             Collections.sort(methodList);
             if (order == ORDER.RELATIVE) {

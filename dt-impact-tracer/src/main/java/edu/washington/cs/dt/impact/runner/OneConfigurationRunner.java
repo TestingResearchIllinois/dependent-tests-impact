@@ -148,6 +148,8 @@ public class OneConfigurationRunner extends Runner {
                 // test. Print botTests in determineSubLists to know for sure if all tests in there are in the
                 // ALL_DT_LIST and is in the current test order.
                 Set<String> notFixable = new HashSet<String>(); // Keep track of those that somehow cannot be addressed by minimizer
+                Map<String, List<String>> execBefore = new HashMap<>();
+                Map<String, List<String>> execAfter = new HashMap<>();
                 while (!dtToFix.isEmpty()) {
                     String testName = dtToFix.iterator().next();
 
@@ -181,9 +183,20 @@ public class OneConfigurationRunner extends Runner {
                     if (allDTList == null) {
                         allDTList = new ArrayList<>();
                     }
-                    // Get the results of the TestMinimizer, force it into format
+
+                    // Get the results of the TestMinimizer, force it into format of execBefore and execAfter
+                    Map<String, List<String>> mapping;
+                    // If victim, then store polluters in execBefore (executing these tests before dependent test makes it fail)
+                    if (isolationResult == Result.PASS) {
+                        mapping = execBefore;
+                    } else {
+                        mapping = execAfter;
+                    }
+                    if (!mapping.containsKey(testName)) {
+                        mapping.put(testName, new ArrayList<>());
+                    }
                     for (PolluterData pd : minimizerResult.polluters()) {
-                        // Later algorithm tries to move tests before the dependent test, so force first polluter to be that dependent test
+                        /*// Later algorithm tries to move tests before the dependent test, so force first polluter to be that dependent test
                         allDTList.add(Constants.TEST_LINE + pd.deps().get(0).toString());
                         allDTList.add("Intended behavior: " + minimizerResult.expected());
                         // If victim (isolation result PASS), then dependent test goes here, meaning it must come after polluter
@@ -195,18 +208,20 @@ public class OneConfigurationRunner extends Runner {
                             allDTList.add(Constants.EXECUTE_AFTER + "[]");
                             allDTList.add("The revealed different behavior: PASS"); // Assume result is PASS
                             allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");
-                        }
+                        }*/
+
+                        mapping.get(testName).add(pd.deps().get(0).toString()); // Just record first polluter...
                     }
 
                     // Make new test object, but make sure to use new instances that use in memory data objects (not files)
                     if (techniqueName == TECHNIQUE.PRIORITIZATION) {
-                        testObj = new Prioritization(order, outputFileName, testInputDir, coverage, allDTList, false,
+                        testObj = new Prioritization(order, outputFileName, testInputDir, coverage, execBefore, execAfter, false,
                                 origOrderTestList, 0, false, !postProcessDTs);
                     } else if (techniqueName == TECHNIQUE.SELECTION) {
                         testObj = new Selection(order, outputFileName, testInputDir, coverage, selectionOutput1, selectionOutput2,
-                                origOrderTestList, allDTList, getCoverage, !postProcessDTs);
+                                origOrderTestList, execBefore, execAfter, getCoverage, !postProcessDTs);
                     } else {
-                        testObj = new Parallelization(order, outputFileName, testInputDir, coverage, allDTList,
+                        testObj = new Parallelization(order, outputFileName, testInputDir, coverage, execBefore, execAfter,
                                 numOfMachines.getValue(), origOrderTestList, timeOrder, getCoverage, origOrderTestList, !postProcessDTs);
                     }
                     currentOrderTestList = getCurrentTestList(testObj, i);

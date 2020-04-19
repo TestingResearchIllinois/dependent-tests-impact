@@ -34,7 +34,7 @@ public class Test {
     protected List<TestFunctionStatement> methodList;
     protected List<TestFunctionStatement> allMethodList;
     protected Standard orderObj;
-    private final Map<String, Set<String>> testToAllLines;
+    private final Map<String, Set<String>> testToAllLines = new HashMap<>();
     protected List<String> origOrderList = null;
 
     public Test(File folder, COVERAGE coverage, File dependentTestsFile, File origOrder, boolean mergeDTsCoverage) {
@@ -42,18 +42,33 @@ public class Test {
     }
 
     public Test(File folder, COVERAGE coverage, File dependentTestsFile, List<String> origOrder, boolean mergeDTsCoverage) {
-        this(folder, coverage, dependentTestsFile, null, origOrder, mergeDTsCoverage);
+        // mapping of dependent test to list of tests that when executed before reveals the dependent test, i.e., dependent test fails
+        Map<String, List<String>> execBefore = new HashMap<>();
+        // mapping of dependent test to list of tests that when executed after reveals the dependent test, i.e., dependent test fails
+        Map<String, List<String>> execAfter = new HashMap<>();
+        parseDependentTestsFile(dependentTestsFile, execBefore, execAfter);
+        init(folder, coverage, execBefore, execAfter, origOrder, mergeDTsCoverage);
     }
 
     public Test(File folder, COVERAGE coverage, List<String> allDTList, List<String> origOrder, boolean mergeDTsCoverage) {
-        this(folder, coverage, null, allDTList, origOrder, mergeDTsCoverage);
+        // mapping of dependent test to list of tests that when executed before reveals the dependent test, i.e., dependent test fails
+        Map<String, List<String>> execBefore = new HashMap<>();
+        // mapping of dependent test to list of tests that when executed after reveals the dependent test, i.e., dependent test fails
+        Map<String, List<String>> execAfter = new HashMap<>();
+        parseDependentTestsList(allDTList, execBefore, execAfter);
+        init(folder, coverage, execBefore, execAfter, origOrder, mergeDTsCoverage);
     }
 
-    // Private constructor to help reduce redundancy of logic, which only depends on if dependentTestsFile or allDTList
-    private Test(File folder, COVERAGE coverage, File dependentTestsFile, List<String> allDTList, List<String> origOrder, boolean mergeDTsCoverage) {
+    public Test(File folder, COVERAGE coverage, Map<String, List<String>> execBefore, Map<String, List<String>> execAfter,
+                    List<String> origOrder, boolean mergeDTsCoverage) {
+        init(folder, coverage, execBefore, execAfter, origOrder, mergeDTsCoverage);
+    }
+
+    // Private helper for constructor to help reduce redundancy of logic, which should depend on what tests in execBefore and in execAfter
+    private void init(File folder, COVERAGE coverage, Map<String, List<String>> execBefore, Map<String, List<String>> execAfter,
+                    List<String> origOrder, boolean mergeDTsCoverage) {
         origOrderList = origOrder;
-        allCoverageLines = new HashSet<String>();
-        testToAllLines = new HashMap<>();
+        allCoverageLines = new HashSet<>();
         if (allMethodList == null) {
             setAllLines(folder);
             allMethodList = listFilesForFolder(coverage);
@@ -64,10 +79,9 @@ public class Test {
             tfs.setOrigOrderIndex(origOrderList.indexOf(tfs.getName()));
         }
         methodList = new ArrayList<>(allMethodList);
-        // Need one of these to be not null
-        if (dependentTestsFile != null || allDTList != null) {
-            processDependentTests(dependentTestsFile, allDTList, allMethodList);
-        }
+
+        // Set up the test dependencies based on execBefore and execAfter
+        processDependentTests(allMethodList, execBefore, execAfter);
 
         // After processing the dependent tests, convert the befores format into the afters format
         // The only reason to keep the befores format around is to help with determining later by technique what tests must be included
@@ -85,25 +99,21 @@ public class Test {
 
     public void resetDTList(List<String> allDTList) {
         if (allDTList != null) {
-            processDependentTests(null, allDTList, allMethodList);
+            // Parse out contents from list
+            Map<String, List<String>> execBefore = new HashMap<>();
+            Map<String, List<String>> execAfter = new HashMap<>();
+            parseDependentTestsList(allDTList, execBefore, execAfter);
+
+            // Process those dependent tests
+            processDependentTests(allMethodList, execBefore, execAfter);
         }
     }
 
-    protected void processDependentTests(File dependentTestsFile, List<String> allDTList, List<TestFunctionStatement> dtMethodList) {
-        // list of tests that when executed before reveals the dependent test
-        Map<String, List<String>> execBefore = new HashMap<String, List<String>>();
-        // list of tests that when executed after reveals the dependent test
-        Map<String, List<String>> execAfter = new HashMap<String, List<String>>();
-
+    protected void processDependentTests(List<TestFunctionStatement> dtMethodList, Map<String,
+                                            List<String>> execBefore, Map<String, List<String>> execAfter) {
         Map<String, TestFunctionStatement> nameToMethodData = new HashMap<String, TestFunctionStatement>();
         for (TestFunctionStatement methodData : dtMethodList) {
             nameToMethodData.put(methodData.getName(), methodData);
-        }
-
-        if (dependentTestsFile != null && dependentTestsFile.isFile()) {
-            parseDependentTestsFile(dependentTestsFile, execBefore, execAfter);
-        } else {
-            parseDependentTestsList(allDTList, execBefore, execAfter);
         }
 
         for (String testName : execBefore.keySet()) {
@@ -147,7 +157,7 @@ public class Test {
         }
     }
 
-    private void parseDependentTestsList(List<String> allDTList, Map<String, List<String>> execBefore,
+    protected void parseDependentTestsList(List<String> allDTList, Map<String, List<String>> execBefore,
             Map<String, List<String>> execAfter) {
         for (int j = 0; j < allDTList.size();) {
             String line = allDTList.get(j);
@@ -186,7 +196,7 @@ public class Test {
         }
     }
 
-    private void parseDependentTestsFile(File dependentTestsFile, Map<String, List<String>> execBefore,
+    protected void parseDependentTestsFile(File dependentTestsFile, Map<String, List<String>> execBefore,
             Map<String, List<String>> execAfter) {
         BufferedReader br;
         try {
