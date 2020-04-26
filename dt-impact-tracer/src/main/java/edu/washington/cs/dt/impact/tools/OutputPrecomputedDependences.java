@@ -117,12 +117,8 @@ public class OutputPrecomputedDependences extends FigureGenerator {
 
 	public static String getDTFile(List<String> dtList) {
         StringBuilder fileContents = new StringBuilder();
-        for (int j = 0; j < dtList.size();) {
-            for (int i = 0; i < 5; j++) {
-                fileContents.append(dtList.get(j) + "\n");
-                i++;
-            }
-            fileContents.append("\n");
+        for (int j = 0; j < dtList.size(); j++) {
+            fileContents.append(dtList.get(j) + "\n");
         }
         return fileContents.toString();
     }

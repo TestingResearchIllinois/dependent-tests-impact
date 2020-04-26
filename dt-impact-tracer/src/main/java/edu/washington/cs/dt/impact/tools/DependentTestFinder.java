@@ -808,12 +808,8 @@ public class DependentTestFinder {
                 output = new FileWriter(outputFile);
                 writer = new BufferedWriter(output);
 
-                for (int j = 0; j < allDTList.size();) {
-                    for (int i = 0; i < 5; j++) {
-                        writer.write(allDTList.get(j) + "\n");
-                        i++;
-                    }
-                    writer.write("\n");
+                for (int j = 0; j < allDTList.size(); j++) {
+                    writer.write(allDTList.get(j) + "\n");
                 }
             } catch (IOException e) {
                 e.printStackTrace();

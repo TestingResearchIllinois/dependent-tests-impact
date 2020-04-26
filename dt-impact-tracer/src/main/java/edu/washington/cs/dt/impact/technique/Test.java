@@ -149,40 +149,23 @@ public class Test {
 
     private void parseDependentTestsList(List<String> allDTList, Map<String, List<String>> execBefore,
             Map<String, List<String>> execAfter) {
-        for (int j = 0; j < allDTList.size();) {
-            String line = allDTList.get(j);
-            if (line.length() == 0) {
-                j++;
-                continue;
-            }
-            String testName = line.split(Constants.TEST_LINE)[1];
-            // revealed behavior line
-            j += 2;
+        for (String line : allDTList) {
+            // Break apart each entry
+            String dep = line.split(" ")[0];
+            String delim = line.split(" ")[1];
+            String test = line.split(" ")[2];
 
-            // tests reveal dependence when executed after testName
-            line = allDTList.get(j);
-            String afterTestsStr = line.split(Constants.EXECUTE_AFTER)[1];
-            if (afterTestsStr.length() > 2) {
-                afterTestsStr = afterTestsStr.substring(1, afterTestsStr.length() - 1);
-                if (!execAfter.containsKey(testName)) {
-                    execAfter.put(testName, new ArrayList<String>());
-                }
-                execAfter.get(testName).addAll(Arrays.asList(afterTestsStr.split(Constants.TEST_SEP)));
+            // Update the mapping of test dependencies based on delim
+            Map<String, List<String>> mapping;
+            if (delim.contains("P")) {  // Positive dependency means test should go into execAfter (running it after makes the test fail)
+                mapping = execAfter;
+            } else {                    // Negative dependency means test should go into execBefore (running it before makes the test fail)
+                mapping = execBefore;
             }
-            // revealed behavior line
-            j += 2;
-
-            // tests reveal dependence when executed before testName
-            line = allDTList.get(j);
-            String beforeTestsStr = line.split(Constants.EXECUTE_AFTER)[1];
-            if (beforeTestsStr.length() > 2) {
-                beforeTestsStr = beforeTestsStr.substring(1, beforeTestsStr.length() - 1);
-                if (!execBefore.containsKey(testName)) {
-                    execBefore.put(testName, new ArrayList<String>());
-                }
-                execBefore.get(testName).addAll(Arrays.asList(beforeTestsStr.split(Constants.TEST_SEP)));
+            if (!mapping.containsKey(test)) {
+                mapping.put(test, new ArrayList<String>());
             }
-            j += 1;
+            mapping.get(test).add(dep);
         }
     }
 
@@ -193,39 +176,22 @@ public class Test {
             br = new BufferedReader(new FileReader(dependentTestsFile));
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.length() == 0) {
-                    continue;
+                // Break apart each entry
+                String dep = line.split(" ")[0];
+                String delim = line.split(" ")[1];
+                String test = line.split(" ")[2];
+
+                // Update the mapping of test dependencies based on delim
+                Map<String, List<String>> mapping;
+                if (delim.contains("P")) {  // Positive dependency means test should go into execAfter (running it after makes the test fail)
+                    mapping = execAfter;
+                } else {                    // Negative dependency means test should go into execBefore (running it before makes the test fail)
+                    mapping = execBefore;
                 }
-
-                String testName = line.split(Constants.TEST_LINE)[1];
-
-                // intended behavior line
-                br.readLine();
-
-                // tests reveal dependence when executed after testName
-                line = br.readLine();
-                String afterTestsStr = line.split(Constants.EXECUTE_AFTER)[1];
-                if (afterTestsStr.length() > 2) {
-                    afterTestsStr = afterTestsStr.substring(1, afterTestsStr.length() - 1);
-                    if (!execAfter.containsKey(testName)) {
-                        execAfter.put(testName, new ArrayList<String>());
-                    }
-                    execAfter.get(testName).addAll(Arrays.asList(afterTestsStr.split(Constants.TEST_SEP)));
+                if (!mapping.containsKey(test)) {
+                    mapping.put(test, new ArrayList<String>());
                 }
-
-                // revealed behavior line
-                br.readLine();
-
-                // tests reveal dependence when executed before testName
-                line = br.readLine();
-                String beforeTestsStr = line.split(Constants.EXECUTE_AFTER)[1];
-                if (beforeTestsStr.length() > 2) {
-                    beforeTestsStr = beforeTestsStr.substring(1, beforeTestsStr.length() - 1);
-                    if (!execBefore.containsKey(testName)) {
-                        execBefore.put(testName, new ArrayList<String>());
-                    }
-                    execBefore.get(testName).addAll(Arrays.asList(beforeTestsStr.split(Constants.TEST_SEP)));
-                }
+                mapping.get(test).add(dep);
             }
             br.close();
         } catch (FileNotFoundException e) {

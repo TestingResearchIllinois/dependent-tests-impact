@@ -221,19 +221,14 @@ public class OneConfigurationRunner extends Runner {
                     }
                     // Get the results of the TestMinimizer, force it into format
                     for (PolluterData pd : minimizerResult.polluters()) {
-                        // Later algorithm tries to move tests before the dependent test, so force first polluter to be that dependent test
-                        allDTList.add(Constants.TEST_LINE + pd.deps().get(0).toString());
-                        allDTList.add("Intended behavior: " + minimizerResult.expected());
-                        // If victim (isolation result PASS), then dependent test goes here, meaning it must come after polluter
-                        if (isolationResult == Result.PASS) {
-                            allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");
-                            allDTList.add("The revealed different behavior: PASS"); // Assume result is PASS
-                            allDTList.add(Constants.EXECUTE_AFTER + "[]");
-                        } else {    // Otherwise, for brittle, logic is reversed
-                            allDTList.add(Constants.EXECUTE_AFTER + "[]");
-                            allDTList.add("The revealed different behavior: PASS"); // Assume result is PASS
-                            allDTList.add(Constants.EXECUTE_AFTER + "[" + testName  + "]");
+                        // Encode dependencies as positive (P->) or negative (N->) dependencies
+                        String delim;
+                        if (isolationResult == Result.PASS) {   // If isolation result is PASS, then is victim, so finding negative dependencies
+                            delim = " N-> ";
+                        } else {
+                            delim = " P-> ";
                         }
+                        allDTList.add(pd.deps().get(0).toString() + delim + testName);
                     }
 
                     // Make new test object, but make sure to use new instances that use in memory data objects (not files)

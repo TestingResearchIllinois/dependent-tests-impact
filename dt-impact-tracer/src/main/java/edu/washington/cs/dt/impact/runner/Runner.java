@@ -625,12 +625,8 @@ public abstract class Runner {
                 output = new FileWriter(dirPath + Constants.getDTListFileName(project.replace(" ", "_").toUpperCase(), testType));
                 writer = new BufferedWriter(output);
 
-                for (int j = 0; j < allDTList.size();) {
-                    for (int i = 0; i < 5; j++) {
-                        writer.write(allDTList.get(j) + "\n");
-                        i++;
-                    }
-                    writer.write("\n");
+                for (int j = 0; j < allDTList.size(); j++) {
+                    writer.write(allDTList.get(j) + "\n");
                 }
             }
         } catch (IOException e) {
