@@ -59,12 +59,29 @@ import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
 
 public class OneConfigurationRunner extends Runner {
 
+    public Set<String> checkForNODs(TestRunResult origResult, List<String> currentOrderTestList, int timesToCheck) {
+        Set<String> nods = new HashSet<>();
+
+        Map<String, Result> nameToOrigResult = getNameToResult(origResult);
+        for (int i = 0; i < timesToCheck; i++) {
+            TestRunResult newResult = getCurrentOrderTestListResults(currentOrderTestList, filesToDelete);
+            nods.addAll(CrossReferencer.compareResults(nameToOrigResult, getNameToResult(newResult), false));
+        }
+
+        return nods;
+    }
+
+    private Map<String, Result> getNameToResult(TestRunResult result) {
+        Map<String, Result> nameToOrigResults = new HashMap<>();
+        for (String test : result.results().keySet()) {
+            nameToOrigResults.put(test, result.results().get(test).result());
+        }
+        return nameToOrigResults;
+    }
+
     public void execute() {
         TestRunResult origResults = getCurrentOrderTestListResults(origOrderTestList, filesToDelete);
-        Map<String, Result> nameToOrigResults = new HashMap<>();
-        for (String test : origResults.results().keySet()) {
-            nameToOrigResults.put(test, origResults.results().get(test).result());
-        }
+        Map<String, Result> nameToOrigResults = getNameToResult(origResults);
 
         // capture start time
         double start = System.nanoTime();
@@ -99,10 +116,7 @@ public class OneConfigurationRunner extends Runner {
 
             // ImpactMain
             TestRunResult result = getCurrentOrderTestListResults(currentOrderTestList, filesToDelete);
-            Map<String, Result> nameToTestResults = new HashMap<>();
-            for (String test : result.results().keySet()) {
-                nameToTestResults.put(test, result.results().get(test).result());
-            }
+            Map<String, Result> nameToTestResults = getNameToResult(result);
 
             testList.setOrigOrderResults(origResults);
             testList.setTestOrderResults(nameToTestResults);
@@ -129,6 +143,7 @@ public class OneConfigurationRunner extends Runner {
                     }
                 }
             }
+            NODs.addAll(checkForNODs(result, currentOrderTestList, timesToRunCheckTestOrderNOD));
             changedTests.removeAll(NODs);   // Remove from consideration any tests that are NOD
 
             int counter = 0;
@@ -211,11 +226,8 @@ public class OneConfigurationRunner extends Runner {
                     }
                     currentOrderTestList = getCurrentTestList(testObj, i);
                     // ImpactMain
-                    nameToTestResults = new HashMap<>();
                     result = getCurrentOrderTestListResults(currentOrderTestList, filesToDelete);
-                    for (String test : result.results().keySet()) {
-                        nameToTestResults.put(test, result.results().get(test).result());
-                    }
+                    nameToTestResults = getNameToResult(result);
                     // Cross Referencer
                     changedTests = CrossReferencer.compareResults(nameToOrigResults, nameToTestResults, false);
 

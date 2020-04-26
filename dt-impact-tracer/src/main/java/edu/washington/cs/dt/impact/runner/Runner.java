@@ -45,6 +45,7 @@ public abstract class Runner {
     protected File selectionOutput2 = null;
     protected Constants.MACHINES numOfMachines = MACHINES.ONE;
     protected int timesToRun = 1;
+    protected int timesToRunCheckTestOrderNOD = 3;
     protected String project = "CRYSTAL";
     protected Constants.TEST_TYPE testType = TEST_TYPE.ORIG;
     protected List<String> allDTList;
@@ -360,6 +361,22 @@ public abstract class Runner {
             if (timesToRun < 1) {
                 System.err.println("Times to run argument is specified but the integer"
                         + " value provided is invalid. Please check the integer value.");
+                System.exit(0);
+            }
+        }
+
+        int timesToRunCheckTestOrderNODIndex = argsList.indexOf("-timesToRunCheckTestOrderNOD");
+        if (timesToRunCheckTestOrderNODIndex != -1) {
+            int timesToRunCheckTestOrderNODIntIndex = timesToRunCheckTestOrderNODIndex + 1;
+            if (timesToRunCheckTestOrderNODIntIndex >= argsList.size()) {
+                System.err.println("Times to run to check test order for NODs argument is specified but a integer"
+                                           + " is not. Please use the format: -timesToRun aInteger");
+                System.exit(0);
+            }
+            timesToRunCheckTestOrderNOD = Integer.parseInt(argsList.get(timesToRunCheckTestOrderNODIntIndex));
+            if (timesToRunCheckTestOrderNOD < 1) {
+                System.err.println("Times to run to check test order for NODs is specified but the integer"
+                                           + " value provided is invalid. Please check the integer value.");
                 System.exit(0);
             }
         }
