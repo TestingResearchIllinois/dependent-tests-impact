@@ -137,7 +137,7 @@ public class TestMinimizer {
     // Precondition: test fails with input order, if len(order) > 1
     private boolean binarySearchAll(final List<String> order, final List<List<String>> allDeps) throws Exception {
         // If just one test, be paranoid and double check
-        /*if (order.size() == 1) {
+        if (order.size() == 1) {
             if (this.expected == result(order)) {
                 allDeps.add(order);
 
@@ -148,12 +148,6 @@ public class TestMinimizer {
                 // There is a problem if the order in does not match expected...
                 throw new Exception("FINAL PARANOIA CHECK DOES NOT MATCH!");
             }
-        }*/
-        if (order.size() == 1) {
-            allDeps.add(order);
-            // Check if done
-            int position = this.testOrder.indexOf(order.get(0));
-            return this.expected != result(new ArrayList<>(testOrder.subList(0, position)));    // Done means prefix does not match expected
         }
 
         // Get the left and right halves of this order to search for
