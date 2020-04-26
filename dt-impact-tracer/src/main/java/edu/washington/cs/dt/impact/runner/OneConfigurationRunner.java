@@ -175,9 +175,29 @@ public class OneConfigurationRunner extends Runner {
 
                     // Minimizer
                     final long startDepFind = System.nanoTime();
+
+                    // If we don't have isolation result from before, that means this is new exposed one, so we need to rerun and check for NOD
+                    if (testList.getIsolationResults().get(testName) == null) {
+                        testList.isolationResult(testName, classPath);
+                        Result isolationResult = testList.getIsolationResults().get(testName);
+                        boolean foundNOD = false;
+                        for (int j = 0; j < timesToRunCheckTestOrderNOD; j++) {
+                            testList.isolationResult(testName, classPath);
+                            if (testList.getIsolationResults().get(testName) != isolationResult) {
+                                NODs.add(testName);
+                                foundNOD = true;
+                                break;
+                            }
+                        }
+                        // Found it as NOD, so skip
+                        if (foundNOD) {
+                            continue;
+                        }
+                    }
+
+                    // If isolated result of test is PASS, then is victim, so minimize on failing order and put after
                     List<String> orderTestList;
                     Result isolationResult = testList.getIsolationResults().get(testName);
-                    // If isolated result of test is PASS, then is victim, so minimize on failing order and put after
                     if (isolationResult == Result.PASS) {
                         orderTestList = currentOrderTestList;
                     } else {
