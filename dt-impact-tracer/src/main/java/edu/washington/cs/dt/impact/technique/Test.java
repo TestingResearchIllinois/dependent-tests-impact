@@ -56,7 +56,7 @@ public class Test {
         testToAllLines = new HashMap<>();
         if (allMethodList == null) {
             setAllLines(folder);
-            allMethodList = listFilesForFolder(coverage);
+            allMethodList = listFilesForFolder(coverage, origOrderList);
         }
         // Set merge configuration for each method and set each one's orig order index
         for (TestFunctionStatement tfs : allMethodList) {
@@ -66,7 +66,7 @@ public class Test {
         methodList = new ArrayList<>(allMethodList);
         // Need one of these to be not null
         if (dependentTestsFile != null || allDTList != null) {
-            processDependentTests(dependentTestsFile, allDTList, allMethodList);
+            processDependentTests(dependentTestsFile, allDTList, allMethodList, origOrderList);
         }
 
         // After processing the dependent tests, convert the befores format into the afters format
@@ -85,11 +85,12 @@ public class Test {
 
     public void resetDTList(List<String> allDTList) {
         if (allDTList != null) {
-            processDependentTests(null, allDTList, allMethodList);
+            processDependentTests(null, allDTList, allMethodList, origOrderList);
         }
     }
 
-    protected void processDependentTests(File dependentTestsFile, List<String> allDTList, List<TestFunctionStatement> dtMethodList) {
+    protected void processDependentTests(File dependentTestsFile, List<String> allDTList,
+                                         List<TestFunctionStatement> dtMethodList, List<String> originalOrder) {
         // list of tests that when executed before reveals the dependent test
         Map<String, List<String>> execBefore = new HashMap<String, List<String>>();
         // list of tests that when executed after reveals the dependent test
@@ -108,13 +109,13 @@ public class Test {
 
         for (String testName : execBefore.keySet()) {
             if (nameToMethodData.get(testName) == null && origOrderList.contains(testName)) {
-                TestFunctionStatement tmd = new TestFunctionStatement(testName);
+                TestFunctionStatement tmd = new TestFunctionStatement(testName, originalOrder);
                 nameToMethodData.put(testName, tmd);
             }
             for (String dtTest : execBefore.get(testName)) {
                 TestFunctionStatement tmd = nameToMethodData.get(dtTest);
                 if (tmd == null && origOrderList.contains(dtTest)) {
-                    tmd = new TestFunctionStatement(dtTest);
+                    tmd = new TestFunctionStatement(dtTest, originalOrder);
                     nameToMethodData.put(dtTest, tmd);
                 }
                 if (nameToMethodData.get(testName) != null && tmd != null) {
@@ -128,13 +129,13 @@ public class Test {
 
         for (String testName : execAfter.keySet()) {
             if (nameToMethodData.get(testName) == null && origOrderList.contains(testName)) {
-                TestFunctionStatement tmd = new TestFunctionStatement(testName);
+                TestFunctionStatement tmd = new TestFunctionStatement(testName, originalOrder);
                 nameToMethodData.put(testName, tmd);
             }
             for (String dtTest : execAfter.get(testName)) {
                 TestFunctionStatement tmd = nameToMethodData.get(dtTest);
                 if (tmd == null && origOrderList.contains(dtTest)) {
-                    tmd = new TestFunctionStatement(dtTest);
+                    tmd = new TestFunctionStatement(dtTest, originalOrder);
                     nameToMethodData.put(dtTest, tmd);
                 }
                 if (nameToMethodData.get(testName) != null && tmd != null) {
@@ -201,10 +202,10 @@ public class Test {
         }
     }
 
-    private List<TestFunctionStatement> listFilesForFolder(final COVERAGE coverage) {
+    private List<TestFunctionStatement> listFilesForFolder(final COVERAGE coverage, List<String> originalOrder) {
         List<TestFunctionStatement> methodList = new LinkedList<TestFunctionStatement>();
         for (String testName : testToAllLines.keySet()) {
-            TestFunctionStatement methodData = new TestFunctionStatement(testName);
+            TestFunctionStatement methodData = new TestFunctionStatement(testName, originalOrder);
             for (String line : testToAllLines.get(testName)) {
                 if (coverage == COVERAGE.STATEMENT) {
                     allCoverageLines.add(line);

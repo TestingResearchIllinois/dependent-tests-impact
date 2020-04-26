@@ -10,6 +10,7 @@ package edu.washington.cs.dt.impact.data;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -37,7 +38,7 @@ public class TestFunctionStatement extends Observable implements Comparable<Test
     // Position of test in original order, to be used in comparing for sorting
     protected int origOrderIndex;
 
-    public TestFunctionStatement(String name) {
+    public TestFunctionStatement(String name, List<String> originalOrder) {
         this.methodName = name;
         currentLines = new LinkedHashSet<String>();
         allLines = new LinkedHashSet<String>();
@@ -47,6 +48,7 @@ public class TestFunctionStatement extends Observable implements Comparable<Test
         setOfCurrentLines = new LinkedHashSet<Set<String>>();
         setOfCurrentLines.add(currentLines);
         mergeDTCoverage = true;
+        setOrigOrderIndex(originalOrder.indexOf(name));
     }
 
     public void setOrigOrderIndex(int origOrderIndex) {

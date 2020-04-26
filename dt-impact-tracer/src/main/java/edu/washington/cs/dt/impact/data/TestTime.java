@@ -8,12 +8,13 @@
 
 package edu.washington.cs.dt.impact.data;
 
+import java.util.List;
 
 public class TestTime extends TestFunctionStatement {
     private long count;
 
-    public TestTime(String name, long count) {
-        super(name);
+    public TestTime(String name, long count, List<String> origOrder) {
+        super(name, origOrder);
         this.count = count;
     }
 

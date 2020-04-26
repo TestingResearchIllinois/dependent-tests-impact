@@ -87,7 +87,7 @@ public class Parallelization extends Test {
                 }
                 testNameToTime.keySet().removeAll(extraFiles);
                 for (String key : testNameToTime.keySet()) {
-                    TestTime currTTD = new TestTime(key, testNameToTime.get(key));
+                    TestTime currTTD = new TestTime(key, testNameToTime.get(key), origOrder);
                     methodList.add(currTTD);
                     nameToTimeData.put(key, currTTD);
                 }
@@ -297,7 +297,7 @@ public class Parallelization extends Test {
     public void resetDTList(List<String> allDTList) {
         if (allDTList != null) {
             for (Standard obj : splitTests) {
-                processDependentTests(null, allDTList, obj.getMethodList());
+                processDependentTests(null, allDTList, obj.getMethodList(), origOrderList);
             }
         }
     }
