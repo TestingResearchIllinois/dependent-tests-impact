@@ -124,11 +124,7 @@ public class OneConfigurationRunner extends Runner {
             // CrossReferencer
             Set<String> changedTests = CrossReferencer.compareResults(nameToOrigResults, nameToTestResults, false);
 
-            if (!changedTests.isEmpty()) {
-                hasDependentTest = true;
-            }
-
-            Set<String> NODs = new HashSet<>();;
+            Set<String> NODs = new HashSet<>();
 
             // Run the dependent tests in isolation to get the time/stuff for those
             for (final String changedTest : changedTests) {
@@ -143,8 +139,15 @@ public class OneConfigurationRunner extends Runner {
                     }
                 }
             }
+            // Compare current test order results with running that same test order multiple times, to see if any difference in result
             NODs.addAll(checkForNODs(result, currentOrderTestList, timesToRunCheckTestOrderNOD));
             changedTests.removeAll(NODs);   // Remove from consideration any tests that are NOD
+
+            // Only check for dependent tests once removing changed tests from consideration
+            if (!changedTests.isEmpty()) {
+                hasDependentTest = true;
+            }
+
 
             int counter = 0;
 
