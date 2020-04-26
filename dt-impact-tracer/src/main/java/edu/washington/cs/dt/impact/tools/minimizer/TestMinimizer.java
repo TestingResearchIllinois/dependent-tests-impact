@@ -71,27 +71,9 @@ public class TestMinimizer {
             }
         }
 
-        long startTime = System.currentTimeMillis();
-        List<List<String>> allDeps = new ArrayList<>();
-        try {
-            boolean done = binarySearchAll(order, allDeps);
-            if (!done) {
-                System.err.println("WHY IS IT NOT DONE?!");
-            }
-        } catch (Exception ex) {
-            System.out.println("PARANOIA CHECK?! " + ex);
-        }
-        List<PolluterData> polluters = new ArrayList<>();
-        int index = 0;
-        for (List<String> deps : allDeps) {
-            polluters.add(new PolluterData(index++, deps));
-        }
-        //System.out.println("FINISHED NEW IN " + (System.currentTimeMillis() - startTime));
-
-        /*startTime = System.currentTimeMillis();
         // Keep going as long as there are tests besides dependent test to run
         List<PolluterData> polluters = new ArrayList<>();
-        index = 0;
+        int index = 0;
         while (!order.isEmpty()) {
             // First need to check if remaining tests in order still lead to expected value
             if (result(order) != expected) {
@@ -108,18 +90,14 @@ public class TestMinimizer {
             order.removeAll(deps);  // Look for other deps besides the ones already found
             index++;
         }
-        System.out.println("FINISHED OLD IN " + (System.currentTimeMillis() - startTime));
-        //for (int i = 0; i < order.size(); i++) {
-        //    String test = order.get(i);
-        //    final Result r = result(Collections.singletonList(test));
-        //    if (r == expected) {
-        //        polluters.add(new PolluterData(index, Collections.singletonList(test)));
-        //        index++;
-        //    }
-        //}
-
-        System.out.println("NEW " + newPolluters);
-        System.out.println("OLD " + polluters);*/
+        /*for (int i = 0; i < order.size(); i++) {
+            String test = order.get(i);
+            final Result r = result(Collections.singletonList(test));
+            if (r == expected) {
+                polluters.add(new PolluterData(index, Collections.singletonList(test)));
+                index++;
+            }
+        }*/
 
         final MinimizeTestsResult minimizedResult =
                 new MinimizeTestsResult(expectedRun, expected, dependentTest, polluters, FlakyClass.OD);
@@ -132,42 +110,6 @@ public class TestMinimizer {
             return new MinimizeTestsResult(expectedRun, expected, dependentTest, polluters, FlakyClass.NOD);
         }*/
         return minimizedResult;
-    }
-
-    // Precondition: test fails with input order, if len(order) > 1
-    private boolean binarySearchAll(final List<String> order, final List<List<String>> allDeps) throws Exception {
-        // If just one test, be paranoid and double check
-        if (order.size() == 1) {
-            if (this.expected == result(order)) {
-                allDeps.add(order);
-
-                // Check if done
-                int position = this.testOrder.indexOf(order.get(0));
-                return this.expected != result(new ArrayList<>(testOrder.subList(0, position)));    // Done means prefix does not match expected
-            } else {
-                // There is a problem if the order in does not match expected...
-                throw new Exception("FINAL PARANOIA CHECK DOES NOT MATCH!");
-            }
-        }
-
-        // Get the left and right halves of this order to search for
-        List<String> left = new ArrayList<>(order.subList(0, order.size() / 2));
-        List<String> right = new ArrayList<>(order.subList(order.size() / 2, order.size()));
-
-        // Go right first, if it matches
-        if (this.expected == result(right)) {
-            boolean rightDone = binarySearchAll(right, allDeps);
-            if (rightDone) {
-                // If the right side returns done, then can just finish
-                return rightDone;
-            } else {
-                // Otherwise, should explore the left half
-                return binarySearchAll(left, allDeps);
-            }
-        } else {
-            // Otherwise, left half must match, so explore
-            return binarySearchAll(left, allDeps);
-        }
     }
 
     private List<String> deltaDebug(final List<String> deps, int n) {
@@ -190,7 +132,7 @@ public class TestMinimizer {
             otherChunk.addAll(deps.subList(0, i));
             otherChunk.addAll(deps.subList(endpoint, deps.size()));
 
-            // Try the other, complement chunk first, with theory that polluter is close to victim
+            // Try to other, complement chunk first, with theory that polluter is close to victim
             if (this.expected == result(otherChunk)) {
                 return deltaDebug(otherChunk, 2);   // If works, then delta debug some more the complement chunk
             }
@@ -199,7 +141,7 @@ public class TestMinimizer {
                 return deltaDebug(chunk, 2); // If works, then delta debug some more this chunk
             }
         }
-        // If size is equal to number of chunks, we are finished, cannot go down more
+        // If size is equal to number of ochunks, we are finished, cannot go down more
         if (deps.size() == n) {
             return deps;
         }
