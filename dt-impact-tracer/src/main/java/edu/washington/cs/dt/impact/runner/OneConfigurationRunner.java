@@ -124,14 +124,17 @@ public class OneConfigurationRunner extends Runner {
             // CrossReferencer
             Set<String> changedTests = CrossReferencer.compareResults(nameToOrigResults, nameToTestResults, false);
 
+            // Compare current test order results with running that same test order multiple times, to see if any difference in result
             Set<String> NODs = new HashSet<>();
+            NODs.addAll(checkForNODs(result, currentOrderTestList, timesToRunCheckTestOrderNOD));
+            changedTests.removeAll(NODs);   // Remove from consideration any tests that are NOD
 
             // Run the dependent tests in isolation to get the time/stuff for those
             for (final String changedTest : changedTests) {
                 testList.isolationResult(changedTest, classPath);
                 Result isoResult = testList.getIsolationResults().get(changedTest);
                 // Run a few more times to ensure that the isolation result is consistent, otherwise it is NOD
-                for (int j = 0; j < 10; j++) {
+                for (int j = 0; j < timesToRunCheckTestOrderNOD; j++) {
                     testList.isolationResult(changedTest, classPath);
                     if (testList.getIsolationResults().get(changedTest) != isoResult) {
                         NODs.add(changedTest);
@@ -139,15 +142,12 @@ public class OneConfigurationRunner extends Runner {
                     }
                 }
             }
-            // Compare current test order results with running that same test order multiple times, to see if any difference in result
-            NODs.addAll(checkForNODs(result, currentOrderTestList, timesToRunCheckTestOrderNOD));
-            changedTests.removeAll(NODs);   // Remove from consideration any tests that are NOD
+            changedTests.removeAll(NODs);   // Remove any additional NODs found from isolation reruns
 
             // Only check for dependent tests once removing changed tests from consideration
             if (!changedTests.isEmpty()) {
                 hasDependentTest = true;
             }
-
 
             int counter = 0;
 
