@@ -399,6 +399,7 @@ public abstract class FigureGenerator {
 	protected static String orderName;
 	protected static String projectName;
 	protected static String testType;
+    protected static boolean postProcessDTs;
 	protected static List<Project> currProjList;
 	protected static Project currProj;
 	protected static String timeInFile;
@@ -466,6 +467,9 @@ public abstract class FigureGenerator {
 
 				index = flagsList.indexOf("-testType");
 				testType = flagsList.get(index + 1);
+
+                index = flagsList.indexOf("-postProcessDTs");
+                postProcessDTs = index != -1;   // Set the flag for postProcess DTs based on if it is in the flags or not (true means there)
 
 				index = flagsList.indexOf("-dependentTestFile");
 				if (index != -1 && !ignoreDTFFlag) { // only count files without dependentTestFile

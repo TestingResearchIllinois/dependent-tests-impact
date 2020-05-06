@@ -53,6 +53,7 @@ public class PradetToMinimizerFormat {
                                                                        -1,
                                                                        null,
                                                                        priorOutputDirectoryName,
+                                                                       true,
                                                                        OutputPrecomputedDependences.getDTFile(pradetDeps));
                     }
                 }
@@ -67,6 +68,7 @@ public class PradetToMinimizerFormat {
                                                                        machines.getValue(),
                                                                        null,
                                                                        paraOutputDirectoryName,
+                                                                       true,
                                                                        OutputPrecomputedDependences.getDTFile(pradetDeps));
                     }
                 }
@@ -81,6 +83,7 @@ public class PradetToMinimizerFormat {
                                                                        -1,
                                                                        null,
                                                                        seleOutputDirectoryName,
+                                                                       true,
                                                                        OutputPrecomputedDependences.getDTFile(pradetDeps));
                     }
                 }

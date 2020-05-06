@@ -61,14 +61,14 @@ public class OutputPrecomputedDependences extends FigureGenerator {
 		int numMachines = Integer.parseInt(numMachines_string);
 
 		outputDependences(techniqueName, orderName, coverageName, testType, projectName, numMachines,
-                          null, paraOutputDirectoryName,
+                          null, paraOutputDirectoryName, postProcessDTs,
                           getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
 		if (numMachines > maxMachines && orderName.equals("original")) {
 			outputDependences("selection", orderName, coverageName, testType, projectName, numMachines,
-                              "function", seleOutputDirectoryName,
+                              "function", seleOutputDirectoryName, postProcessDTs,
                               getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
 			outputDependences("selection", orderName, coverageName, testType, projectName, numMachines,
-                              "statement", seleOutputDirectoryName,
+                              "statement", seleOutputDirectoryName, postProcessDTs,
                               getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
 			maxMachines = numMachines;
 		}
@@ -77,16 +77,16 @@ public class OutputPrecomputedDependences extends FigureGenerator {
 	@Override
 	public void doPrioCalculations() {
 		outputDependences(techniqueName, orderName, coverageName, testType, projectName, -1,
-                          null, priorOutputDirectoryName,
+                          null, priorOutputDirectoryName, postProcessDTs,
                           getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
 		outputDependences("selection", orderName, coverageName, testType, projectName,
-                          -1, null, seleOutputDirectoryName,
+                          -1, null, seleOutputDirectoryName, postProcessDTs,
                           getDTFile(parseFileForDTs(file, Constants.DT_LIST, true)));
 	}
 
 	public static void outputDependences(String techniqueName, String orderName, String coverageName,
 										 String testType, String projectName, int numMachines,
-										 String customCoverage, String outputDirStr, String fileContents) {
+										 String customCoverage, String outputDirStr, boolean postProcessDTs, String fileContents) {
 		StringBuilder fileName = new StringBuilder();
 		fileName.append(techniqueName);
 		fileName.append("-");
@@ -105,6 +105,8 @@ public class OutputPrecomputedDependences extends FigureGenerator {
 		}
 		fileName.append("-");
 		fileName.append(orderName);
+        fileName.append("-");
+        fileName.append(postProcessDTs + "");   // Hack to convert to string
 		fileName.append(".txt");
 
         File directory = new File(outputDirStr);
