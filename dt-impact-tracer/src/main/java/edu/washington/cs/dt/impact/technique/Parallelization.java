@@ -142,16 +142,31 @@ public class Parallelization extends Test {
             for (int i = 0; i < tmdLists.size(); i++) {
                 Map<String, TestFunctionStatement> nameToMethodData = getNameToMethodData(tmdLists.get(i).getTestList());
 
-                // For each test included here, make sure it also includes those that need to be added
-                // TODO: Right now it duplicates tests to be run across machines, consider removing as to not double run
-                for (TestFunctionStatement test : allMethodList) {
-                    for (TestFunctionStatement beforeData : test.getDependentTests(true)) {
-                        if (nameToMethodData.containsKey(beforeData.getName())) {
-                            if (!nameToMethodData.containsKey(test.getName())) {
-                                nameToMethodData.put(test.getName(), nameToMethodData.get(test));
+                // For each method that is selected, make sure the tests that need to run before get added
+                List<TestFunctionStatement> toAdd = new LinkedList<>();
+                for (String methodName : nameToMethodData.keySet()) {
+                    // Look at the tests that make it fail when run after
+                    for (TestFunctionStatement afterData : nameToMethodData.get(methodName).getDependentTests(false)) {
+                        if (!nameToMethodData.containsKey(afterData.getName())) {
+                            // Add if it does not contain this test, but be careful about negative dependencies converted to this format
+                            // Do that check by finding if the other test contains this test as a negative dependency
+                            boolean found = false;
+                            for (TestFunctionStatement other : afterData.getDependentTests(true)) {
+                                if (other.getName().equals(methodName)) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            // If the after test does not contain this test as a negative dependency, then it is true positive dependency
+                            if (!found) {
+                                toAdd.add(afterData);
                             }
                         }
                     }
+                }
+                // Add extra tests in
+                for (TestFunctionStatement add : toAdd) {
+                    nameToMethodData.put(add.getName(), add);
                 }
 
                 // Sort the list with respect to the original order

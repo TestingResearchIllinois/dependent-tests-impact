@@ -30,9 +30,9 @@ public class TestFunctionStatement extends Observable implements Comparable<Test
 
     private boolean mergeDTCoverage;
 
-    // list of tests that when executed before reveals methodName as a dependent test
+    // list of tests that when executed before reveals methodName as a dependent test, makes it fail
     protected Set<TestFunctionStatement> execBefore;
-    // list of tests that when executed after reveals methodName as a dependent test
+    // list of tests that when executed after reveals methodName as a dependent test, makes it fail
     protected Set<TestFunctionStatement> execAfter;
 
     // Position of test in original order, to be used in comparing for sorting

@@ -67,18 +67,31 @@ public class Selection extends Test {
             }
         }
 
-        // go through the methodList, find those that need to run before any that are in
-        // the changed list, and include those as well
-        for (TestFunctionStatement methodData : methodList) {
-            for (TestFunctionStatement beforeData : methodData.getDependentTests(true)) {
-                // one of the ones that this test must run before is in the changed list,
-                // so ensure that the test is in the methodList, if not in there already
-                if (nameToMethodData.containsKey(beforeData.getName())) {
-                    if (!nameToMethodData.containsKey(methodData.getName())) {
-                        nameToMethodData.put(methodData.getName(), methodData);
+        // For each method that is selected, make sure the tests that need to run before get added
+        List<TestFunctionStatement> toAdd = new LinkedList<>();
+        for (String methodName : nameToMethodData.keySet()) {
+            // Look at the tests that make it fail when run after
+            for (TestFunctionStatement afterData : nameToMethodData.get(methodName).getDependentTests(false)) {
+                if (!nameToMethodData.containsKey(afterData.getName())) {
+                    // Add if it does not contain this test, but be careful about negative dependencies converted to this format
+                    // Do that check by finding if the other test contains this test as a negative dependency
+                    boolean found = false;
+                    for (TestFunctionStatement other : afterData.getDependentTests(true)) {
+                        if (other.getName().equals(methodName)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    // If the after test does not contain this test as a negative dependency, then it is true positive dependency
+                    if (!found) {
+                        toAdd.add(afterData);
                     }
                 }
             }
+        }
+        // Add extra tests in
+        for (TestFunctionStatement add : toAdd) {
+            nameToMethodData.put(add.getName(), add);
         }
 
         if (order == ORDER.RELATIVE) {
