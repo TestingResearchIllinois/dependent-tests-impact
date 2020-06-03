@@ -229,15 +229,32 @@ public class Parallelization extends Test {
                 }
                 // For each test included here, make sure it also includes those that need to be added
                 // TODO: Right now it duplicates tests to be run across machines, consider removing as to not double run
-                for (TestFunctionStatement test : allMethodList) {
-                    for (TestFunctionStatement beforeData : test.getDependentTests(true)) {
-                        if (tests.contains(beforeData)) {
-                            if (!tests.contains(test)) {
-                                tests.add(test);
+                List<TestFunctionStatement> toAdd = new LinkedList<>();
+                for (TestFunctionStatement test : tests) {
+                    // Look at the tests that make it fail when run after
+                    for (TestFunctionStatement afterData : test.getDependentTests(false)) {
+                        if (!tests.contains(afterData)) {
+                            // Add if it does not contain this test, but be careful about negative dependencies converted to this format
+                            // Do that check by finding if the other test contains this test as a negative dependency
+                            boolean found = false;
+                            for (TestFunctionStatement other : afterData.getDependentTests(true)) {
+                                if (other.getName().equals(test.getName())) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            // If the after test does not contain this test as a negative dependency, then it is true positive dependency
+                            if (!found) {
+                                toAdd.add(afterData);
                             }
                         }
                     }
                 }
+                // Add extra tests in
+                for (TestFunctionStatement add : toAdd) {
+                    tests.add(add);
+                }
+
                 splitTests.add(new Standard(outputFileName + j, tests, getCoverage, allCoverageLines));
             }
         } else {
