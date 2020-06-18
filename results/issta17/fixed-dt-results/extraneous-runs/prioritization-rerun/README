@@ -1,8 +1,0 @@
-Certain precomputed dependences in prioritization-results finished but still 
-contained dependences most likely due to a bug in our tools (Ex. not clearing
-environment appropriately). This folder contains those that had to be further
-computed to generate a set of precomputed dependences that contains 0 dependent
-tests.
-
-The "Execution time of TLG and its time..." in these files is edited to be its
-actual value plus the value of that configuration in prioritization-results.

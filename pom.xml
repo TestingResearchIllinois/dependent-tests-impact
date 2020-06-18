@@ -10,12 +10,15 @@
     <packaging>pom</packaging>
 
     <name>dt-impact</name>
-    <description>Tools for finding dependent tests.</description>
+    <description>Dependent-Test-Aware Regression Testing Techniques</description>
     <url>https://github.com/winglam/dependent-tests-impact</url>
 
     <developers>
         <developer>
             <name>Wing Lam</name>
+        </developer>
+        <developer>
+            <name>August Shi</name>
         </developer>
     </developers>
 
@@ -87,21 +90,6 @@
                     </execution>
                 </executions>
             </plugin>
-<!--             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
- -->
       </plugins>
     </build>
 </project>
