@@ -52,7 +52,12 @@ public class Standard {
                 continue;
             }
             System.out.println(test.getName() + ": " + test.getDependentTests(true) + " " + test.getDependentTests(false));
-            applyDepsHelper(orderedListOfTests, test, alreadyAddedTests);
+	    try {
+		applyDepsHelper(orderedListOfTests, test, alreadyAddedTests);
+	    } catch (java.lang.StackOverflowError e) {
+		System.out.println("StackOverflowError indicating that there is likely a cycle in the computed dependencies. Please ensure that all tests pass in the original order.");
+		throw e;
+	    }
         }
         methodList = orderedListOfTests;
         System.out.println(methodList);
