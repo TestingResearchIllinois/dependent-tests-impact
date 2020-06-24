@@ -26,7 +26,7 @@ The algorithms of the techniques require three main steps:
 ## Prerequisites
 - The firstVers and subseqVers must be installed and its dependencies are copied into the ```target/dependency``` directory
 - All tests in the original test order must pass. Step (1) will generate an original order to run and any test that doesn't pass in the original order is then skipped in Steps (2) and (3)
-- It is possible that rerunning the setup script will result in tests having different coverage (e.g., one test can cover different paths in different test runs) and consequently result in different regression testing orders. The coverage of tests that achieved the results in our paper is available [here]()
+- It is possible that rerunning the setup script will result in tests having different coverage (e.g., one test can cover different paths in different test runs) and consequently result in different regression testing orders. The coverage of tests that achieved the results in our paper is available [here](https://drive.google.com/drive/folders/1bIfDT1Dvs0r-LTU1yBNKnwGyIMMScOhv)
 - The tools are intended to work with tests that are compatiable with JUnit version 4.12
 
 ## General use case
