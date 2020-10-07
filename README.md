@@ -63,8 +63,8 @@ If you use any of this work, please cite our corresponding [ISSTA paper](http://
     title       = "Dependent-Test-Aware Regression Testing Techniques",
     booktitle   = "ISSTA 2020, Proceedings of the 2020 International Symposium on Software Testing and Analysis",
     month       = "July",
-    year 	= 2020,
-    address 	= "Virutal Event",
-    pages       = "pages-to-appear"
+    year 	= "2020",
+    address 	= "Virtual Event",
+    pages       = "298--311"
 }
 ```
