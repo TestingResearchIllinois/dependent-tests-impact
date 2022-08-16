@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -92,7 +93,7 @@ public class RunnerMain {
         }
 
         // TODO: Allow handling of randomize option; for now just run in fixed order
-        SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), classpath, new HashMap<String, String>(), Paths.get("/dev/null"));
+        SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), classpath, new LinkedHashMap<String, String>(), Paths.get("/dev/null"));
         Configuration.config().setDefault("testplugin.classpath", "");
 
         long start = System.nanoTime();
