@@ -11,6 +11,15 @@ The algorithms of the techniques require three main steps:
 2. (Optional) Computing the test dependencies for the regression testing algorithms on the firstVers
 3. Running the regression testing algorithms on the subseqVers
 
+# Setup
+The contents of this repository is tested on a Ubuntu machine with JDK 8. To install JDK 8, you may try the following.
+```
+sudo apt-get install openjdk-8-jdk
+export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64/
+```
+
+You can see whether the setup was successful or not by seeing the text files under `logs/`.
+
 ## Relevant contents of this directory
 - ```setup.sh``` main script to setup the metadata needed for the regression testing algorithms (Step 1)
 - ```compute-deps.sh``` main script to compute dependencies for the regression testing algorithms (Step 2)
