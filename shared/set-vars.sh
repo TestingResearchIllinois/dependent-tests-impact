@@ -99,6 +99,7 @@ TOOLS=$(find "$DT_SCRIPTS/shared/impact-tools/" -name "*.jar" -not -name "randoo
 export DT_TOOLS=$(echo $TOOLS | sed -E "s/ /:/g")
 
 export SUBJ_NAME="$(echo $DT_SUBJ_ROOT | rev | cut -d'/' -f1 | rev)"
+export VER_NAME="$(echo $DT_SUBJ_ROOT | rev | cut -d'/' -f2 | rev)"
 
 export ALGO=$(echo "$2" | tr '[:upper:]' '[:lower:]')
 if [[ "$ALGO" == "t1" ]]; then
