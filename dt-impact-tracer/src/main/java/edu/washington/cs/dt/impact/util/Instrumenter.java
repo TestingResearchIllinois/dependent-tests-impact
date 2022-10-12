@@ -166,7 +166,7 @@ public class Instrumenter extends BodyTransformer{
             Stmt firstStmt = Jimple.v().newInvokeStmt(firstExpr);
             units.insertAfter(firstStmt, sFirst);
 
-            InvokeExpr lastExpr = Jimple.v().newStaticInvokeExpr(endExecution.makeRef(),StringConstant.v(packageMethodName), StringConstant.v(part), StringConstant.v("Regular"));
+            InvokeExpr lastExpr = Jimple.v().newStaticInvokeExpr(endExecution.makeRef(),StringConstant.v(packageMethodName), StringConstant.v(part), StringConstant.v(""));
             Stmt lastStmt = Jimple.v().newInvokeStmt(lastExpr);
             units.insertBefore(lastStmt, sLast);
             // Don't instrument empty methods
