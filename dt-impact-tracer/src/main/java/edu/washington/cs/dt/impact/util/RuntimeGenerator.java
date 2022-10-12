@@ -49,12 +49,12 @@ public class RuntimeGenerator {
                     if (!initial.equals("Started")){
                         continue;
                     }
-                    String name_info = testInfo[1].trim();
-                    String part = name_info.split(" >> ")[0].trim();
-                    String name = name_info.split(" >> ")[1].trim();
+                    String nameInfo = testInfo[1].trim();
+                    String part = nameInfo.split(" >> ")[0].trim();
+                    String name = nameInfo.split(" >> ")[1].trim();
 
                     String execInfo = testInfo[4].trim();
-                    String return_from = execInfo.split(" >> ")[0].trim();
+                    String returnFrom = execInfo.split(" >> ")[0].trim();
 
                     if (part.contains("body")) {
                         String subFile = argsList.get(inputTestList) + "sootTimerOutput/";
@@ -64,7 +64,7 @@ public class RuntimeGenerator {
                             while(subReader.hasNextLine()){
                                 String fullMethodName = subReader.nextLine();
                                 String methodNameInfo = fullMethodName.split(" >>> ")[1];
-                                csvPrinter.printRecord(name, part, methodNameInfo.split(" : ")[0].trim(), methodNameInfo.split(" : ")[1].trim(), return_from);
+                                csvPrinter.printRecord(name, part, methodNameInfo.split(" : ")[0].trim(), methodNameInfo.split(" : ")[1].trim(), returnFrom);
                             }
                             subReader.close();
                         } catch (FileNotFoundException e) {
@@ -88,7 +88,7 @@ public class RuntimeGenerator {
                                     String method_name = subReader.nextLine();
                                     String subMethod = method_name.split(" >>> ")[1];
                                     if(subMethod.split(" : ")[0].trim().equals(fullMethodName.trim())){
-                                        csvPrinter.printRecord(name, part, subMethod.split(" : ")[0].trim(), subMethod.split(" : ")[1].trim(), return_from);
+                                        csvPrinter.printRecord(name, part, subMethod.split(" : ")[0].trim(), subMethod.split(" : ")[1].trim(), returnFrom);
                                         result.add(subMethod);
                                         break;
                                     }
