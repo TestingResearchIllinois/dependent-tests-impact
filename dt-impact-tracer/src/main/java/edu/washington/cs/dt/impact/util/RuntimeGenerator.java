@@ -54,8 +54,16 @@ public class RuntimeGenerator {
                     String name = nameInfo.split(" >> ")[1].trim();
 
                     String execInfo = testInfo[4].trim();
-                    String returnFrom = execInfo.split(" >> ")[0].trim();
-
+                    String returnFrom = execInfo.split(" >> ").length == 1 ? "" : execInfo.split(">>")[0].trim();
+                    String startTest = "startTest", endTest = "endTest";
+                    if (part.contains("before")) {
+                        startTest = "startBefore";
+                        endTest = "endBefore";
+                    } else if (part.contains("after")) {
+                        startTest = "startAfter";
+                        endTest = "endAfter";
+                    }
+                    csvPrinter.printRecord(name, startTest, "", "", "");
                     if (part.contains("body")) {
                         String subFile = argsList.get(inputTestList) + "sootTimerOutput/";
                         try {
@@ -120,6 +128,7 @@ public class RuntimeGenerator {
                             System.err.println(e.getMessage());
                         }
                     }
+                    csvPrinter.printRecord(name, endTest, "", "", "");
                 }
                 fileReader.close();
             } catch (FileNotFoundException e) {

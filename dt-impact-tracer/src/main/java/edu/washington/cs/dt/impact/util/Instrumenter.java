@@ -55,7 +55,9 @@ public class Instrumenter extends BodyTransformer{
     private static final String JUNIT4_TAG = "VisibilityAnnotationTag";
     private static final String JUNIT4_TYPE = "Lorg/junit/Test;";
     private static final String JUNIT4_BEFORE = "Lorg/junit/Before;";
+    private static final String JUNIT4_BEFORE_CLASS = "Lorg/junit/BeforeClass;";
     private static final String JUNIT4_AFTER = "Lorg/junit/After;";
+    private static final String JUNIT4_AFTER_CLASS = "Lorg/junit/AfterClass;";
     private static final String JUNIT3_CLASS = "junit.framework.TestCase";
     private static final String JUNIT3_RETURN = "void";
     private static final String JUNIT3_METHOD_PREFIX = "test";
@@ -98,6 +100,8 @@ public class Instrumenter extends BodyTransformer{
         boolean isSetupOrTeardown = false;
         boolean isBefore = false;
         boolean isAfter = false;
+        boolean isBeforeClass = false;
+        boolean isAfterClass = false;
 
         boolean isJUnit4 = false;
         VisibilityAnnotationTag vat = (VisibilityAnnotationTag) method.getTag(JUNIT4_TAG);
@@ -111,6 +115,12 @@ public class Instrumenter extends BodyTransformer{
                     isBefore = at.getType().equals(JUNIT4_BEFORE);
                     isAfter = at.getType().equals(JUNIT4_AFTER);
                     isSetupOrTeardown = isBefore || isAfter;
+                }
+                if (!isBeforeClass) {
+                    isBeforeClass = at.getType().equals(JUNIT4_BEFORE_CLASS);
+                }
+                if (!isAfterClass) {
+                    isAfterClass  = at.getType().equals(JUNIT4_AFTER_CLASS);
                 }
             }
         }
@@ -166,7 +176,7 @@ public class Instrumenter extends BodyTransformer{
             Stmt firstStmt = Jimple.v().newInvokeStmt(firstExpr);
             units.insertAfter(firstStmt, sFirst);
 
-            InvokeExpr lastExpr = Jimple.v().newStaticInvokeExpr(endExecution.makeRef(),StringConstant.v(packageMethodName), StringConstant.v(part), StringConstant.v(""));
+            InvokeExpr lastExpr = Jimple.v().newStaticInvokeExpr(endExecution.makeRef(),StringConstant.v(packageMethodName), StringConstant.v(part), StringConstant.v(" "));
             Stmt lastStmt = Jimple.v().newInvokeStmt(lastExpr);
             units.insertBefore(lastStmt, sLast);
             // Don't instrument empty methods
