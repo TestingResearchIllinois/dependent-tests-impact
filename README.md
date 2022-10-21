@@ -23,7 +23,7 @@ You can see whether the setup was successful or not by seeing the text files und
 If your setup is failed due to `testrunner-maven-plugin` you can solve this error by do the followings.
 - First clone the repo ```https://github.com/ReedOei/testrunner``` to your local machine
 - Run ```mvn install``` inside the ```testrunner``` directory
-- Upload the `testrunner-maven-plugin` to your local `.m2` folder using the command
+- Upload the `testrunner-maven-plugin` to your local `.m2` folder using the command inside `testrunner-maven-plugin/target`
 ```
 mvn install:install-file -Dfile=testrunner-maven-plugin-0.1-SNAPSHOT.jar -DgroupId=com.reedoei -DartifactId=testrunner-maven-plugin -Dversion=0.1-SNAPSHOT -Dpackaging=jar -DgeneratePom=true 
 ```
