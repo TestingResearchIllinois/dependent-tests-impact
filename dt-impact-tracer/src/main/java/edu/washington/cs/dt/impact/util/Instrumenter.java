@@ -209,18 +209,20 @@ public class Instrumenter extends BodyTransformer{
 
             // Do not forget to insert instructions to report the counter
             stmtIt = units.snapshotIterator();
+
             while (stmtIt.hasNext()) {
                 Stmt stmt = (Stmt)stmtIt.next();
 
                 if (internalOrInitStatementNotInvoked(stmt)) {
-                    testOutputBuffer.append(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName() + "." + stmt.getInvokeExpr().getMethod().getName() + "\n");
-                    InvokeExpr startExpr= Jimple.v().newStaticInvokeExpr(startTimer.makeRef());
-                    Stmt startStmt = Jimple.v().newInvokeStmt(startExpr);
-                    units.insertBefore(startStmt, stmt);
 
-                    InvokeExpr endExpr= Jimple.v().newStaticInvokeExpr(endTimer.makeRef());
-                    Stmt endStmt = Jimple.v().newInvokeStmt(endExpr);
-                    units.insertAfter(endStmt, stmt);
+                    testOutputBuffer.append(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName() + "." + stmt.getInvokeExpr().getMethod().getName() + "\n");
+//                    InvokeExpr startExpr= Jimple.v().newStaticInvokeExpr(startTimer.makeRef());
+//                    Stmt startStmt = Jimple.v().newInvokeStmt(startExpr);
+//                    units.insertBefore(startStmt, stmt);
+//
+//                    InvokeExpr endExpr= Jimple.v().newStaticInvokeExpr(endTimer.makeRef());
+//                    Stmt endStmt = Jimple.v().newInvokeStmt(endExpr);
+//                    units.insertAfter(endStmt, stmt);
 
                     // reset the timer
                     InvokeExpr resetExpr = Jimple.v().newStaticInvokeExpr(timerOutput.makeRef(),
@@ -228,7 +230,7 @@ public class Instrumenter extends BodyTransformer{
                             StringConstant.v(stmt.getInvokeExpr().getMethod().getName()),
                             StringConstant.v(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName()));
                     Stmt resetStmt = Jimple.v().newInvokeStmt(resetExpr);
-                    units.insertAfter(resetStmt, endStmt);
+                    units.insertBefore(resetStmt, stmt);
                 }
                 
                 if ((stmt instanceof ReturnStmt)
@@ -300,12 +302,15 @@ public class Instrumenter extends BodyTransformer{
                         List<Unit> children = ug.getSuccsOf(current);
                         // don't check identity statements (parameters)
                         if (!(stmt instanceof IdentityStmt)) {
+
                             for (Unit u : children) {
-                                sb.append(packageMethodName + " : "
+                                String s = packageMethodName + " : "
                                         + current.toString().split(" goto")[0] + " >>>>>>>> "
                                         + packageMethodName + " : "
-                                        + u.toString().split(" goto")[0] + "\n");
+                                        + u.toString().split(" goto")[0] + "\n";
+                                sb.append(s);
                             }
+
                             InvokeExpr incExpr= Jimple.v().newStaticInvokeExpr(
                                     selectionTrace.makeRef(), StringConstant.v(stmt.toString()),
                                     StringConstant.v(packageMethodName));
@@ -359,9 +364,9 @@ public class Instrumenter extends BodyTransformer{
     }
 
     private static boolean internalOrInitStatementNotInvoked(Stmt stmt) {
-        return stmt.containsInvokeExpr() && !(stmt.toString().contains("org.junit")) &&
-                !(stmt.getInvokeExpr().getMethod().getName().equals("<init>")) &&
-                !(stmt.getInvokeExpr().getMethod().getName().equals("<clinit>")) &&
+        return stmt.containsInvokeExpr() /*&& !(stmt.toString().contains("org.junit"))*/ &&
+//                !(stmt.getInvokeExpr().getMethod().getName().equals("<init>")) &&
+//                !(stmt.getInvokeExpr().getMethod().getName().equals("<clinit>")) &&
                 !(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName().contains("edu.washington.cs.dt.impact.util.Tracer"));
     }
 

@@ -158,22 +158,22 @@ public class Tracer {
     }
 
     public static void timerOutput(String packageMethodName, String methodName, String declaringClass){
-        long elapsedTime = timer.getTotalTime();
-        timer.reset();
-        String text = packageMethodName + " >>> " + declaringClass + "." + methodName + " : " + elapsedTime + "\n";
+//        long elapsedTime = timer.getTotalTime();
+//        timer.reset();
+        String text = packageMethodName + " >>> " + declaringClass + "." + methodName + " : " + System.currentTimeMillis() + "\n";
         writeToFile("sootTimerOutput", text, packageMethodName);
     }
 
     public static void startExecution(String packageMethodName, String prefix){
-        totalExecutionTime.setStartTime();
-        writeToFile("sootSeqOutput", "Started > " + prefix + " >> " + packageMethodName, "functionSequence");
+//        totalExecutionTime.setStartTime();
+        writeToFile("sootSeqOutput", "Started > " + prefix +" >> " + packageMethodName+"#"+System.currentTimeMillis() , "functionSequence");
     }
 
     public static void endExecution(String packageMethodName, String prefix, String endMethod){
-        totalExecutionTime.setEndTime();
-        long elapsedTime = totalExecutionTime.getTotalTime();
-        totalExecutionTime.reset();
-        String text = " > Ended > " + packageMethodName + " > " + endMethod + " >> " + "Time : " + elapsedTime + " " + "\n";
+//        totalExecutionTime.setEndTime();
+//        long elapsedTime = totalExecutionTime.getTotalTime();
+//        totalExecutionTime.reset();
+        String text = " > Ended > " + packageMethodName+"#"+System.currentTimeMillis()  + " > " + endMethod + " >> " + "Time : " + "elapsedTime" + " " + "\n";
         writeToFile("sootSeqOutput", text, "functionSequence");
     }
 
