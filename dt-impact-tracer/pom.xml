@@ -70,9 +70,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>edu.illinois.cs</groupId>
+            <groupId>com.reedoei</groupId>
             <artifactId>testrunner-maven-plugin</artifactId>
-            <version>1.0</version>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>ca.mcgill.sable</groupId>
@@ -132,6 +132,11 @@
             <groupId>org.jfree</groupId>
             <artifactId>jfreesvg</artifactId>
             <version>3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.4</version>
         </dependency>
     </dependencies>
 </project>

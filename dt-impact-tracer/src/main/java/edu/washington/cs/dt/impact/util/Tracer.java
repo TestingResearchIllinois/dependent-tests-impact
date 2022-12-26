@@ -26,6 +26,8 @@ public class Tracer {
     private static final List<String> selectionStatements = Collections.synchronizedList(new LinkedList<>());
     private static Set<String> duplicates = ConcurrentHashMap.newKeySet();
     private static boolean printLastElement = true;
+    private static StopWatch timer = new StopWatch();
+    private static StopWatch totalExecutionTime = new StopWatch();
 
     public static void trace(String str, String methodName) {
         if (statements.containsKey(methodName)) {
@@ -138,6 +140,66 @@ public class Tracer {
                 }
             } catch (IOException e) {
                 // Ignore issues during closing
+            }
+        }
+    }
+
+    public static void startTimer (){
+        timer.setStartTime();
+    }
+
+    public static void endTimer(){
+        timer.setEndTime();
+    }
+
+    public static void exceptionMessage(String packageMethodName, String prefix){
+        endExecution(packageMethodName, prefix, "Exception");
+        writeToFile("sootException", "Caught Exception in : " + packageMethodName + "\n", "functionException");
+    }
+
+    public static void timerOutput(String packageMethodName, String methodName, String declaringClass){
+//        long elapsedTime = timer.getTotalTime();
+//        timer.reset();
+        String text = packageMethodName + " >>> " + declaringClass + "." + methodName + " : " + System.currentTimeMillis() + "\n";
+        writeToFile("sootTimerOutput", text, packageMethodName);
+    }
+
+    public static void startExecution(String packageMethodName, String prefix){
+//        totalExecutionTime.setStartTime();
+        writeToFile("sootSeqOutput", "Started > " + prefix +" >> " + packageMethodName+"#"+System.currentTimeMillis() , "functionSequence");
+    }
+
+    public static void endExecution(String packageMethodName, String prefix, String endMethod){
+//        totalExecutionTime.setEndTime();
+//        long elapsedTime = totalExecutionTime.getTotalTime();
+//        totalExecutionTime.reset();
+        String text = " > Ended > " + packageMethodName+"#"+System.currentTimeMillis()  + " > " + endMethod + " >> " + "Time : " + "elapsedTime" + " " + "\n";
+        writeToFile("sootSeqOutput", text, "functionSequence");
+    }
+
+    private static void writeToFile(String folderPath, String text, String fileName) {
+        File theDir = new File(folderPath);
+        // if the directory does not exist, create it
+        tryCreateDirectory(theDir);
+        FileWriter output = null;
+        BufferedWriter writer = null;
+        try {
+            output = new FileWriter(folderPath + File.separator + fileName, true);
+            writer = new BufferedWriter(output);
+            writer.write(text);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+                if (output != null) {
+                    output.close();
+                }
+            } catch (IOException e) {
+                // Ignore issues during closing
+                System.err.println(e.toString());
             }
         }
     }
