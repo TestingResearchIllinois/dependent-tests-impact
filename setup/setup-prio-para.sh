@@ -52,7 +52,7 @@ java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeGenerator -inputFile
 
 rm -rf $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootTestOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
-mv sootCsvOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootCSV-${VER_NAME}/
+mv sootXMLOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootXML-${VER_NAME}/
 
 cd $DT_SUBJ
 rm -rf sootOutput/
