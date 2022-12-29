@@ -75,6 +75,16 @@
             <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.reedoei</groupId>
+            <artifactId>testrunner-running</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.reedoei</groupId>
+            <artifactId>testrunner-testing</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>ca.mcgill.sable</groupId>
             <artifactId>soot</artifactId>
             <version>3.2.0</version>
