@@ -73,7 +73,7 @@ public class RuntimeGenerator {
                         startTest = "startAfter";
                         endTest = "endAfter";
                     }
-                    createeElemnthead(doc,test,name,timeStamp);
+                    createElementHead(doc,test,name,timeStamp);
                     if (part.contains("body")) {
 
                         String subFile = argsList.get(inputTestList) + "sootTimerOutput/";
@@ -83,7 +83,7 @@ public class RuntimeGenerator {
                             while(subReader.hasNextLine()){
                                 String fullMethodName = subReader.nextLine();
                                 String methodNameInfo = fullMethodName.split(" >>> ")[1];
-                                createeElemnt(doc,methods,methodNameInfo.split(" : ")[0].trim(), methodNameInfo.split(" : ")[1].trim(), returnFrom);
+                                createElement(doc,methods,methodNameInfo.split(" : ")[0].trim(), methodNameInfo.split(" : ")[1].trim(), returnFrom);
                             }
                             subReader.close();
                         } catch (FileNotFoundException e) {
@@ -96,7 +96,7 @@ public class RuntimeGenerator {
                         try {
                             File testDir = new File(testOutput+name);
                             Scanner testReader = new Scanner(testDir);
-                            File temp = new File("new_xml.txt");
+                            File temp = new File("tempSootTimerOutput.txt");
                             FileWriter output = new FileWriter(temp);
                             BufferedWriter writer_2 = new BufferedWriter(output);
                             while(testReader.hasNextLine()){
@@ -107,7 +107,7 @@ public class RuntimeGenerator {
                                     String method_name = subReader.nextLine();
                                     String subMethod = method_name.split(" >>> ")[1];
                                     if(subMethod.split(" : ")[0].trim().equals(fullMethodName.trim())){
-                                        createeElemnt(doc,methods,subMethod.split(" : ")[0].trim(), subMethod.split(" : ")[1].trim(), returnFrom);
+                                        createElement(doc,methods,subMethod.split(" : ")[0].trim(), subMethod.split(" : ")[1].trim(), returnFrom);
                                         result.add(subMethod);
                                         break;
                                     }
@@ -139,7 +139,7 @@ public class RuntimeGenerator {
                             System.err.println(e.getMessage());
                         }
                     }
-                    createeElemntend(doc,test,methods,testInfo[3].trim().split("#")[1]);
+                    createElementEnd(doc,test,methods,testInfo[3].trim().split("#")[1]);
                     root.appendChild(test);
                 }
 
@@ -165,7 +165,7 @@ public class RuntimeGenerator {
             }
     }
 
-    private static void createeElemnthead(Document doc,Element test,String test_val,String execution_time_val)
+    private static void createElementHead(Document doc,Element test,String test_val,String execution_time_val)
     {
         Element test_name=doc.createElement("testName");
         Element execution_time=doc.createElement("startTime");
@@ -179,7 +179,7 @@ public class RuntimeGenerator {
         test.appendChild(execution_time);
 
     }
-    private static void createeElemnt(Document doc,Element methods,String method_under_test_name_val,String execution_time_val,String throw_exception_val)
+    private static void createElement(Document doc,Element methods,String method_under_test_name_val,String execution_time_val,String throw_exception_val)
     {
 
         Element method_under_test_name=doc.createElement("methodUnderTestName");
@@ -200,7 +200,7 @@ public class RuntimeGenerator {
 
     }
 
-    private static void createeElemntend(Document doc,Element test,Element methods,String execution_time_val)
+    private static void createElementEnd(Document doc,Element test,Element methods,String execution_time_val)
     {
         Element execution_time=doc.createElement("endTime");
         execution_time_val= iffull(execution_time_val);
