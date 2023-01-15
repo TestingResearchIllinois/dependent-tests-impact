@@ -18,14 +18,7 @@ import soot.SootClass;
 import soot.SootMethod;
 import soot.Type;
 import soot.Unit;
-import soot.jimple.IdentityStmt;
-import soot.jimple.InvokeExpr;
-import soot.jimple.Jimple;
-import soot.jimple.RetStmt;
-import soot.jimple.ReturnStmt;
-import soot.jimple.ReturnVoidStmt;
-import soot.jimple.Stmt;
-import soot.jimple.StringConstant;
+import soot.jimple.*;
 import soot.tagkit.AnnotationTag;
 import soot.tagkit.LineNumberTag;
 import soot.tagkit.VisibilityAnnotationTag;
@@ -153,28 +146,34 @@ public class Instrumenter extends BodyTransformer{
         // mutate the chain when iterating over it.
         Iterator<Unit> stmtIt = units.snapshotIterator();
 
+        Iterator<Unit> stmtItpre = units.snapshotIterator();
+
+
         String packageMethodName = method.getDeclaringClass().getName() + "." + method.getName();
+        SootClass thrwCls = Scene.v().getSootClass("java.lang.Throwable");
+        List<Stmt> probe = new ArrayList<Stmt>();
+        PatchingChain<Unit> pchain = body.getUnits();
+
+        Stmt sFirstNonId = getFirstNonIdStmt(pchain);
+        Stmt sLast = (Stmt) pchain.getLast();
+        Stmt sFirst = (Stmt) pchain.getFirst();
+        StringBuffer testOutputBuffer = new StringBuffer();
+        String part = "body";
+        if (isBefore) {
+            part = "before";
+        } else if (isAfter){
+            part = "after";
+        }
+
         if (isJUnit4 || isJUnit3 || isSetupOrTeardown) {
             // instrumentation of JUnit files
 
             // get access to Throwable class and toString method
-            SootClass thrwCls = Scene.v().getSootClass("java.lang.Throwable");
-            List<Stmt> probe = new ArrayList<Stmt>();
-            PatchingChain<Unit> pchain = body.getUnits();
-
-            Stmt sFirstNonId = getFirstNonIdStmt(pchain);
-            Stmt sLast = (Stmt) pchain.getLast();
-            Stmt sFirst = (Stmt) pchain.getFirst();
-            StringBuffer testOutputBuffer = new StringBuffer();
-            String part = "body";
-            if (isBefore) {
-                part = "before";
-            } else if (isAfter){
-                part = "after";
-            }
             InvokeExpr firstExpr = Jimple.v().newStaticInvokeExpr(startExecution.makeRef(),StringConstant.v(packageMethodName), StringConstant.v(part));
             Stmt firstStmt = Jimple.v().newInvokeStmt(firstExpr);
             units.insertAfter(firstStmt, sFirst);
+
+
 
             InvokeExpr lastExpr = Jimple.v().newStaticInvokeExpr(endExecution.makeRef(),StringConstant.v(packageMethodName), StringConstant.v(part), StringConstant.v(" "));
             Stmt lastStmt = Jimple.v().newInvokeStmt(lastExpr);
@@ -208,70 +207,7 @@ public class Instrumenter extends BodyTransformer{
             body.getTraps().add(Jimple.v().newTrap(thrwCls, sFirstNonId, sGotoLast, sCatch));
 
             // Do not forget to insert instructions to report the counter
-            stmtIt = units.snapshotIterator();
 
-            while (stmtIt.hasNext()) {
-                Stmt stmt = (Stmt)stmtIt.next();
-
-                if (internalOrInitStatementNotInvoked(stmt)) {
-
-                    testOutputBuffer.append(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName() + "." + stmt.getInvokeExpr().getMethod().getName() + "\n");
-//                    InvokeExpr startExpr= Jimple.v().newStaticInvokeExpr(startTimer.makeRef());
-//                    Stmt startStmt = Jimple.v().newInvokeStmt(startExpr);
-//                    units.insertBefore(startStmt, stmt);
-//
-//                    InvokeExpr endExpr= Jimple.v().newStaticInvokeExpr(endTimer.makeRef());
-//                    Stmt endStmt = Jimple.v().newInvokeStmt(endExpr);
-//                    units.insertAfter(endStmt, stmt);
-
-                    // reset the timer
-                    InvokeExpr resetExpr = Jimple.v().newStaticInvokeExpr(timerOutput.makeRef(),
-                            StringConstant.v(packageMethodName) ,
-                            StringConstant.v(stmt.getInvokeExpr().getMethod().getName()),
-                            StringConstant.v(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName()));
-                    Stmt resetStmt = Jimple.v().newInvokeStmt(resetExpr);
-                    units.insertBefore(resetStmt, stmt);
-                }
-                
-                if ((stmt instanceof ReturnStmt)
-                        ||(stmt instanceof ReturnVoidStmt)) {
-
-                    if (technique != TECHNIQUE.SELECTION) {
-                        // output the contents of the tracer
-                        InvokeExpr reportExpr= Jimple.v().newStaticInvokeExpr(output.makeRef(),
-                                StringConstant.v(packageMethodName));
-                        Stmt reportStmt = Jimple.v().newInvokeStmt(reportExpr);
-                        units.insertBefore(reportStmt, stmt);
-
-                        // reset the tracer
-                        InvokeExpr resetExpr= Jimple.v().newStaticInvokeExpr(reset.makeRef());
-                        Stmt resetStmt = Jimple.v().newInvokeStmt(resetExpr);
-                        units.insertAfter(resetStmt, reportStmt);
-                    } else {
-                        // output the contents of the tracer
-                        InvokeExpr reportExpr= Jimple.v().newStaticInvokeExpr(
-                                selectionOutput.makeRef(), StringConstant.v(packageMethodName));
-                        Stmt reportStmt = Jimple.v().newInvokeStmt(reportExpr);
-                        units.insertBefore(reportStmt, stmt);
-
-                        // reset the tracer
-                        InvokeExpr resetExpr= Jimple.v().newStaticInvokeExpr(reset.makeRef());
-                        Stmt resetStmt = Jimple.v().newInvokeStmt(resetExpr);
-                        units.insertAfter(resetStmt, reportStmt);
-                    }
-                }
-            }
-            Chain<Unit> new_units = body.getUnits();
-            Iterator<Unit> new_stmtIt = new_units.snapshotIterator();
-            while (new_stmtIt.hasNext()) {
-                Stmt stmt = (Stmt) new_stmtIt.next();
-                InvokeExpr lExceptionMessage = Jimple.v().newStaticInvokeExpr(exceptionMessage.makeRef(), StringConstant.v(packageMethodName), StringConstant.v(part));
-                Stmt exceptionStmt = Jimple.v().newInvokeStmt(lExceptionMessage);
-                if(stmt.toString().contains("@caughtexception")){
-                    units.insertAfter(exceptionStmt, stmt);
-                }
-            }
-            selectionOutput(packageMethodName, testOutputBuffer, "testOutput");
         } else {
             if (technique == TECHNIQUE.SELECTION) {
                 // instrumentation of class files for test selection
@@ -361,6 +297,69 @@ public class Instrumenter extends BodyTransformer{
                 selectionOutput(packageMethodName, functionBodyBuffer, "methodOutput");
             }
         }
+        //stmtIt = units.snapshotIterator();
+        //stmtIt=stmtItpre;
+
+        while (stmtItpre.hasNext()) {
+            Stmt stmt = (Stmt)stmtItpre.next();
+
+            if (internalOrInitStatementNotInvoked(stmt)) {
+                testOutputBuffer.append(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName() + "." + stmt.getInvokeExpr().getMethod().getName() + "\n");
+
+                InvokeExpr resetExpr = Jimple.v().newStaticInvokeExpr(timerOutput.makeRef(),
+                        StringConstant.v(packageMethodName) ,
+                        StringConstant.v(stmt.getInvokeExpr().getMethod().getName()),
+                        StringConstant.v(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName()));
+
+
+                Stmt resetStmt = Jimple.v().newInvokeStmt(resetExpr);
+
+                units.insertBefore(resetStmt, stmt);
+            }
+
+
+            if ((stmt instanceof ReturnStmt)
+                    ||(stmt instanceof ReturnVoidStmt)) {
+
+
+                if (technique != TECHNIQUE.SELECTION) {
+
+                    InvokeExpr reportExpr= Jimple.v().newStaticInvokeExpr(output.makeRef(),
+                            StringConstant.v(packageMethodName));
+                    Stmt reportStmt = Jimple.v().newInvokeStmt(reportExpr);
+                    units.insertBefore(reportStmt, stmt);
+
+                    InvokeExpr resetExpr= Jimple.v().newStaticInvokeExpr(reset.makeRef());
+                    Stmt resetStmt = Jimple.v().newInvokeStmt(resetExpr);
+                    units.insertAfter(resetStmt, reportStmt);
+                } else {
+
+                    InvokeExpr reportExpr= Jimple.v().newStaticInvokeExpr(
+                            selectionOutput.makeRef(), StringConstant.v(packageMethodName));
+                    Stmt reportStmt = Jimple.v().newInvokeStmt(reportExpr);
+                    units.insertBefore(reportStmt, stmt);
+
+                    // reset the tracer
+                    InvokeExpr resetExpr= Jimple.v().newStaticInvokeExpr(reset.makeRef());
+                    Stmt resetStmt = Jimple.v().newInvokeStmt(resetExpr);
+                    units.insertAfter(resetStmt, reportStmt);
+                }
+            }
+
+        }
+
+
+        Chain<Unit> new_units = body.getUnits();
+        Iterator<Unit> new_stmtIt = new_units.snapshotIterator();
+        while (new_stmtIt.hasNext()) {
+            Stmt stmt = (Stmt) new_stmtIt.next();
+            InvokeExpr lExceptionMessage = Jimple.v().newStaticInvokeExpr(exceptionMessage.makeRef(), StringConstant.v(packageMethodName), StringConstant.v(part));
+            Stmt exceptionStmt = Jimple.v().newInvokeStmt(lExceptionMessage);
+            if(stmt.toString().contains("@caughtexception")){
+                units.insertAfter(exceptionStmt, stmt);
+            }
+        }
+        selectionOutput(packageMethodName, testOutputBuffer, "testOutput");
     }
 
     private static boolean internalOrInitStatementNotInvoked(Stmt stmt) {

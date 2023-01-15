@@ -53,6 +53,10 @@ java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeGenerator -inputFile
 rm -rf $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootTestOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootXMLOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootXML-${VER_NAME}/
+echo "[DEBUG] Generating report for surefire vs our test result"
+java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeComparator -inputFile $DT_SUBJ/../ -inputName $DT_SUBJ
+
+
 
 cd $DT_SUBJ
 rm -rf sootOutput/
