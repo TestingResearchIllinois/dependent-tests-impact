@@ -59,7 +59,7 @@ public class RuntimeGenerator {
                 continue;
             }
             Method parent = new Method(Integer.toString(parentId),parentMethod,timeDiff,false);
-            int childId=1;
+            String childId="1";
 
             while (fileReader.hasNextLine())
             {
@@ -80,28 +80,24 @@ public class RuntimeGenerator {
                 else{
                     timeDiff=time-prevTime;
                     prevTime=time;
-                    parent.addChild(startMethod,Integer.toString(childId),endMethod,timeDiff,false);
-                    childId++;
-                    /*String[] arrOfStr = currentId.split(".");
+                    String currentId=parent.addChild(startMethod,childId,endMethod,timeDiff,false);
+                    String[] arrOfStr = currentId.split("\\.");
                     childId="";
                     for (int i=1;i<arrOfStr.length;i++)
                     {
                         if(i==arrOfStr.length-1)
                         {
-                            int lastPoint= Integer.parseInt(arrOfStr[i])+1;
-                            String lastPart=Integer.toString(lastPoint);
-                            childId+=lastPart;
+                            childId+=arrOfStr[i];
                         }
                         else {
                             childId+=arrOfStr[i]+".";
                         }
-                    }*/
+                    }
                     parent.addTime(timeDiff);
 
 
                 }
             }
-            //parent.calcTime(parentMethod);
             XmlMapper xmlMapper = new XmlMapper();
             xmlMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
             String xml = xmlMapper.writeValueAsString(parent);

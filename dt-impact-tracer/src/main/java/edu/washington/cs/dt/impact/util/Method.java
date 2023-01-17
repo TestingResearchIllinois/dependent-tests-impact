@@ -24,60 +24,64 @@ public class Method {
         this.method = new ArrayList<Method>();
     }
 
-    public void addChild(String parentname,String id,String name,long time,boolean throwException) {
+    public String addChild(String parentname,String id,String name,long time,boolean throwException) {
         ListIterator<Method> e
-                = method.listIterator();;
+                = method.listIterator();
         int i=0;
-        String idChild=this.getId()+"."+id;
         while ((e.hasNext())){
             Method temp=e.next();
             if(Objects.equals(temp.getName(), parentname))
             {
-                String internalID=temp.getId()+"."+id;
+                ListIterator<Method> internal
+                        = temp.getMethod().listIterator();
+                String lastChildId=id;
+                while (internal.hasNext())
+                {
+                    Method tempChild = internal.next();
+                    try {
+                        lastChildId = tempChild.getId();
+                    }catch (NoSuchElementException err)
+                    {
+                        continue;
+                    }
+                }
+                String[] arrOfStr = lastChildId.split("\\.");
+                int lastInternal=Integer.parseInt(arrOfStr[arrOfStr.length-1])+1;
+                String lastPartInternal=Integer.toString(lastInternal);
+                String internalID=temp.getId()+"."+lastPartInternal;
                 i=1;
                 try{
                     temp.getMethod().add(new Method(internalID,name,time,throwException));
                     long newtime= temp.getTime()+time;
                     temp.setTime(newtime);
-                    break;
+                    return internalID;
                 }
                 catch (NoSuchElementException err)
                 {
-                    break;
+                    return internalID;
                 }
 
             }
         }
+
         if(i!=1)
         {
-
+            String[] arrOfStr = id.split("\\.");
+            int last=Integer.parseInt(arrOfStr[0])+1;
+            String lastPart=Integer.toString(last);
+            String idChild=this.getId()+"."+lastPart;
             Method newParent= new Method(idChild,parentname,time,throwException);
             this.method.add(newParent);
-            newParent.getMethod().add(new Method(idChild+"."+id,name,time,throwException));
-            //this.method.id(idChild);
-            //this.method.add(newParent);
-            //this.addChild(parentname,idChild,name,time,throwException);
-
-
+            newParent.getMethod().add(new Method(idChild+"."+"1",name,time,throwException));
+            return idChild+"."+"1";
         }
+        return id;
     }
 
 
     public void addTime(long time)
     {
         this.time+=time;
-        /*this.time=this.getTime()+time;
-        ListIterator<Method> e
-                = method.listIterator();;
-        while ((e.hasNext())){
-            Method temp=e.next();
-
-            if(Objects.equals(temp.getName(), parentname))
-            {
-                temp.time=time+ temp.getTime();
-                break;
-            }
-        }*/
     }
 
 
