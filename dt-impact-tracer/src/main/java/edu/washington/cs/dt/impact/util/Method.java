@@ -10,15 +10,18 @@ public class Method {
     @JacksonXmlProperty(isAttribute = true)
     private String name;
     @JacksonXmlProperty(isAttribute = true)
+    private boolean testType=true;
+    @JacksonXmlProperty(isAttribute = true)
     private long time;
     @JacksonXmlProperty(isAttribute = true)
     private boolean throwException=false;
 
     public ArrayList<Method> method;
 
-    public Method(String id,String name,long time,boolean throwException) {
+    public Method(String id,String name,long time,boolean testType,boolean throwException) {
         this.id = id;
         this.name=name;
+        this.testType=testType;
         this.time=time;
         this.throwException=throwException;
         this.method = new ArrayList<Method>();
@@ -51,7 +54,7 @@ public class Method {
                 String internalID=temp.getId()+"."+lastPartInternal;
                 i=1;
                 try{
-                    temp.getMethod().add(new Method(internalID,name,time,throwException));
+                    temp.getMethod().add(new Method(internalID,name,time,false,throwException));
                     long newtime= temp.getTime()+time;
                     temp.setTime(newtime);
                     return internalID;
@@ -70,9 +73,9 @@ public class Method {
             int last=Integer.parseInt(arrOfStr[0])+1;
             String lastPart=Integer.toString(last);
             String idChild=this.getId()+"."+lastPart;
-            Method newParent= new Method(idChild,parentname,time,throwException);
+            Method newParent= new Method(idChild,parentname,time,true,throwException);
             this.method.add(newParent);
-            newParent.getMethod().add(new Method(idChild+"."+"1",name,time,throwException));
+            newParent.getMethod().add(new Method(idChild+"."+"1",name,time,false,throwException));
             return idChild+"."+"1";
         }
         return id;

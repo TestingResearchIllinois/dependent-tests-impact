@@ -153,8 +153,9 @@ public class Tracer {
         timer.setEndTime();
     }
 
-    public static void exceptionMessage(String packageMethodName, String prefix) throws IOException {
-        endExecution(packageMethodName, prefix, "Exception");
+    public static void exceptionMessage(String packageMethodName, String prefix,String type) throws IOException {
+        type = type.replaceAll(",",";");
+        endExecution(packageMethodName, prefix, "Exception: "+type);
         writeToFile("sootException", "Caught Exception in : " + packageMethodName + "\n", "functionException");
     }
 
@@ -162,13 +163,25 @@ public class Tracer {
 //        long elapsedTime = timer.getTotalTime();
 //        timer.reset();
         long time=System.currentTimeMillis();
-        writeforinputXML("sootTracerData",packageMethodName,methodName, time);
+        writeforinputXML("sootTracerData",packageMethodName,declaringClass + "." +methodName, time);
         String text = packageMethodName + " >>> " + declaringClass + "." + methodName + " : " + System.currentTimeMillis() + "\n";
         writeToFile("sootTimerOutput", text, packageMethodName);
     }
 
     public static void startExecution(String packageMethodName, String prefix) throws IOException {
 //        totalExecutionTime.setStartTime();
+        String[] arrOfStr = packageMethodName.split("\\.");
+        packageMethodName="";
+        for (int i=0;i<arrOfStr.length-1;i++)
+        {
+            if(i==arrOfStr.length-2)
+            {
+                packageMethodName+=arrOfStr[i];
+            }
+            else {
+                packageMethodName+=arrOfStr[i]+".";
+            }
+        }
         long time=System.currentTimeMillis();
         writeforinputXML("sootTracerData","START",packageMethodName, time);
         writeToFile("sootSeqOutput", "Started > " + prefix +" >> " + packageMethodName+"#"+System.currentTimeMillis() , "functionSequence");
@@ -212,7 +225,6 @@ public class Tracer {
     }
     public static void writeforinputXML(String folderPath, String startMethod,String endMethod, long time) throws IOException {
         File theDir = new File(folderPath);
-        tryCreateDirectory(theDir);
         tryCreateDirectory(theDir);
         FileWriter output = null;
         BufferedWriter writer = null;

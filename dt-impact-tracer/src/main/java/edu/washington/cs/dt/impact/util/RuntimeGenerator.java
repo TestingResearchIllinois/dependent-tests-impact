@@ -36,7 +36,8 @@ public class RuntimeGenerator {
         System.out.println("File: " + paths[paths.length - 4]);
         tryCreateDirectory(theDir);
         FileWriter fileWriter = null;
-        File rootFile = new File(argsList.get(inputTestList) + "sootXML/tempTracerData.txt");
+        File rootFile = new File(argsList.get(inputTestList) + "sootTracerData/tempTracerData.txt");
+        //tryCreateDirectory(rootFile);
         Scanner fileReader = new Scanner(rootFile);
         String path="sootXMLOutput" + File.separator + paths[paths.length - 4] + "-runtime.xml";
         FileWriter xmlFile = new FileWriter(path);
@@ -44,22 +45,27 @@ public class RuntimeGenerator {
         xmlFile.write("<MethodList>");
         //String id="1";
         int parentId=1;
+        String dataParent=null;
 
         while (fileReader.hasNextLine())
         {
-            String dataParent= fileReader.nextLine();
+
+            if(parentId==1){
+                dataParent= fileReader.nextLine();
+            }
             String[] testInfoParent = dataParent.split(",");
 
-            String parentMethod=testInfoParent[0];
+            String parentMethod=testInfoParent[1];
+            String prevm=testInfoParent[0];
             long prevTime= Long.parseLong(testInfoParent[2]);
             int prev=0;
             long timeDiff=0;
-            if(Objects.equals(parentMethod, "START"))
+            /*if(Objects.equals(parentMethod, "START"))
             {
                 continue;
-            }
-            Method parent = new Method(Integer.toString(parentId),parentMethod,timeDiff,false);
-            String childId="1";
+            }*/
+            Method parent = new Method(Integer.toString(parentId),parentMethod,timeDiff,false,false);
+            String childId="0";
 
             while (fileReader.hasNextLine())
             {
@@ -71,9 +77,14 @@ public class RuntimeGenerator {
                 long time= Long.parseLong(testInfo[2]);
                 if(Objects.equals(startMethod, "START"))
                 {
+                    dataParent=data;
                     break;
                 }
                 else if(Objects.equals(endMethod, "<init>") || Objects.equals(endMethod, " "))
+                {
+                    continue;
+                }
+                else if(endMethod.toString().contains("<init>"))
                 {
                     continue;
                 }
@@ -100,6 +111,7 @@ public class RuntimeGenerator {
             }
             XmlMapper xmlMapper = new XmlMapper();
             xmlMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+            xmlMapper.getFactory().getXMLOutputFactory().setProperty("javax.xml.stream.isRepairingNamespaces", false);
             String xml = xmlMapper.writeValueAsString(parent);
             assertNotNull(xml);
             xmlFile.write(xml + "\n");

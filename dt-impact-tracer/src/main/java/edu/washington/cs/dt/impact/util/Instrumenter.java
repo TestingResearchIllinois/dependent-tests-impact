@@ -8,16 +8,7 @@
 package edu.washington.cs.dt.impact.util;
 
 import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
-import soot.Body;
-import soot.BodyTransformer;
-import soot.Local;
-import soot.PatchingChain;
-import soot.RefType;
-import soot.Scene;
-import soot.SootClass;
-import soot.SootMethod;
-import soot.Type;
-import soot.Unit;
+import soot.*;
 import soot.jimple.*;
 import soot.tagkit.AnnotationTag;
 import soot.tagkit.LineNumberTag;
@@ -192,10 +183,14 @@ public class Instrumenter extends BodyTransformer{
             probe.add(sGotoLast);
             Local lException1 = getCreateLocal(body, "<ex1>", RefType.v(thrwCls));
             Stmt sCatch = Jimple.v().newIdentityStmt(lException1, Jimple.v().newCaughtExceptionRef());
+            //System.out.println("====scatch===="+sCatch);
             probe.add(sCatch);
 
             // TODO after catching an exception in a test, throw the exception back
-            // Type throwType = thrwCls.getType();
+            Type throwType = thrwCls.getType();
+
+            //System.out.println("------lx---"+lException1);
+            //System.out.println("====thtype===="+throwType);
             // Local lSysOut = getCreateLocal(body, "<throw>", throwType);
             // Stmt callThrow = Jimple.v().newInvokeStmt(Jimple.v().newVirtualInvokeExpr(lException1, initThrow.makeRef(),
             //         lSysOut));
@@ -353,9 +348,12 @@ public class Instrumenter extends BodyTransformer{
         Iterator<Unit> new_stmtIt = new_units.snapshotIterator();
         while (new_stmtIt.hasNext()) {
             Stmt stmt = (Stmt) new_stmtIt.next();
-            InvokeExpr lExceptionMessage = Jimple.v().newStaticInvokeExpr(exceptionMessage.makeRef(), StringConstant.v(packageMethodName), StringConstant.v(part));
+            String exceptionTypes = TrapManager.getExceptionTypesOf(stmt, body).toString();
+            InvokeExpr lExceptionMessage = Jimple.v().newStaticInvokeExpr(exceptionMessage.makeRef(), StringConstant.v(packageMethodName), StringConstant.v(part),StringConstant.v(exceptionTypes));
             Stmt exceptionStmt = Jimple.v().newInvokeStmt(lExceptionMessage);
+
             if(stmt.toString().contains("@caughtexception")){
+                //System.out.println(StringConstant.v(packageMethodName)+"---------et--------"+exceptionTypes);
                 units.insertAfter(exceptionStmt, stmt);
             }
         }

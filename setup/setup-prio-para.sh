@@ -10,6 +10,9 @@ cd ..
 rm -rf sootTimerOutput/
 rm -rf sootSeqOutput/
 rm -rf sootException/
+rm -rf sootTracerData/
+rm -rf sootXMLOutput/
+rm -rf sootCsvOutput/
 
 # 1. Find the human-written tests in the old subject.
 cd $DT_SUBJ

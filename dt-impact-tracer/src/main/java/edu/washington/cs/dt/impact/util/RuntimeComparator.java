@@ -39,9 +39,6 @@ public class RuntimeComparator {
         File theDir = new File("sootCsvOutput");
         tryCreateDirectory(theDir);
         String testOutput = argsList.get(inputTestList)+"target/surefire-reports/";
-        int inputggg= argsList.indexOf("-inputName");
-        int inputTestListggg = inputggg + 1;
-        String testOutputggg = argsList.get(inputTestListggg);
 
         String currpath=System.getProperty("user.dir");
         String projectPath=currpath.substring(0, currpath.length() - 13);
@@ -56,6 +53,11 @@ public class RuntimeComparator {
         File folder = new File(testOutput);
         String[] paths = argsList.get(inputTestList).split("/");
         File[] listOfFiles = folder.listFiles();
+        FileWriter fileWriter = null;
+        BufferedWriter bufferedWriter = null;
+        fileWriter = new FileWriter("sootCsvOutput" + File.separator + paths[paths.length - 4] + "-comparedResult.csv");
+        bufferedWriter = new BufferedWriter(fileWriter);
+        CSVPrinter csvPrinter = new CSVPrinter(bufferedWriter, CSVFormat.DEFAULT.withHeader("Test Name", "Method Under Test Name", "Surefire reported execution time(msec.)", "Tested execution time(msec)"));
         for(int i = 0; i < listOfFiles.length; i++){
             String filename = listOfFiles[i].getName();
             if(filename.endsWith(".xml")||filename.endsWith(".XML")) {
@@ -68,11 +70,7 @@ public class RuntimeComparator {
 
                 //System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
                 NodeList nList = doc.getElementsByTagName("testcase");
-                FileWriter fileWriter = null;
-                BufferedWriter bufferedWriter = null;
-                fileWriter = new FileWriter("sootCsvOutput" + File.separator + paths[paths.length - 4] + "-comparedResult.csv");
-                bufferedWriter = new BufferedWriter(fileWriter);
-                CSVPrinter csvPrinter = new CSVPrinter(bufferedWriter, CSVFormat.DEFAULT.withHeader("Test Name", "Method Under Test Name", "Surefire reported execution time(msec.)", "Tested execution time(msec)"));
+
 
                 for (int temp = 0; temp < nList.getLength(); temp++) {
                     Node nNode = nList.item(temp);
@@ -87,7 +85,7 @@ public class RuntimeComparator {
                         System.out.println("Execution Time: "
                                 + eElement.getAttribute("time"));*/
 
-                        NodeList nListxml= docxml.getElementsByTagName("Method");
+                        NodeList nListxml= docxml.getElementsByTagName("method");
 
                         String time="";
                         for (int tempxml = 0; tempxml < nListxml.getLength(); tempxml++) {
@@ -96,9 +94,10 @@ public class RuntimeComparator {
                                 if (nNodexml.getNodeType() == nNodexml.ELEMENT_NODE) {
                                     Element eElementxml = (Element) nNodexml;
 
-                                    if(Objects.equals(eElementxml.getAttribute("name"), eElement.getAttribute("classname")+"."+eElement.getAttribute("name")))
+                                    if((Objects.equals(eElementxml.getAttribute("name"), eElement.getAttribute("classname")+"."+eElement.getAttribute("name"))) && (eElementxml.getAttribute("testType").equals("true")))
                                     {
                                         time=eElementxml.getAttribute("time");
+                                        break;
                                     }
                                 }
                             }catch (NullPointerException e)
