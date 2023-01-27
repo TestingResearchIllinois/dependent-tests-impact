@@ -104,7 +104,7 @@ public class RuntimeGenerator {
                             childId+=arrOfStr[i]+".";
                         }
                     }
-                    parent.addTime(timeDiff);
+                    //parent.addTime(timeDiff);
 
 
                 }

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+
 public class RuntimeComparator {
     private static void tryCreateDirectory(final File theDir) {
         try {
@@ -57,7 +58,7 @@ public class RuntimeComparator {
         BufferedWriter bufferedWriter = null;
         fileWriter = new FileWriter("sootCsvOutput" + File.separator + paths[paths.length - 4] + "-comparedResult.csv");
         bufferedWriter = new BufferedWriter(fileWriter);
-        CSVPrinter csvPrinter = new CSVPrinter(bufferedWriter, CSVFormat.DEFAULT.withHeader("Test Name", "Method Under Test Name", "Surefire reported execution time(msec.)", "Tested execution time(msec)"));
+        CSVPrinter csvPrinter = new CSVPrinter(bufferedWriter, CSVFormat.DEFAULT.withHeader("Test Name", "Method Under Test Name", "Surefire result","Test result","Surefire reported execution time(msec.)", "Tested execution time(msec)"));
         for(int i = 0; i < listOfFiles.length; i++){
             String filename = listOfFiles[i].getName();
             if(filename.endsWith(".xml")||filename.endsWith(".XML")) {
@@ -84,10 +85,22 @@ public class RuntimeComparator {
                                 + eElement.getAttribute("name"));
                         System.out.println("Execution Time: "
                                 + eElement.getAttribute("time"));*/
+                        String surefireTestResult="";
+                        if(!eElement.getAttribute("failure").isEmpty())
+                        {
+                            surefireTestResult="failure";
+                        }
+                        else if(!eElement.getAttribute("error").isEmpty())
+                        {
+                            surefireTestResult="failed";
+                        }else {
+                            surefireTestResult="pass";
+                        }
 
                         NodeList nListxml= docxml.getElementsByTagName("method");
 
                         String time="";
+                        String testResult="pass";
                         for (int tempxml = 0; tempxml < nListxml.getLength(); tempxml++) {
                             Node nNodexml = nListxml.item(tempxml);
                             try {
@@ -97,6 +110,10 @@ public class RuntimeComparator {
                                     if((Objects.equals(eElementxml.getAttribute("name"), eElement.getAttribute("classname")+"."+eElement.getAttribute("name"))) && (eElementxml.getAttribute("testType").equals("true")))
                                     {
                                         time=eElementxml.getAttribute("time");
+                                        if((eElementxml.getAttribute("throwException").equals("true")))
+                                        {
+                                            testResult="failed";
+                                        }
                                         break;
                                     }
                                 }
@@ -109,7 +126,7 @@ public class RuntimeComparator {
 
                         }
                         float surefireTime=Float.parseFloat(eElement.getAttribute("time"))*1000;
-                        csvPrinter.printRecord(eElement.getAttribute("classname"),eElement.getAttribute("name"),(int)surefireTime,time);
+                        csvPrinter.printRecord(eElement.getAttribute("classname"),eElement.getAttribute("name"),surefireTestResult,testResult,(int)surefireTime,time);
 
 
                     }

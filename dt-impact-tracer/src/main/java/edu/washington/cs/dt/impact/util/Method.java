@@ -27,47 +27,75 @@ public class Method {
         this.method = new ArrayList<Method>();
     }
 
-    public String addChild(String parentname,String id,String name,long time,boolean throwException) {
+    public Method findParent(String parentname,ArrayList<Method> meth,long time,Method res,boolean throwException)
+    {
         ListIterator<Method> e
-                = method.listIterator();
-        int i=0;
-        while ((e.hasNext())){
-            Method temp=e.next();
+                = meth.listIterator(meth.size());
+        while ((e.hasPrevious())) {
+            Method temp = e.previous();
             if(Objects.equals(temp.getName(), parentname))
             {
-                ListIterator<Method> internal
-                        = temp.getMethod().listIterator();
-                String lastChildId=id;
-                while (internal.hasNext())
+                res=temp;
+                break;
+            }
+            long newtime= temp.getTime()+time;
+            temp.setTime(newtime);
+            return findParent(parentname,temp.getMethod(),time,res,throwException);
+
+        }
+        return res;
+
+    }
+    public String addChild(String parentname,String id,String name,long time,boolean throwException) {
+        int i=0,expFlag=0;
+        if(name.contains("Exception:"))
+        {
+            throwException=true;
+        }
+        Method temp=findParent(parentname,this.method,time,null,throwException);
+        if(temp!=null)
+        {
+            temp.setThrowException(throwException);
+            ListIterator<Method> internal
+                    = temp.getMethod().listIterator();
+            String lastChildId=temp.getId();
+            int hasChild=0;
+            while (internal.hasNext())
+            {
+                Method tempChild = internal.next();
+                try {
+                    hasChild=1;
+                    lastChildId = tempChild.getId();
+                }catch (NoSuchElementException err)
                 {
-                    Method tempChild = internal.next();
-                    try {
-                        lastChildId = tempChild.getId();
-                    }catch (NoSuchElementException err)
-                    {
-                        continue;
-                    }
+                    continue;
                 }
+            }
+            String internalID=id;
+            if(hasChild==0)
+            {
+                internalID=lastChildId+".1";
+            }
+            else {
                 String[] arrOfStr = lastChildId.split("\\.");
                 int lastInternal=Integer.parseInt(arrOfStr[arrOfStr.length-1])+1;
                 String lastPartInternal=Integer.toString(lastInternal);
-                String internalID=temp.getId()+"."+lastPartInternal;
-                i=1;
-                try{
-                    temp.getMethod().add(new Method(internalID,name,time,false,throwException));
-                    long newtime= temp.getTime()+time;
-                    temp.setTime(newtime);
-                    return internalID;
-                }
-                catch (NoSuchElementException err)
-                {
-                    return internalID;
-                }
-
+                internalID=temp.getId()+"."+lastPartInternal;
             }
-        }
 
-        if(i!=1)
+            i=1;
+            try{
+                temp.getMethod().add(new Method(internalID,name,time,false,throwException));
+                long newtime= temp.getTime()+time;
+                temp.setTime(newtime);
+                //this.addAllTime(time,temp.getMethod(),parentname);
+                return internalID;
+            }
+            catch (NoSuchElementException err)
+            {
+                return internalID;
+            }
+        }else
         {
             String[] arrOfStr = id.split("\\.");
             int last=Integer.parseInt(arrOfStr[0])+1;
@@ -78,13 +106,44 @@ public class Method {
             newParent.getMethod().add(new Method(idChild+"."+"1",name,time,false,throwException));
             return idChild+"."+"1";
         }
-        return id;
     }
 
 
-    public void addTime(long time)
+    public void addTime()
     {
-        this.time+=time;
+        ArrayList<Method> meth=this.method;
+        ListIterator<Method> e
+                = meth.listIterator();
+        int i=0;
+        while ((e.hasNext())) {
+            Method newTemp= e.next();
+            System.out.println("----name"+newTemp.getName());
+
+        }
+        //System.out.println("-----depth----"+i);
+    }
+
+    public void addAllTime(long time,ArrayList<Method> meth,String parentname)
+    {
+        System.out.println("-----parent----"+parentname);
+        ListIterator<Method> e
+                = meth.listIterator(meth.size());
+        int i=0;
+        while ((e.hasPrevious())) {
+            Method newTemp= e.previous();
+            if(i==1)
+            {
+                System.out.println("-----addeed----"+newTemp.getName());
+                long newtime= newTemp.getTime()+time;
+                newTemp.setTime(newtime);
+            }
+            if(Objects.equals(newTemp.getName(), parentname))
+            {
+                System.out.println("-----not----"+newTemp.getName());
+                i=1;
+            }
+
+        }
     }
 
 
@@ -112,7 +171,7 @@ public class Method {
         this.time = time;
     }
 
-    public List<Method> getMethod() {
+    public ArrayList<Method> getMethod() {
         return method;
     }
 
