@@ -154,14 +154,20 @@ public class Tracer {
     }
 
     public static void exceptionMessage(String packageMethodName, String prefix,String type) throws IOException {
+        packageMethodName=packageMethodName.replaceAll("\\$\\d+", "");
+        long time=System.currentTimeMillis();
         type = type.replaceAll(",",";");
-        endExecution(packageMethodName, prefix, "Exception: "+type);
+        writeforinputXML("sootTracerData",packageMethodName,"Exception: "+type, time);
+        //endExecution(packageMethodName, prefix, "Exception: "+type);
         writeToFile("sootException", "Caught Exception in : " + packageMethodName + "\n", "functionException");
     }
 
     public static void timerOutput(String packageMethodName, String methodName, String declaringClass) throws IOException {
 //        long elapsedTime = timer.getTotalTime();
 //        timer.reset();
+        packageMethodName=packageMethodName.replaceAll("\\$\\d+", "");
+        methodName=methodName.replaceAll("\\$\\d+", "");
+        declaringClass=declaringClass.replaceAll("\\$\\d+", "");
         long time=System.currentTimeMillis();
         writeforinputXML("sootTracerData",packageMethodName,declaringClass + "." +methodName, time);
         String text = packageMethodName + " >>> " + declaringClass + "." + methodName + " : " + System.currentTimeMillis() + "\n";
@@ -170,6 +176,7 @@ public class Tracer {
 
     public static void startExecution(String packageMethodName, String prefix) throws IOException {
 //        totalExecutionTime.setStartTime();
+        packageMethodName=packageMethodName.replaceAll("\\$\\d+", "");
         String[] arrOfStr = packageMethodName.split("\\.");
         packageMethodName="";
         for (int i=0;i<arrOfStr.length-1;i++)
@@ -191,8 +198,9 @@ public class Tracer {
 //        totalExecutionTime.setEndTime();
 //        long elapsedTime = totalExecutionTime.getTotalTime();
 //        totalExecutionTime.reset();
+        packageMethodName=packageMethodName.replaceAll("\\$\\d+", "");
         long time=System.currentTimeMillis();
-        writeforinputXML("sootTracerData",packageMethodName,endMethod, time);
+        writeforinputXML("sootTracerData",packageMethodName,"END", time);
         String text = " > Ended > " + packageMethodName+"#"+System.currentTimeMillis()  + " > " + endMethod + " >> " + "Time : " + "elapsedTime" + " " + "\n";
         writeToFile("sootSeqOutput", text, "functionSequence");
     }

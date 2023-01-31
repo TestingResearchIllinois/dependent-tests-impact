@@ -48,11 +48,27 @@ public class Method {
     }
     public String addChild(String parentname,String id,String name,long time,boolean throwException) {
         int i=0,expFlag=0;
+        //this.setTime(this.getTime()+time);
         if(name.contains("Exception:"))
         {
             throwException=true;
+            //this.setThrowException(true);
         }
         Method temp=findParent(parentname,this.method,time,null,throwException);
+        if(Objects.equals(name, "END"))
+        {
+            return null;
+        }
+        if(Objects.equals(this.getName(), parentname))
+        {
+            String[] arrOfStr = id.split("\\.");
+            int last=Integer.parseInt(arrOfStr[0])+1;
+            String lastPart=Integer.toString(last);
+            String idChild=this.getId()+"."+lastPart;
+            Method newParent= new Method(idChild,name,time,false,throwException);
+            this.method.add(newParent);
+            return idChild;
+        }
         if(temp!=null)
         {
             temp.setThrowException(throwException);
@@ -101,7 +117,7 @@ public class Method {
             int last=Integer.parseInt(arrOfStr[0])+1;
             String lastPart=Integer.toString(last);
             String idChild=this.getId()+"."+lastPart;
-            Method newParent= new Method(idChild,parentname,time,true,throwException);
+            Method newParent= new Method(idChild,parentname,time,false,throwException);
             this.method.add(newParent);
             newParent.getMethod().add(new Method(idChild+"."+"1",name,time,false,throwException));
             return idChild+"."+"1";
@@ -109,9 +125,9 @@ public class Method {
     }
 
 
-    public void addTime()
+    public void addTime(long timeDiff)
     {
-        ArrayList<Method> meth=this.method;
+        /*ArrayList<Method> meth=this.method;
         ListIterator<Method> e
                 = meth.listIterator();
         int i=0;
@@ -119,11 +135,12 @@ public class Method {
             Method newTemp= e.next();
             System.out.println("----name"+newTemp.getName());
 
-        }
+        }*/
         //System.out.println("-----depth----"+i);
+        this.time+=timeDiff;
     }
 
-    public void addAllTime(long time,ArrayList<Method> meth,String parentname)
+    /*public void addAllTime(long time,ArrayList<Method> meth,String parentname)
     {
         System.out.println("-----parent----"+parentname);
         ListIterator<Method> e
@@ -144,7 +161,7 @@ public class Method {
             }
 
         }
-    }
+    }*/
 
 
     public String getId() {

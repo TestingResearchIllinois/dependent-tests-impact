@@ -51,11 +51,16 @@ public class RuntimeGenerator {
         {
 
             if(parentId==1){
-                dataParent= fileReader.nextLine();
+                String prevData= fileReader.nextLine();
+                dataParent=fileReader.nextLine();
+            }
+            else
+            {
+                dataParent=fileReader.nextLine();
             }
             String[] testInfoParent = dataParent.split(",");
 
-            String parentMethod=testInfoParent[1];
+            String parentMethod=testInfoParent[0];
             String prevm=testInfoParent[0];
             long prevTime= Long.parseLong(testInfoParent[2]);
             int prev=0;
@@ -64,9 +69,10 @@ public class RuntimeGenerator {
             {
                 continue;
             }*/
-            Method parent = new Method(Integer.toString(parentId),parentMethod,timeDiff,false,false);
+            Method parent = new Method(Integer.toString(parentId),parentMethod,timeDiff,true,false);
             String childId="0";
-
+            int skipflag=0;
+            int exceptionflag=0;
             while (fileReader.hasNextLine())
             {
                 String data = fileReader.nextLine();
@@ -75,10 +81,25 @@ public class RuntimeGenerator {
                 String startMethod=testInfo[0];
                 String endMethod=testInfo[1];
                 long time= Long.parseLong(testInfo[2]);
+                if(endMethod.contains("Exception:"))
+                {
+                    exceptionflag=1;
+                }
                 if(Objects.equals(startMethod, "START"))
                 {
                     dataParent=data;
                     break;
+                }
+                else if(skipflag==1)
+                {
+                    continue;
+                }
+                else if(Objects.equals(endMethod, "END"))
+                {
+                    timeDiff=time-prevTime;
+                    skipflag=1;
+                    parent.addChild(startMethod,childId,endMethod,timeDiff,false);
+
                 }
                 else if(Objects.equals(endMethod, "<init>") || Objects.equals(endMethod, " "))
                 {
@@ -104,10 +125,14 @@ public class RuntimeGenerator {
                             childId+=arrOfStr[i]+".";
                         }
                     }
-                    //parent.addTime(timeDiff);
+                    parent.addTime(timeDiff);
 
 
                 }
+            }
+            if((skipflag==0) &&(exceptionflag==1))
+            {
+                parent.setThrowException(true);
             }
             XmlMapper xmlMapper = new XmlMapper();
             xmlMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);

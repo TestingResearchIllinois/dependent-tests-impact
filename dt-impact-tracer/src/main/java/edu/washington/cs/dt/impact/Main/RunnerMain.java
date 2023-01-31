@@ -98,12 +98,15 @@ public class RunnerMain {
         long start = System.nanoTime();
         //TestExecResults results = runner.run();
         TestRunResult result = runner.runListWithCp(classpath, tests).get();
+        ///System.out.println("------------"+result);
         long total = System.nanoTime() - start;
         System.out.println("Total execution time: " + total);
 
         // Print out the result in the format as expected by running ImpactMain
         // Assume only one run in one JVM of all tests
         StringBuilder sb = new StringBuilder();
+        sb.append(result.testOrder());
+
         sb.append(System.getProperty("line.separator"));
         // Compute passing, failing, error, skipped, and ignored tests
         int passing = 0;
