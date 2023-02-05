@@ -3,7 +3,6 @@
 # Runs the enhanced algorithms on kevinsawicki/http-request (M9).
 # Example usage for T2 algorithm: bash example.sh t2
 # Example usage for P2 algorithm with 8 machines: bash example.sh p2 8
-
 if [[ $1 == "" ]]; then
     echo "arg1 - The algorithm to run. Valid options are T1 (prioritization, statement, absolute), T2 (prioritization, statement, relative), T3 (prioritization, function, absolute), T4 (prioritization, function, relative), S1 (selection, statement, original), S2 (selection, statement, absolute), S3 (selection, statement, relative), S4 (selection, function, original), S5 (selection, function, absolute), S6 (selection, function, relative), P1 (parallelization, original), and P2 (parallelization, time)."
     echo "arg2 (optional) - Number of machines to simulate for parallelization. Valid otpions are 2, 4, 8, and 16."
@@ -21,10 +20,10 @@ mkdir -p ${scripts_folder}/logs/
 # Clone the firstVers if it doesn't exist
 if [[ ! -d "firstVers" ]]; then
     echo "Cloning firstVers"
-    git clone https://github.com/kevinsawicki/http-request.git firstVers &> ${scripts_folder}/logs/firstVers-clone-log.txt
+    git clone https://github.com/wildfly/wildfly firstVers &> ${scripts_folder}/logs/firstVers-clone-log.txt
     echo "Compiling firstVers"
-    cd firstVers/lib
-    git checkout d0ba95cf3c621c74a023887814e8c1f73b5da1b2 &> ${scripts_folder}/logs/checkout-firstVers.txt
+    cd firstVers
+    git checkout 57463efc839fa497a3a17d6a419127f18a52e038 &> ${scripts_folder}/logs/checkout-firstVers.txt
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-firstVers.txt
     cd ${scripts_folder}
 fi
@@ -44,10 +43,10 @@ fi
 rm -rf lib-results/
 
 echo "Setting up the two versions for regression testing"
-bash setup.sh firstVers/lib $algo secondVers/lib &> logs/setup.txt
-echo "Running the unenhanced regression testing algorithm on the secondVers"
-bash run.sh firstVers/lib $algo secondVers/lib "$machines" &> logs/run-unenhanced.txt
-echo "Computing dependencies on the firstVers"
-bash compute-deps.sh firstVers/lib $algo secondVers/lib "$machines" &> logs/compute-deps.txt
-echo "Running the enhanced regression testing algorithm on the secondVers"
-bash run.sh firstVers/lib $algo secondVers/lib "$machines" &> logs/run-enhanced.txt
+bash setup.sh firstVers/ee $algo secondVers/lib &> logs/setup.txt
+#echo "Running the unenhanced regression testing algorithm on the secondVers"
+#bash run.sh firstVers/lib $algo secondVers/lib "$machines" &> logs/run-unenhanced.txt
+#echo "Computing dependencies on the firstVers"
+#bash compute-deps.sh firstVers/lib $algo secondVers/lib "$machines" &> logs/compute-deps.txt
+#echo "Running the enhanced regression testing algorithm on the secondVers"
+#bash run.sh firstVers/lib $algo secondVers/lib "$machines" &> logs/run-enhanced.txt

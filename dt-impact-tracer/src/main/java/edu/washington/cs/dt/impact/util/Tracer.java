@@ -8,8 +8,6 @@
 package edu.washington.cs.dt.impact.util;
 
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
 
 import java.io.*;
 import java.nio.charset.Charset;

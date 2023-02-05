@@ -89,12 +89,14 @@ public class InstrumentationMain {
 
         int sootClasspathIndex = argsList.indexOf("--soot-cp");
         String sootClasspath = System.getProperty("java.class.path");
+        //System.out.println("------dd-----"+argsList);
         if (sootClasspathIndex != -1) {
             sootClasspath = FailedTestRemover.buildClassPath(argsList.get(sootClasspathIndex + 1).split(":"));
             argsList.remove(sootClasspathIndex + 1);
             argsList.remove(sootClasspathIndex);
-        }
 
+        }
+        System.out.println("------sp-----"+sootClasspath);
         /* add a phase to transformer pack by call Pack.add */
         Pack jtp = PackManager.v().getPack("jtp");
         jtp.add(new Transform("jtp.instrumenter",
@@ -107,7 +109,6 @@ public class InstrumentationMain {
         argsList.add("-allow-phantom-refs");
         String[] sootArgs = argsList.toArray(new String[0]);
 
-        System.out.println(argsList);
 
         /*
          * Give control to Soot to process all options,

@@ -1,12 +1,12 @@
 package edu.washington.cs.dt.impact.plugins;
 
-import com.reedoei.testrunner.configuration.Configuration;
-import com.reedoei.testrunner.data.results.TestRunResult;
-import com.reedoei.testrunner.mavenplugin.TestPluginPlugin;
-import com.reedoei.testrunner.mavenplugin.TestPlugin;
-import com.reedoei.testrunner.runner.RunnerFactory;
-import com.reedoei.testrunner.runner.SmartRunner;
-import com.reedoei.testrunner.runner.TestInfoStore;
+import edu.illinois.cs.testrunner.configuration.Configuration;
+import edu.illinois.cs.testrunner.data.results.TestRunResult;
+import edu.illinois.cs.testrunner.mavenplugin.TestPluginPlugin;
+import edu.illinois.cs.testrunner.mavenplugin.TestPlugin;
+import edu.illinois.cs.testrunner.runner.RunnerFactory;
+import edu.illinois.cs.testrunner.runner.SmartRunner;
+import edu.illinois.cs.testrunner.runner.TestInfoStore;
 
 import edu.washington.cs.dt.impact.runner.OneConfigurationRunner;
 import edu.washington.cs.dt.impact.runner.Runner;
@@ -81,7 +81,7 @@ public abstract class Plugins extends TestPlugin {
 
     protected void setProject(MavenProject project) {
         this.project = project;
-        com.reedoei.testrunner.runner.Runner testrunner = RunnerFactory.from(project).get();
+        edu.illinois.cs.testrunner.runner.Runner testrunner = RunnerFactory.from(project).get();
         this.runner = new SmartRunner(testrunner.framework(), new TestInfoStore(), testrunner.classpath(),
                                       testrunner.environment(), testrunner.outputPath());
     }

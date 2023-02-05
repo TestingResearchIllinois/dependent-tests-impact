@@ -2,15 +2,15 @@ package edu.washington.cs.dt.impact.tools.detectors;
 
 import com.reedoei.eunomia.util.StandardMain;
 
-import com.reedoei.testrunner.configuration.Configuration;
-import com.reedoei.testrunner.data.framework.TestFramework;
-import com.reedoei.testrunner.data.results.Result;
-import com.reedoei.testrunner.data.results.TestResult;
-import com.reedoei.testrunner.data.results.TestRunResult;
-import com.reedoei.testrunner.runner.Runner;
-import com.reedoei.testrunner.runner.RunnerFactory;
-import com.reedoei.testrunner.runner.SmartRunner;
-import com.reedoei.testrunner.runner.TestInfoStore;
+import edu.illinois.cs.testrunner.configuration.Configuration;
+import edu.illinois.cs.testrunner.data.framework.TestFramework;
+import edu.illinois.cs.testrunner.data.results.Result;
+import edu.illinois.cs.testrunner.data.results.TestResult;
+import edu.illinois.cs.testrunner.data.results.TestRunResult;
+import edu.illinois.cs.testrunner.runner.Runner;
+import edu.illinois.cs.testrunner.runner.RunnerFactory;
+import edu.illinois.cs.testrunner.runner.SmartRunner;
+import edu.illinois.cs.testrunner.runner.TestInfoStore;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.project.MavenProject;

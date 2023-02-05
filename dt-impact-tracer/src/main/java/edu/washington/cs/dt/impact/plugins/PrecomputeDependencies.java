@@ -6,8 +6,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
-import com.reedoei.testrunner.mavenplugin.TestPluginPlugin;
-import com.reedoei.testrunner.testobjects.TestLocator;
+import edu.illinois.cs.testrunner.data.framework.TestFramework;
+import edu.illinois.cs.testrunner.mavenplugin.TestPluginPlugin;
+import edu.illinois.cs.testrunner.testobjects.TestLocator;
 import edu.washington.cs.dt.impact.tools.OutputPrecomputedDependences;
 import edu.washington.cs.dt.impact.tools.detectors.FailingTestDetector;
 import org.apache.commons.io.FileUtils;
@@ -73,7 +74,7 @@ public class PrecomputeDependencies extends Plugins {
         if (!new File(origOrderFile).isFile()) {
             try {
                 // Generates orig-order.txt
-                final List<String> tests = JavaConverters.bufferAsJavaList(TestLocator.tests(project).toBuffer());
+                final List<String> tests = JavaConverters.bufferAsJavaList(TestLocator.tests(project, TestFramework.junitTestFramework()).toBuffer());
                 FileWriter writer = new FileWriter(new File(origOrderFile));
                 for(String str: tests) {
                     writer.write(str);
@@ -85,8 +86,8 @@ public class PrecomputeDependencies extends Plugins {
             }
         } else {
             TestPluginPlugin.info(String.format("The relevant files already exist. " +
-                                                        "Skipping finding human written tests.\n" +
-                                                        "  %s\n", origOrderFile));
+                    "Skipping finding human written tests.\n" +
+                    "  %s\n", origOrderFile));
         }
     }
 
@@ -117,8 +118,8 @@ public class PrecomputeDependencies extends Plugins {
             }
         } else {
             TestPluginPlugin.info(String.format("The relevant files already exist. " +
-                                                        "Skipping locating and removing failed tests.\n" +
-                                                        "  %s\n  %s\n", origOrderFile, ignoreOrderFile));
+                    "Skipping locating and removing failed tests.\n" +
+                    "  %s\n  %s\n", origOrderFile, ignoreOrderFile));
         }
 
         // Adjust MACHINES (Less Tests Than Number Of Cores)
@@ -267,8 +268,8 @@ public class PrecomputeDependencies extends Plugins {
             }
         } else {
             TestPluginPlugin.info(String.format("The relevant files already exist. " +
-                                                        "Skipping getting time of tests.\n" +
-                                                        "  %s\n", origTimeFile));
+                    "Skipping getting time of tests.\n" +
+                    "  %s\n", origTimeFile));
         }
     }
 
