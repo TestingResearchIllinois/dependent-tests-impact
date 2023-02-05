@@ -22,7 +22,7 @@ if [[ ! -d "firstVers" ]]; then
     echo "Cloning firstVers"
     git clone https://github.com/wildfly/wildfly firstVers &> ${scripts_folder}/logs/firstVers-clone-log.txt
     echo "Compiling firstVers"
-    cd firstVers
+    cd firstVers/ee
     git checkout 57463efc839fa497a3a17d6a419127f18a52e038 &> ${scripts_folder}/logs/checkout-firstVers.txt
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-firstVers.txt
     cd ${scripts_folder}
