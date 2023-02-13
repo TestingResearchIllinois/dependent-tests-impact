@@ -1,7 +1,7 @@
 /**
  * Copyright 2014 University of Washington. All Rights Reserved.
  * @author Wing Lam
- * 
+ *
  * Tool used to instrument class and test files.
  */
 
@@ -13,6 +13,7 @@ import soot.jimple.*;
 import soot.tagkit.AnnotationTag;
 import soot.tagkit.LineNumberTag;
 import soot.tagkit.VisibilityAnnotationTag;
+import soot.toolkits.exceptions.ThrowAnalysis;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soot.util.Chain;
@@ -32,6 +33,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import soot.Body;
+import soot.Unit;
+import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
+import soot.jimple.ThrowStmt;
+import soot.toolkits.exceptions.*;
+import soot.toolkits.exceptions.ThrowAnalysis;
 public class Instrumenter extends BodyTransformer{
 
     private static SootClass tracerClass;
@@ -48,7 +56,7 @@ public class Instrumenter extends BodyTransformer{
     private static TECHNIQUE technique = Constants.DEFAULT_TECHNIQUE;
 
     public Instrumenter() {
-	Scene.v().setSootClassPath(System.getProperty("java.class.path"));
+        Scene.v().setSootClassPath(System.getProperty("java.class.path"));
 
         tracerClass = Scene.v().loadClassAndSupport("edu.washington.cs.dt.impact.util.Tracer");
         trace = tracerClass.getMethodByName("trace");
@@ -74,7 +82,7 @@ public class Instrumenter extends BodyTransformer{
      */
     @Override
     protected void internalTransform(Body body, String phase,
-            @SuppressWarnings("rawtypes") Map options) {
+                                     @SuppressWarnings("rawtypes") Map options) {
         SootMethod method = body.getMethod();
 
         if (method.getName().equals("<init>") || method.getName().equals("<clinit>")) {
@@ -344,19 +352,63 @@ public class Instrumenter extends BodyTransformer{
         }
 
 
+
+        /*ThrowStmt throwStmt = Jimple.v().newThrowStmt(Jimple.v().newNewExpr(
+                soot.RefType.v("java.lang.Throwable")));
+        body.getUnits().add(throwStmt);
+
+        UnitGraph unitGraph = new ExceptionalUnitGraph(body);
+        for (Unit u : body.getUnits()) {
+            List<Unit> succs = unitGraph.getSuccsOf(u);
+            for (Unit succ : succs) {
+                if (succ instanceof ThrowStmt) {
+                    System.out.println("Unit " + u + " throws exception.");
+                    ThrowStmt ts = (ThrowStmt) succ;
+                    if (ts.getOp().getType().toString().contains("java.lang.Throwable")) {
+                        System.out.println("Unit " + u + " throws expected exception java.lang.Throwable.");
+                    } else {
+                        System.out.println("Unit " + u + " throws unexpected exception.");
+                    }
+                }
+            }
+        }*/
+
         Chain<Unit> new_units = body.getUnits();
+        /*for (Unit u : body.getUnits()) {
+            if (u instanceof ThrowStmt) {
+                System.out.println("uuuuuuu----" + u);
+                System.out.println("Exception thrown: " + ((ThrowStmt) u).getOp().toString());
+            }
+        }*/
         Iterator<Unit> new_stmtIt = new_units.snapshotIterator();
         while (new_stmtIt.hasNext()) {
             Stmt stmt = (Stmt) new_stmtIt.next();
             String exceptionTypes = TrapManager.getExceptionTypesOf(stmt, body).toString();
+            //System.out.println("etypr----" + exceptionTypes);
             InvokeExpr lExceptionMessage = Jimple.v().newStaticInvokeExpr(exceptionMessage.makeRef(), StringConstant.v(packageMethodName), StringConstant.v(part),StringConstant.v(exceptionTypes));
+            //System.out.println("emsg----" + lExceptionMessage);
             Stmt exceptionStmt = Jimple.v().newInvokeStmt(lExceptionMessage);
+            //System.out.println("est----" + exceptionStmt);
 
             if(stmt.toString().contains("@caughtexception")){
                 //System.out.println(StringConstant.v(packageMethodName)+"---------et--------"+exceptionTypes);
                 units.insertAfter(exceptionStmt, stmt);
             }
         }
+        /*soot.options.Options.v().set_whole_program(true);
+        Scene.v().loadNecessaryClasses();
+        Scene.v().getCallGraph();
+        Chain<SootClass> classes = Scene.v().getClasses();
+        for (SootClass sc : classes) {
+            for (SootMethod sm : sc.getMethods()) {
+                ExceptionalUnitGraph eug = new ExceptionalUnitGraph(sm.getActiveBody());
+                for (Unit u : sm.getActiveBody().getUnits()) {
+                    if (u instanceof ThrowStmt) {
+                        System.out.println("Exception thrown: " + ((ThrowStmt) u).getOp().toString());
+                    }
+                }
+            }
+        }*/
         selectionOutput(packageMethodName, testOutputBuffer, "testOutput");
     }
 
@@ -404,7 +456,7 @@ public class Instrumenter extends BodyTransformer{
     }
 
     private void insertRightBeforeNoRedirect(PatchingChain<Unit> pchain,
-            List<Stmt> instrumCode, Stmt s) {
+                                             List<Stmt> instrumCode, Stmt s) {
         assert !(s instanceof IdentityStmt);
         for (Object stmt : instrumCode) {
             pchain.insertBeforeNoRedirect((Unit) stmt, s);

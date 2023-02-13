@@ -19,6 +19,7 @@ import edu.illinois.cs.testrunner.data.results.TestRunResult;
 import edu.illinois.cs.testrunner.runner.SmartRunner;
 import edu.illinois.cs.testrunner.runner.TestInfoStore;
 
+import edu.illinois.cs.testrunner.util.ExecutionInfoBuilder;
 import edu.washington.cs.dt.main.ImpactMain;
 
 /*
@@ -94,7 +95,7 @@ public class RunnerMain {
                 classpath = ImpactMain.buildClassPath(argsList.get(classpathIndex + 1).split(":"));
             }
         }
-        //System.out.println("--cp--"+classpath);
+        System.out.println("--cp--"+classpath);
 
         // TODO: Allow handling of randomize option; for now just run in fixed order
         SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), classpath, new HashMap<String, String>(), Paths.get("/dev/null"));
@@ -103,7 +104,7 @@ public class RunnerMain {
         long start = System.nanoTime();
         //TestExecResults results = runner.run();
         TestRunResult result = runner.runListWithCp(classpath, tests).get();
-        ///System.out.println("------------"+result);
+
         long total = System.nanoTime() - start;
         System.out.println("Total execution time: " + total);
 

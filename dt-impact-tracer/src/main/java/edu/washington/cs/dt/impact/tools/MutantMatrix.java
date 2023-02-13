@@ -2,6 +2,7 @@ package edu.washington.cs.dt.impact.tools;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.reedoei.eunomia.collections.ListUtil;
 import com.reedoei.eunomia.functional.Func;
 import com.reedoei.eunomia.util.Util;
 import edu.washington.cs.dt.impact.order.Standard;
@@ -70,7 +71,7 @@ public class MutantMatrix {
         final List<List<Mutation>> groups = Lists.partition(mutations, groupSize);
 
         final List<MutationGroup> mutationGroups =
-                Func.mapWithIndex(
+                ListUtil.mapWithIndex(
                         MutationGroup::new,
                         groups.subList(0, Math.min(groupCount, groups.size())));
         Preconditions.checkState(!mutationGroups.isEmpty(), "No mutation groups generated!");
