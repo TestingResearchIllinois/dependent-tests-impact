@@ -14,12 +14,10 @@ import java.util.List;
 import edu.illinois.cs.testrunner.configuration.Configuration;
 import edu.illinois.cs.testrunner.data.framework.TestFramework;
 import edu.illinois.cs.testrunner.data.results.Result;
-import edu.illinois.cs.testrunner.data.results.TestResult;
 import edu.illinois.cs.testrunner.data.results.TestRunResult;
 import edu.illinois.cs.testrunner.runner.SmartRunner;
 import edu.illinois.cs.testrunner.runner.TestInfoStore;
 
-import edu.illinois.cs.testrunner.util.ExecutionInfoBuilder;
 import edu.washington.cs.dt.main.ImpactMain;
 
 /*
@@ -35,8 +33,6 @@ public class RunnerMain {
     public static void main(String[] args) {
         // list to parse the arguments
         List<String> argsList = new ArrayList<String>(Arrays.asList(args));
-
-        System.out.println(argsList);
 
         int inputTestListIndex = argsList.indexOf("-inputTests");
         List<String> tests = new LinkedList<String>();
@@ -89,13 +85,11 @@ public class RunnerMain {
 
         int classpathIndex = argsList.indexOf("-classpath");
         String classpath = System.getProperty("java.class.path");
-
         if (classpathIndex != -1) {
             if (classpathIndex + 1 < argsList.size()) {
                 classpath = ImpactMain.buildClassPath(argsList.get(classpathIndex + 1).split(":"));
             }
         }
-        System.out.println("--cp--"+classpath);
 
         // TODO: Allow handling of randomize option; for now just run in fixed order
         SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), classpath, new HashMap<String, String>(), Paths.get("/dev/null"));
@@ -103,18 +97,17 @@ public class RunnerMain {
 
         long start = System.nanoTime();
         //TestExecResults results = runner.run();
+        //System.out.println(tests+"---------\n");
+        System.out.println(argsList+"-------------------------");
         TestRunResult result = runner.runListWithCp(classpath, tests).get();
-
+        System.out.println(result+"-------------------------");
         long total = System.nanoTime() - start;
         System.out.println("Total execution time: " + total);
 
         // Print out the result in the format as expected by running ImpactMain
         // Assume only one run in one JVM of all tests
         StringBuilder sb = new StringBuilder();
-        sb.append(result.testOrder());
-
         sb.append(System.getProperty("line.separator"));
-
         // Compute passing, failing, error, skipped, and ignored tests
         int passing = 0;
         int failing = 0;
@@ -127,14 +120,13 @@ public class RunnerMain {
                     passing++;
                     break;
                 case FAILURE:
-                    sb.append(result.results().get(test).result());
                     failing++;
                     break;
                 case ERROR:
                     sb.append(result.results().get(test)+"\n");
                     sb.append("----------------"+test+"\n");
                     StackTraceElement[] res=result.results().get(test).stackTrace();
-                   //System.out.println("getStackTrace()");
+                    //System.out.println("getStackTrace()");
                     for (int i = 1; i < res.length; i++)
                         //System.out.println("\tat " + res[i]);
                         sb.append("\tat " + res[i]+"\n");

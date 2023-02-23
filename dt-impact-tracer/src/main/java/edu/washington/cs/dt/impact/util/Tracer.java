@@ -57,7 +57,8 @@ public class Tracer {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            //throw new RuntimeException(e);
+            System.out.println(e);
         } finally {
             try {
                 if (writer != null) {
@@ -155,7 +156,7 @@ public class Tracer {
         packageMethodName=packageMethodName.replaceAll("\\$\\d+", "");
         long time=System.currentTimeMillis();
         type = type.replaceAll(",",";");
-        writeforinputXML("sootTracerData",packageMethodName,"Exception: "+type, time);
+        writeforinputXML("sootTracerData",packageMethodName,"Exception:"+type, time);
         //endExecution(packageMethodName, prefix, "Exception: "+type);
         writeToFile("sootException", "Caught Exception in : " + packageMethodName + "\n", "functionException");
     }

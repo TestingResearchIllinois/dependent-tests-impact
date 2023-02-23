@@ -8,8 +8,10 @@
 package edu.washington.cs.dt.impact.util;
 
 import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
+import org.jf.dexlib2.iface.AnnotationElement;
 import soot.*;
 import soot.jimple.*;
+import soot.tagkit.AnnotationIntElem;
 import soot.tagkit.AnnotationTag;
 import soot.tagkit.LineNumberTag;
 import soot.tagkit.VisibilityAnnotationTag;
@@ -24,21 +26,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
+import soot.SootMethod;
+
+import soot.coffi.annotation;
+import soot.tagkit.AnnotationElem;
 import soot.Body;
 import soot.Unit;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 import soot.jimple.ThrowStmt;
-import soot.toolkits.exceptions.*;
 import soot.toolkits.exceptions.ThrowAnalysis;
 public class Instrumenter extends BodyTransformer{
 
@@ -189,15 +187,68 @@ public class Instrumenter extends BodyTransformer{
 
             Stmt sGotoLast = Jimple.v().newGotoStmt(sLast);
             probe.add(sGotoLast);
-            Local lException1 = getCreateLocal(body, "<ex1>", RefType.v(thrwCls));
+            String testclassname=method.getDeclaringClass().getName();
+            Scene.v().loadClassAndSupport(testclassname);
+            //SootClass testClass = method.getDeclaringClass();
+            SootClass testClass = Scene.v().getSootClass(testclassname);
+            SootMethod testMethod = method;
+            VisibilityAnnotationTag tag = (VisibilityAnnotationTag) testMethod.getTag("VisibilityAnnotationTag");
+            //System.out.println("=======tag======="+tag+"------------method"+packageMethodName);
+            if (tag != null) {
+                for (AnnotationTag annotation : tag.getAnnotations()) {
+                    if (annotation.getType().equals("Lorg/junit/Test;")) {
+                        String elementValue = annotation.getElems().toString();
+                        String[] parts = elementValue.replaceAll("[\\[\\]]", "").split("\\s+");
+                        if (parts.length == 8 && parts[0].equals("Annotation") && parts[1].equals("Element:") && parts[2].equals("kind:") && parts[6].equals("decription:") && parts[3].equals("c")) {
+                            if(Objects.equals(parts[5], "expected"))
+                            {
+                                String description = parts[7].substring(1, parts[7].length() - 1);
+                                description=description.replaceAll("/", ".");
+                                InvokeExpr lExceptionMessage = Jimple.v().newStaticInvokeExpr(exceptionMessage.makeRef(), StringConstant.v(packageMethodName), StringConstant.v(part),StringConstant.v("-expected- "+description));
+                                Stmt exceptionStmt = Jimple.v().newInvokeStmt(lExceptionMessage);
+                                units.insertAfter(exceptionStmt, firstStmt);
+                                //System.out.println("est----" + exceptionStmt);
+
+                                /*if(stmt.toString().contains("@caughtexception")){
+                                    //System.out.println(StringConstant.v(packageMethodName)+"---------et--------"+exceptionTypes);
+                                    units.insertAfter(exceptionStmt, stmt);
+                                }*/
+                                System.out.println("Description: " + description);
+                            }
+                        } else {
+                            System.out.println("Invalid AnnotationElement value");
+                        }
+                        break;
+                    }
+
+                }
+            }
+            /*List<soot.tagkit.Tag> tags = testMethod.getTags();
+            annotation annotations = null;
+            for (soot.tagkit.Tag tag : tags) {
+
+                System.out.println("=======tag======="+tag+"------------method"+packageMethodName);
+
+            }*/
+            /*SootClass testAnnotationClass = Scene.v().getSootClass("org.junit.Test");
+            annotation testAnnotation = annotations.g;*/
+            //Method javaMethod = testMethod.getJa;
+            //Annotation[] annotations = testMethod.get();
+            //System.out.println("=======tags======"+tags);
+            //System.out.println("=======method======="+packageMethodName);
+            //System.out.println("=======superclass======="+testclassname);
+            /*Local lException1 = getCreateLocal(body, "<ex1>", RefType.v(thrwCls));
             Stmt sCatch = Jimple.v().newIdentityStmt(lException1, Jimple.v().newCaughtExceptionRef());
             //System.out.println("====scatch===="+sCatch);
-            probe.add(sCatch);
+            probe.add(sCatch);*/
 
-            // TODO after catching an exception in a test, throw the exception back
-            Type throwType = thrwCls.getType();
+            /*Type throwType = thrwCls.getType();
+            Local lSysOut = getCreateLocal(body, "<throw>", throwType);
+            Stmt throwStmt = soot.jimple.Jimple.v().newThrowStmt(lSysOut);
+            body.getUnits().add(throwStmt);
+            //probe.add(throwStmt);
 
-            //System.out.println("------lx---"+lException1);
+            System.out.println("------thr--"+throwType);*/
             //System.out.println("====thtype===="+throwType);
             // Local lSysOut = getCreateLocal(body, "<throw>", throwType);
             // Stmt callThrow = Jimple.v().newInvokeStmt(Jimple.v().newVirtualInvokeExpr(lException1, initThrow.makeRef(),
@@ -207,11 +258,11 @@ public class Instrumenter extends BodyTransformer{
             insertRightBeforeNoRedirect(pchain, probe, sLast);
 
             // insert trap (catch)
-            body.getTraps().add(Jimple.v().newTrap(thrwCls, sFirstNonId, sGotoLast, sCatch));
+            //body.getTraps().add(Jimple.v().newTrap(thrwCls, sFirstNonId, sGotoLast, sCatch));
 
             // Do not forget to insert instructions to report the counter
 
-        } else {
+        } /*else {
             if (technique == TECHNIQUE.SELECTION) {
                 // instrumentation of class files for test selection
                 // creates selectionOutput directory containing what statements
@@ -299,12 +350,13 @@ public class Instrumenter extends BodyTransformer{
                 }
                 selectionOutput(packageMethodName, functionBodyBuffer, "methodOutput");
             }
-        }
+        }*/
         //stmtIt = units.snapshotIterator();
         //stmtIt=stmtItpre;
 
         while (stmtItpre.hasNext()) {
             Stmt stmt = (Stmt)stmtItpre.next();
+            //System.out.println("-----------stm-----------"+stmt);
 
             if (internalOrInitStatementNotInvoked(stmt)) {
                 testOutputBuffer.append(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName() + "." + stmt.getInvokeExpr().getMethod().getName() + "\n");
@@ -386,7 +438,7 @@ public class Instrumenter extends BodyTransformer{
             String exceptionTypes = TrapManager.getExceptionTypesOf(stmt, body).toString();
             //System.out.println("etypr----" + exceptionTypes);
             InvokeExpr lExceptionMessage = Jimple.v().newStaticInvokeExpr(exceptionMessage.makeRef(), StringConstant.v(packageMethodName), StringConstant.v(part),StringConstant.v(exceptionTypes));
-            //System.out.println("emsg----" + lExceptionMessage);
+            //System.out.println("excpet----" + exceptionTypes+"======m"+packageMethodName);
             Stmt exceptionStmt = Jimple.v().newInvokeStmt(lExceptionMessage);
             //System.out.println("est----" + exceptionStmt);
 

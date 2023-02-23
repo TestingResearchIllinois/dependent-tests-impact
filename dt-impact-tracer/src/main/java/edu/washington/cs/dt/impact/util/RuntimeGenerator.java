@@ -61,15 +61,18 @@ public class RuntimeGenerator {
             String[] testInfoParent = dataParent.split(",");
 
             String parentMethod=testInfoParent[0];
-            String prevm=testInfoParent[0];
+            String nextmethod=testInfoParent[1];
             long prevTime= Long.parseLong(testInfoParent[2]);
             int prev=0;
             long timeDiff=0;
-            /*if(Objects.equals(parentMethod, "START"))
-            {
-                continue;
-            }*/
             Method parent = new Method(Integer.toString(parentId),parentMethod,timeDiff,true,false);
+            int expectedexceptionflag=0;
+            String expectedexc="";
+            if(nextmethod.contains("Exception:-expected-"))
+            {
+                expectedexceptionflag=1;
+                expectedexc=nextmethod.replaceAll("Exception:-expected- ", "");
+            }
             String childId="0";
             int skipflag=0;
             int exceptionflag=0;
@@ -81,6 +84,26 @@ public class RuntimeGenerator {
                 String startMethod=testInfo[0];
                 String endMethod=testInfo[1];
                 long time= Long.parseLong(testInfo[2]);
+                if((expectedexceptionflag==1)&&(endMethod.contains(expectedexc)))
+                {
+                    timeDiff=time-prevTime;
+                    prevTime=time;
+                    String currentId=parent.addChild(startMethod,childId,endMethod,timeDiff,true);
+                    String[] arrOfStr = currentId.split("\\.");
+                    childId="";
+                    for (int i=1;i<arrOfStr.length;i++)
+                    {
+                        if(i==arrOfStr.length-1)
+                        {
+                            childId+=arrOfStr[i];
+                        }
+                        else {
+                            childId+=arrOfStr[i]+".";
+                        }
+                    }
+                    parent.addTime(timeDiff);
+                    expectedexceptionflag=2;
+                }
                 if(endMethod.contains("Exception:"))
                 {
                     exceptionflag=1;
@@ -126,13 +149,15 @@ public class RuntimeGenerator {
                         }
                     }
                     parent.addTime(timeDiff);
-
-
                 }
             }
             if((skipflag==0) &&(exceptionflag==1))
             {
                 parent.setThrowException(true);
+            }
+            if(expectedexceptionflag==2)
+            {
+                parent.setThrowException(false);
             }
             XmlMapper xmlMapper = new XmlMapper();
             xmlMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);

@@ -17,7 +17,7 @@ fi
 export DT_SUBJ_SRC="$DT_SUBJ_ROOT"
 export DT_SUBJ="$DT_SUBJ_ROOT/target"
 if [[ ! -d "$DT_SUBJ" ]]; then
-    echo "Path to DT_SUBJ does not exist. You must run mvn mvn install -DskipTests in $DT_SUBJ_ROOT first."
+    echo "Path to DT_SUBJ does not exist. You must run mvn mvn install -DskipTests in $DT_SUBJ first."
     exit 1
 fi
 
