@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Runs commands for "Instructions to setup a subject for test prioritization" section.
-
 set -e
 
 cd $DT_SUBJ
@@ -12,12 +11,13 @@ rm -rf sootSeqOutput/
 rm -rf sootException/
 rm -rf sootTracerData/
 rm -rf sootXMLOutput/
-rm -rf sootCsvOutput/
+#rm -rf sootCsvOutput/
 
 # 1. Find the human-written tests in the old subject.
 cd $DT_SUBJ
 echo "[DEBUG] Finding human written tests in old subject."
 bash "$DT_SCRIPTS/shared/get-test-order.sh" old
+
 
 # 2. Instrument the source and test files.
 echo "[DEBUG] Instrumenting source and test files for old subject."
@@ -48,19 +48,19 @@ rsync -av test-classes/ sootOutput/ --exclude-from=exclude-list.txt
 # 3. Run the instrumented tests.
 echo "[DEBUG] Running instrumented tests."
 cd $DT_SUBJ_SRC
-
 echo "[DEBUG] java -cp $DT_TOOLS: edu.washington.cs.dt.impact.Main.RunnerMain -classpath $DT_LIBS:$DT_TOOLS:$DT_SUBJ/sootOutput/: -inputTests $DT_SCRIPTS/${SUBJ_NAME}-results/$SUBJ_NAME-orig-order"
-java -cp $DT_TOOLS: edu.washington.cs.dt.impact.Main.RunnerMain -classpath $DT_LIBS:$DT_TOOLS:$DT_SUBJ/sootOutput/: -inputTests $DT_SCRIPTS/${SUBJ_NAME}-results/$SUBJ_NAME-orig-order > /home/pious/Documents/Final/dependent-tests-impact/runneroutput
-exit 1
+java -cp $DT_TOOLS: edu.washington.cs.dt.impact.Main.RunnerMain -classpath $DT_LIBS:$DT_TOOLS:$DT_SUBJ/sootOutput/: -inputTests $DT_SCRIPTS/${SUBJ_NAME}-results/$SUBJ_NAME-orig-order> /home/pious/Documents/work/dependent-tests-impact/runneroutput
+# -Djava.security.manager -Djava.security.policy=all_permissions.policy
 echo "[DEBUG] Generating runtime for each test method under test cases"
 java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeGenerator -inputFile $DT_SUBJ/../ -inputName $DT_SUBJ
 
 rm -rf $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootTestOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootXMLOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootXML-${VER_NAME}/
-echo "[DEBUG] Generating report for surefire vs our test result"
-java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeComparator -inputFile $DT_SUBJ/../ -inputName $DT_SUBJ
 
+echo "[DEBUG] Generating report for surefire vs our test result"
+java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeComparator -inputFile $DT_SUBJ/../ -inputName $DT_SCRIPTS/${SUBJ_NAME}-results/
+mv sootCsvOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootComparedCSV-${VER_NAME}/
 
 
 cd $DT_SUBJ

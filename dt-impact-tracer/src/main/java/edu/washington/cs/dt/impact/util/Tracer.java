@@ -1,7 +1,7 @@
 /**
  * Copyright 2014 University of Washington. All Rights Reserved.
  * @author Wing Lam
- * 
+ *
  * Used by the Instrumenter to record the statements a test case covers.
  */
 

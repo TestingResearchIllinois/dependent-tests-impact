@@ -41,19 +41,20 @@ public class RuntimeComparator {
         tryCreateDirectory(theDir);
         String testOutput = argsList.get(inputTestList)+"target/surefire-reports/";
 
-        String currpath=System.getProperty("user.dir");
-        String projectPath=currpath.substring(0, currpath.length() - 13);
-        String SootXml=projectPath+"lib-results/sootXML-firstVers/firstVers-runtime.xml";
+        File folder = new File(testOutput);
+        String[] paths = argsList.get(inputTestList).split("/");
+        File[] listOfFiles = folder.listFiles();
+        //String projectPath=currpath.substring(0, currpath.length() - 13);
+        int inputxmlIndex = argsList.indexOf("-inputName")+1;
+        String SootXml=argsList.get(inputxmlIndex)+"sootXML-"+paths[paths.length - 4]+"/"+paths[paths.length - 4]+"-runtime.xml";
         File xmlfile= new File(SootXml);
         DocumentBuilderFactory dbfxml= DocumentBuilderFactory.newInstance();
         DocumentBuilder dbxml = dbfxml.newDocumentBuilder();
         Document docxml = dbxml.parse(xmlfile);
         docxml.getDocumentElement().normalize();
-
+        //System.out.println("--testoutput----"+testOutput);
         //System.out.println(SootXml);
-        File folder = new File(testOutput);
-        String[] paths = argsList.get(inputTestList).split("/");
-        File[] listOfFiles = folder.listFiles();
+
         FileWriter fileWriter = null;
         BufferedWriter bufferedWriter = null;
         fileWriter = new FileWriter("sootCsvOutput" + File.separator + paths[paths.length - 4] + "-comparedResult.csv");
@@ -61,8 +62,9 @@ public class RuntimeComparator {
         CSVPrinter csvPrinter = new CSVPrinter(bufferedWriter, CSVFormat.DEFAULT.withHeader("Test Name", "Method Under Test Name", "Surefire result","Test result","Surefire reported execution time(msec.)", "Tested execution time(msec)"));
         for(int i = 0; i < listOfFiles.length; i++){
             String filename = listOfFiles[i].getName();
-            if(filename.endsWith(".xml")||filename.endsWith(".XML")) {
 
+            if(filename.endsWith(".xml")||filename.endsWith(".XML")) {
+                //System.out.println("--file----"+filename);
                 File file = new File(testOutput+filename);
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 DocumentBuilder db = dbf.newDocumentBuilder();
@@ -100,7 +102,7 @@ public class RuntimeComparator {
                         NodeList nListxml= docxml.getElementsByTagName("Method");
 
                         String time="";
-                        String testResult="pass";
+                        String testResult="";
                         for (int tempxml = 0; tempxml < nListxml.getLength(); tempxml++) {
                             Node nNodexml = nListxml.item(tempxml);
                             try {
@@ -113,6 +115,8 @@ public class RuntimeComparator {
                                         if((eElementxml.getAttribute("throwException").equals("true")))
                                         {
                                             testResult="failed";
+                                        }else {
+                                            testResult="pass";
                                         }
                                         break;
                                     }
@@ -127,7 +131,6 @@ public class RuntimeComparator {
                         }
                         float surefireTime=Float.parseFloat(eElement.getAttribute("time"))*1000;
                         csvPrinter.printRecord(eElement.getAttribute("classname"),eElement.getAttribute("name"),surefireTestResult,testResult,(int)surefireTime,time);
-
 
                     }
                 }

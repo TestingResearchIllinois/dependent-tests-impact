@@ -11,6 +11,10 @@ import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
 import org.jf.dexlib2.iface.AnnotationElement;
 import soot.*;
 import soot.jimple.*;
+import soot.jimple.toolkits.callgraph.CallGraph;
+import soot.jimple.toolkits.callgraph.Edge;
+import soot.jimple.toolkits.callgraph.Targets;
+import soot.options.Options;
 import soot.tagkit.AnnotationIntElem;
 import soot.tagkit.AnnotationTag;
 import soot.tagkit.LineNumberTag;
@@ -95,7 +99,9 @@ public class Instrumenter extends BodyTransformer{
 
         boolean isJUnit4 = false;
         VisibilityAnnotationTag vat = (VisibilityAnnotationTag) method.getTag(JUNIT4_TAG);
+
         if (vat != null) {
+            System.out.println("---vat--"+vat);
             List<AnnotationTag> tags = vat.getAnnotations();
             for (AnnotationTag at : tags) {
                 if (!isJUnit4) {
@@ -117,6 +123,7 @@ public class Instrumenter extends BodyTransformer{
 
         boolean isJUnit3 = false;
         boolean extendsJUnit = false;
+
         if (!isJUnit4 && method.getName().length() > 3) {
             String retType = method.getReturnType().toString();
             String prefix = method.getName().substring(0, 4);
@@ -128,6 +135,14 @@ public class Instrumenter extends BodyTransformer{
                 }
                 superClass = superClass.getSuperclass();
             }
+
+            if (Objects.equals(superClass.getName(), JUNIT3_CLASS)) {
+
+                extendsJUnit = true;
+            }
+
+
+
             isJUnit3 = method.isPublic() && retType.equals(JUNIT3_RETURN)
                     && extendsJUnit && prefix.equals(JUNIT3_METHOD_PREFIX);
         }
@@ -162,7 +177,9 @@ public class Instrumenter extends BodyTransformer{
             part = "after";
         }
 
+
         if (isJUnit4 || isJUnit3 || isSetupOrTeardown) {
+
             // instrumentation of JUnit files
 
             // get access to Throwable class and toString method
@@ -189,11 +206,9 @@ public class Instrumenter extends BodyTransformer{
             probe.add(sGotoLast);
             String testclassname=method.getDeclaringClass().getName();
             Scene.v().loadClassAndSupport(testclassname);
-            //SootClass testClass = method.getDeclaringClass();
             SootClass testClass = Scene.v().getSootClass(testclassname);
             SootMethod testMethod = method;
             VisibilityAnnotationTag tag = (VisibilityAnnotationTag) testMethod.getTag("VisibilityAnnotationTag");
-            //System.out.println("=======tag======="+tag+"------------method"+packageMethodName);
             if (tag != null) {
                 for (AnnotationTag annotation : tag.getAnnotations()) {
                     if (annotation.getType().equals("Lorg/junit/Test;")) {
@@ -207,62 +222,21 @@ public class Instrumenter extends BodyTransformer{
                                 InvokeExpr lExceptionMessage = Jimple.v().newStaticInvokeExpr(exceptionMessage.makeRef(), StringConstant.v(packageMethodName), StringConstant.v(part),StringConstant.v("-expected- "+description));
                                 Stmt exceptionStmt = Jimple.v().newInvokeStmt(lExceptionMessage);
                                 units.insertAfter(exceptionStmt, firstStmt);
-                                //System.out.println("est----" + exceptionStmt);
-
-                                /*if(stmt.toString().contains("@caughtexception")){
-                                    //System.out.println(StringConstant.v(packageMethodName)+"---------et--------"+exceptionTypes);
-                                    units.insertAfter(exceptionStmt, stmt);
-                                }*/
-                                System.out.println("Description: " + description);
+                                //System.out.println("Description: " + description);
                             }
                         } else {
-                            System.out.println("Invalid AnnotationElement value");
+                            //System.out.println("Invalid AnnotationElement value");
                         }
                         break;
                     }
 
                 }
             }
-            /*List<soot.tagkit.Tag> tags = testMethod.getTags();
-            annotation annotations = null;
-            for (soot.tagkit.Tag tag : tags) {
-
-                System.out.println("=======tag======="+tag+"------------method"+packageMethodName);
-
-            }*/
-            /*SootClass testAnnotationClass = Scene.v().getSootClass("org.junit.Test");
-            annotation testAnnotation = annotations.g;*/
-            //Method javaMethod = testMethod.getJa;
-            //Annotation[] annotations = testMethod.get();
-            //System.out.println("=======tags======"+tags);
-            //System.out.println("=======method======="+packageMethodName);
-            //System.out.println("=======superclass======="+testclassname);
-            /*Local lException1 = getCreateLocal(body, "<ex1>", RefType.v(thrwCls));
-            Stmt sCatch = Jimple.v().newIdentityStmt(lException1, Jimple.v().newCaughtExceptionRef());
-            //System.out.println("====scatch===="+sCatch);
-            probe.add(sCatch);*/
-
-            /*Type throwType = thrwCls.getType();
-            Local lSysOut = getCreateLocal(body, "<throw>", throwType);
-            Stmt throwStmt = soot.jimple.Jimple.v().newThrowStmt(lSysOut);
-            body.getUnits().add(throwStmt);
-            //probe.add(throwStmt);
-
-            System.out.println("------thr--"+throwType);*/
-            //System.out.println("====thtype===="+throwType);
-            // Local lSysOut = getCreateLocal(body, "<throw>", throwType);
-            // Stmt callThrow = Jimple.v().newInvokeStmt(Jimple.v().newVirtualInvokeExpr(lException1, initThrow.makeRef(),
-            //         lSysOut));
-            // probe.add(callThrow);
 
             insertRightBeforeNoRedirect(pchain, probe, sLast);
 
-            // insert trap (catch)
-            //body.getTraps().add(Jimple.v().newTrap(thrwCls, sFirstNonId, sGotoLast, sCatch));
+        } else {
 
-            // Do not forget to insert instructions to report the counter
-
-        } /*else {
             if (technique == TECHNIQUE.SELECTION) {
                 // instrumentation of class files for test selection
                 // creates selectionOutput directory containing what statements
@@ -350,13 +324,11 @@ public class Instrumenter extends BodyTransformer{
                 }
                 selectionOutput(packageMethodName, functionBodyBuffer, "methodOutput");
             }
-        }*/
-        //stmtIt = units.snapshotIterator();
-        //stmtIt=stmtItpre;
+        }
+
 
         while (stmtItpre.hasNext()) {
             Stmt stmt = (Stmt)stmtItpre.next();
-            //System.out.println("-----------stm-----------"+stmt);
 
             if (internalOrInitStatementNotInvoked(stmt)) {
                 testOutputBuffer.append(stmt.getInvokeExpr().getMethodRef().getDeclaringClass().getName() + "." + stmt.getInvokeExpr().getMethod().getName() + "\n");
@@ -403,64 +375,18 @@ public class Instrumenter extends BodyTransformer{
 
         }
 
-
-
-        /*ThrowStmt throwStmt = Jimple.v().newThrowStmt(Jimple.v().newNewExpr(
-                soot.RefType.v("java.lang.Throwable")));
-        body.getUnits().add(throwStmt);
-
-        UnitGraph unitGraph = new ExceptionalUnitGraph(body);
-        for (Unit u : body.getUnits()) {
-            List<Unit> succs = unitGraph.getSuccsOf(u);
-            for (Unit succ : succs) {
-                if (succ instanceof ThrowStmt) {
-                    System.out.println("Unit " + u + " throws exception.");
-                    ThrowStmt ts = (ThrowStmt) succ;
-                    if (ts.getOp().getType().toString().contains("java.lang.Throwable")) {
-                        System.out.println("Unit " + u + " throws expected exception java.lang.Throwable.");
-                    } else {
-                        System.out.println("Unit " + u + " throws unexpected exception.");
-                    }
-                }
-            }
-        }*/
-
         Chain<Unit> new_units = body.getUnits();
-        /*for (Unit u : body.getUnits()) {
-            if (u instanceof ThrowStmt) {
-                System.out.println("uuuuuuu----" + u);
-                System.out.println("Exception thrown: " + ((ThrowStmt) u).getOp().toString());
-            }
-        }*/
         Iterator<Unit> new_stmtIt = new_units.snapshotIterator();
         while (new_stmtIt.hasNext()) {
             Stmt stmt = (Stmt) new_stmtIt.next();
             String exceptionTypes = TrapManager.getExceptionTypesOf(stmt, body).toString();
-            //System.out.println("etypr----" + exceptionTypes);
             InvokeExpr lExceptionMessage = Jimple.v().newStaticInvokeExpr(exceptionMessage.makeRef(), StringConstant.v(packageMethodName), StringConstant.v(part),StringConstant.v(exceptionTypes));
-            //System.out.println("excpet----" + exceptionTypes+"======m"+packageMethodName);
             Stmt exceptionStmt = Jimple.v().newInvokeStmt(lExceptionMessage);
-            //System.out.println("est----" + exceptionStmt);
 
             if(stmt.toString().contains("@caughtexception")){
-                //System.out.println(StringConstant.v(packageMethodName)+"---------et--------"+exceptionTypes);
                 units.insertAfter(exceptionStmt, stmt);
             }
         }
-        /*soot.options.Options.v().set_whole_program(true);
-        Scene.v().loadNecessaryClasses();
-        Scene.v().getCallGraph();
-        Chain<SootClass> classes = Scene.v().getClasses();
-        for (SootClass sc : classes) {
-            for (SootMethod sm : sc.getMethods()) {
-                ExceptionalUnitGraph eug = new ExceptionalUnitGraph(sm.getActiveBody());
-                for (Unit u : sm.getActiveBody().getUnits()) {
-                    if (u instanceof ThrowStmt) {
-                        System.out.println("Exception thrown: " + ((ThrowStmt) u).getOp().toString());
-                    }
-                }
-            }
-        }*/
         selectionOutput(packageMethodName, testOutputBuffer, "testOutput");
     }
 

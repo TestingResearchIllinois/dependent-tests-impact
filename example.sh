@@ -21,17 +21,17 @@ mkdir -p ${scripts_folder}/logs/
 # Clone the firstVers if it doesn't exist
 if [[ ! -d "firstVers" ]]; then
     echo "Cloning firstVers"
-    git clone https://github.com/wildfly/wildfly firstVers &> ${scripts_folder}/logs/firstVers-clone-log.txt
+    git clone https://github.com/undertow-io/undertow firstVers &> ${scripts_folder}/logs/firstVers-clone-log.txt
     echo "Compiling firstVers"
     cd firstVers
-    #git checkout d0ba95cf3c621c74a023887814e8c1f73b5da1b2 &> ${scripts_folder}/logs/checkout-firstVers.txt
+    git checkout d0efffad5d2034bb07525cac9b299dac72c3045d &> ${scripts_folder}/logs/checkout-firstVers.txt
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-firstVers.txt
     cd ${scripts_folder}
 fi
 #cd firstVers
 #git checkout b19048b72669fc0e96665b1b125dc1fda21f5993 &> ${scripts_folder}/logs/checkout-firstVers.txt
 #mvn install dependency:copy-dependencies -DskipTests
-#mvn install dependency:copy-dependencies -DskipTests -pl naming/ -am &> ${scripts_folder}/logs/install-log-firstVers.txt
+#mvn install dependency:copy-dependencies -DskipTests -pl dropwizard-logging/ -am &> ${scripts_folder}/logs/install-log-firstVers.txt
 #cd ${scripts_folder}
 # Clone the secondVers if it doesn't exist
 if [[ ! -d "secondVers" ]]; then
@@ -43,15 +43,16 @@ if [[ ! -d "secondVers" ]]; then
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-secondVers.txt
     cd ${scripts_folder}
 fi
-
 # Clear any existing results
-rm -rf naming-results/
-#rm -rf lib-results/methodOutput-firstVers
-#rm -rf lib-results/sootTestOutput-orig
-#rm -rf lib-results/sootXML-firstVers
+rm -rf websockets-jsr-results/
+
+#rm -rf portlet-results/methodOutput-plugins
+#rm -rf portlet-results/sootComparedCSV-plugins
+#rm -rf portlet-results/sootTestOutput-orig
+#rm -rf portlet-results/sootXML-plugins
 
 echo "Setting up the two versions for regression testing"
-bash setup.sh firstVers/naming $algo secondVers/lib &> logs/setup.txt
+bash setup.sh firstVers/websockets-jsr $algo secondVers/lib &> logs/setup.txt
 #echo "Running the unenhanced regression testing algorithm on the secondVers"
 #bash run.sh firstVers/lib $algo secondVers/lib "$machines" &> logs/run-unenhanced.txt
 #echo "Computing dependencies on the firstVers"
