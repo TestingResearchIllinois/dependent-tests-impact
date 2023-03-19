@@ -21,10 +21,10 @@ mkdir -p ${scripts_folder}/logs/
 # Clone the firstVers if it doesn't exist
 if [[ ! -d "firstVers" ]]; then
     echo "Cloning firstVers"
-    git clone https://github.com/undertow-io/undertow firstVers &> ${scripts_folder}/logs/firstVers-clone-log.txt
+    git clone https://github.com/kevinsawicki/http-request firstVers &> ${scripts_folder}/logs/firstVers-clone-log.txt
     echo "Compiling firstVers"
     cd firstVers
-    git checkout d0efffad5d2034bb07525cac9b299dac72c3045d &> ${scripts_folder}/logs/checkout-firstVers.txt
+    git checkout 2d62a3e9da726942a93cf16b6e91c0187e6c0136 &> ${scripts_folder}/logs/checkout-firstVers.txt
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-firstVers.txt
     cd ${scripts_folder}
 fi
@@ -36,23 +36,23 @@ fi
 # Clone the secondVers if it doesn't exist
 if [[ ! -d "secondVers" ]]; then
     echo "Cloning secondVers"
-    git clone https://github.com/kevinsawicki/http-request.git secondVers &> ${scripts_folder}/logs/secondVers-clone-log.txt
+    git clone https://github.com/kevinsawicki/http-request secondVers &> ${scripts_folder}/logs/secondVers-clone-log.txt
     echo "Compiling secondVers"
     cd secondVers/lib
-    git checkout ef89ec663e6d192c08b77dd1d9b8649975c1419c &> ${scripts_folder}/logs/checkout-secondVers.txt
+    git checkout 2d62a3e9da726942a93cf16b6e91c0187e6c0136 &> ${scripts_folder}/logs/checkout-secondVers.txt
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-secondVers.txt
     cd ${scripts_folder}
 fi
 # Clear any existing results
-rm -rf websockets-jsr-results/
-
-#rm -rf portlet-results/methodOutput-plugins
-#rm -rf portlet-results/sootComparedCSV-plugins
-#rm -rf portlet-results/sootTestOutput-orig
-#rm -rf portlet-results/sootXML-plugins
-
+rm -rf lib-results/
+: '
+rm -rf portlet-results/methodOutput-plugins
+rm -rf portlet-results/sootComparedCSV-plugins
+rm -rf portlet-results/sootTestOutput-orig
+rm -rf portlet-results/sootXML-plugins
+'
 echo "Setting up the two versions for regression testing"
-bash setup.sh firstVers/websockets-jsr $algo secondVers/lib &> logs/setup.txt
+bash setup.sh firstVers/lib $algo secondVers/lib &> logs/setup.txt
 #echo "Running the unenhanced regression testing algorithm on the secondVers"
 #bash run.sh firstVers/lib $algo secondVers/lib "$machines" &> logs/run-unenhanced.txt
 #echo "Computing dependencies on the firstVers"

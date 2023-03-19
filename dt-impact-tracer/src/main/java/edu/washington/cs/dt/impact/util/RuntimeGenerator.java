@@ -42,20 +42,38 @@ public class RuntimeGenerator {
         String path="sootXMLOutput" + File.separator + paths[paths.length - 4] + "-runtime.xml";
         FileWriter xmlFile = new FileWriter(path);
         xmlFile.write("<?xml version=\"1.0\"?>\n");
-        xmlFile.write("<MethodList>");
+        xmlFile.write("<testList>");
         //String id="1";
         int parentId=1;
         String dataParent=null;
-
+        String prevData="";
+        XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        xmlMapper.getFactory().getXMLOutputFactory().setProperty("javax.xml.stream.isRepairingNamespaces", false);
+        TestClass tc = new TestClass("");
         while (fileReader.hasNextLine())
         {
 
+
             if(parentId==1){
-                String prevData= fileReader.nextLine();
+
+                prevData= fileReader.nextLine();
+                String[] prevInfo = prevData.split(",");
+                tc.setName(prevInfo[1]);
                 dataParent=fileReader.nextLine();
             }
             else
             {
+                String[] prevInfo = prevData.split(",");
+                //tc.setName(prevInfo[1]);
+                if(tc.getTestClassByName(prevInfo[1])==null)
+                {
+                    String xml = xmlMapper.writeValueAsString(tc);
+                    assertNotNull(xml);
+                    xmlFile.write(xml + "\n");
+                    tc = new TestClass(prevInfo[1]);
+
+                }
                 dataParent=fileReader.nextLine();
             }
             String[] testInfoParent = dataParent.split(",");
@@ -79,6 +97,7 @@ public class RuntimeGenerator {
             while (fileReader.hasNextLine())
             {
                 String data = fileReader.nextLine();
+                prevData=data;
                 String[] testInfo = data.split(",");
 
                 String startMethod=testInfo[0];
@@ -159,16 +178,15 @@ public class RuntimeGenerator {
             {
                 parent.setThrowException(false);
             }
-            XmlMapper xmlMapper = new XmlMapper();
-            xmlMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-            xmlMapper.getFactory().getXMLOutputFactory().setProperty("javax.xml.stream.isRepairingNamespaces", false);
-            String xml = xmlMapper.writeValueAsString(parent);
-            assertNotNull(xml);
-            xmlFile.write(xml + "\n");
+
+            tc.addMethod(parent);
+
             parentId++;
         }
-
-        xmlFile.write("</MethodList>");
+        String xml = xmlMapper.writeValueAsString(tc);
+        assertNotNull(xml);
+        xmlFile.write(xml + "\n");
+        xmlFile.write("</testList>");
         xmlFile.flush();
         xmlFile.close();
     }

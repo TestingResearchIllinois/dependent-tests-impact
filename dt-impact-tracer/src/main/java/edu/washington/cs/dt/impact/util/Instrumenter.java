@@ -101,7 +101,7 @@ public class Instrumenter extends BodyTransformer{
         VisibilityAnnotationTag vat = (VisibilityAnnotationTag) method.getTag(JUNIT4_TAG);
 
         if (vat != null) {
-            System.out.println("---vat--"+vat);
+            //System.out.println("---vat--"+vat);
             List<AnnotationTag> tags = vat.getAnnotations();
             for (AnnotationTag at : tags) {
                 if (!isJUnit4) {
