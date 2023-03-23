@@ -12,6 +12,14 @@ rm -rf sootException/
 rm -rf sootTracerData/
 rm -rf sootXMLOutput/
 #rm -rf sootCsvOutput/
+echo "[DEBUG] checking vars"
+#echo $DT_TESTS
+#echo $DT_CLASS
+echo $DT_LIBS
+echo "[DEBUG] checking 2nd vars"
+#echo $NEW_DT_CLASS
+#echo $NEW_DT_TESTS
+#echo $NEW_DT_LIBS
 
 # 1. Find the human-written tests in the old subject.
 cd $DT_SUBJ
@@ -26,7 +34,7 @@ rm -rf methodOutput/
 #echo "java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_TESTS --soot-cp $DT_LIBS:$DT_CLASS:$DT_TESTS:$JAVA_HOME/jre/lib/*"
 java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_TESTS --soot-cp $DT_LIBS:$DT_CLASS:$DT_TESTS:$JAVA_HOME/jre/lib/*
 
-
+exit 1
 #echo "java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_CLASS --soot-cp $DT_LIBS:$DT_CLASS:$JAVA_HOME/jre/lib/*"
 java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_CLASS --soot-cp $DT_LIBS:$DT_CLASS:$JAVA_HOME/jre/lib/*
 

@@ -39,18 +39,18 @@ if [[ ! -d "secondVers" ]]; then
     git clone https://github.com/kevinsawicki/http-request secondVers &> ${scripts_folder}/logs/secondVers-clone-log.txt
     echo "Compiling secondVers"
     cd secondVers/lib
-    git checkout 2d62a3e9da726942a93cf16b6e91c0187e6c0136 &> ${scripts_folder}/logs/checkout-secondVers.txt
+    git checkout ef89ec663e6d192c08b77dd1d9b8649975c1419c &> ${scripts_folder}/logs/checkout-secondVers.txt
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-secondVers.txt
     cd ${scripts_folder}
 fi
 # Clear any existing results
 rm -rf lib-results/
-: '
-rm -rf portlet-results/methodOutput-plugins
-rm -rf portlet-results/sootComparedCSV-plugins
-rm -rf portlet-results/sootTestOutput-orig
-rm -rf portlet-results/sootXML-plugins
-'
+
+#rm -rf lib-results/methodOutput-plugins
+#rm -rf lib-results/sootComparedCSV-plugins
+#rm -rf lib-results/sootTestOutput-orig
+#rm -rf lib-results/sootXML-plugins
+
 echo "Setting up the two versions for regression testing"
 bash setup.sh firstVers/lib $algo secondVers/lib &> logs/setup.txt
 #echo "Running the unenhanced regression testing algorithm on the secondVers"

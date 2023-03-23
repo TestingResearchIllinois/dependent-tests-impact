@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Runs commands for "Instructions to setup a subject for test selection" section.
-
+exit 1
 set -e
 
 cd $DT_SUBJ

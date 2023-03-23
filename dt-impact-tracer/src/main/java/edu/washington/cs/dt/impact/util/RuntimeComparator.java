@@ -99,7 +99,7 @@ public class RuntimeComparator {
                             surefireTestResult="pass";
                         }
 
-                        NodeList nListxml= docxml.getElementsByTagName("Method");
+                        NodeList nListxml= docxml.getElementsByTagName("testMethod");
 
                         String time="";
                         String testResult="";

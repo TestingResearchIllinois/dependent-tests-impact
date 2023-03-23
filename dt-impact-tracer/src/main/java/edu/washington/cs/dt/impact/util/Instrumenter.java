@@ -85,6 +85,7 @@ public class Instrumenter extends BodyTransformer{
     @Override
     protected void internalTransform(Body body, String phase,
                                      @SuppressWarnings("rawtypes") Map options) {
+
         SootMethod method = body.getMethod();
 
         if (method.getName().equals("<init>") || method.getName().equals("<clinit>")) {

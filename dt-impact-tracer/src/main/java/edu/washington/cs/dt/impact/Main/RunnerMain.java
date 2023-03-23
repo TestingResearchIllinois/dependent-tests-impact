@@ -95,14 +95,14 @@ public class RunnerMain {
         SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), classpath, new HashMap<String, String>(), Paths.get("/dev/null"));
         Configuration.config().setDefault("testplugin.classpath", "");
 
-        long start = System.nanoTime();
+        long start =System.currentTimeMillis();
         //TestExecResults results = runner.run();
         //System.out.println(tests+"---------\n");
-        System.out.println(argsList+"-------------------------");
+        System.out.println(start+"----------start---------------");
         TestRunResult result = runner.runListWithCp(classpath, tests).get();
-        System.out.println(result+"-------------------------");
-        long total = System.nanoTime() - start;
-        System.out.println("Total execution time: " + total);
+        System.out.println(System.currentTimeMillis()+"--------------end-----------");
+        long total = System.currentTimeMillis() - start;
+        System.out.println("Total execution time--: " + total);
 
         // Print out the result in the format as expected by running ImpactMain
         // Assume only one run in one JVM of all tests
