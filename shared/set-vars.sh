@@ -66,7 +66,8 @@ if [[ ! -d "$libs_dir" ]]; then
     echo "Path to NEW_DT_LIBS does not exist. You must run mvn dependency:copy-dependencies in $NEW_DT_SUBJ_ROOT first."
     exit 1
 fi
-LIBS=$(find "$NEW_DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+#LIBS=$(find "$NEW_DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+LIBS=$(find "$DT_SUBJ/dependency/" -name "*.jar")
 export NEW_DT_LIBS=$(echo $LIBS | sed -E "s/ /:/g")
 
 # Compiled class files of the new subject

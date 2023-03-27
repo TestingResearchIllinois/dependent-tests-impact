@@ -97,24 +97,58 @@ public class InstrumentationMain {
             argsList.remove(sootClasspathIndex);
 
         }
-        int inputModeIndex= argsList.indexOf("-mode");
+        int inputModeIndex= argsList.indexOf("-compare");
         if (inputModeIndex != -1)
         {
-            System.out.println("--tc-"+techniqueName);
-            int inputModeNameIndex = inputModeIndex + 1;
+            //System.out.println("--tc-"+techniqueName);
+            /*int inputModeNameIndex = inputModeIndex + 1;
             if (inputModeNameIndex >= argsList.size()) {
                 System.err.println("Input mode argument is specified but mode name is not specified!");
                 System.exit(0);
+            }*/
+            argsList.remove(inputModeIndex);
+            //System.out.println("----------try---"+argsList);
+            //String inputDirName = argsList.get(inputModeNameIndex);
+            ///System.out.println("input mode- "+inputDirName);
+            Pack wjtp = PackManager.v().getPack("wjtp");
+            InstrumenterXML  instrumenter = new InstrumenterXML(techniqueName);
+            wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
+
+            Scene.v().setSootClassPath(sootClasspath);
+
+            argsList.add("-w");
+            argsList.add("-p");
+            argsList.add("cg");
+            argsList.add("all-reachable:true");
+            argsList.add("-keep-line-number");
+            argsList.add("-pp");
+            argsList.add("-allow-phantom-refs");
+
+            int inputDirNameIndex = inputDirIndex + 1;
+            String inputDirName = argsList.get(inputDirNameIndex);
+            List<String> classNames = getClassesFromDirectory(new File(inputDirName));
+
+            for (String className : classNames) {
+                SootClass clazz = Scene.v().forceResolve(className, SootClass.BODIES);
+                clazz.setApplicationClass();
             }
-            String inputDirName = argsList.get(inputModeNameIndex);
-            System.out.println("input mode- "+inputDirName);
+
+            for (SootClass sc : Scene.v().getClasses()) {
+                Scene.v().addBasicClass(sc.getName(), SootClass.BODIES);
+            }
+
+
+            String[] sootArgs = argsList.toArray(new String[0]);
+
+            soot.Main.main(sootArgs);
+            instrumenter.generateXML("output.xml");
         }
         else {
             //System.out.println("mode not set");
-           /* *//* add a phase to transformer pack by call Pack.add *//*
+           //add a phase to transformer pack by call Pack.add
             Pack jtp = PackManager.v().getPack("jtp");
             jtp.add(new Transform("jtp.instrumenter",
-                    new Instumrnterxml(techniqueName)));
+                    new Instrumenter(techniqueName)));
 
             Scene.v().setSootClassPath(sootClasspath);
 
@@ -124,11 +158,11 @@ public class InstrumentationMain {
             String[] sootArgs = argsList.toArray(new String[0]);
 
 
-            *//*
-             * Give control to Soot to process all options,
-             * Instrumenter.internalTransform will get called.
-             *//*
-            soot.Main.main(sootArgs);*/
+
+             /**Give control to Soot to process all options,
+             * Instrumenter.internalTransform will get called.*/
+
+            soot.Main.main(sootArgs);
 
 
             //-------------
@@ -147,40 +181,7 @@ public class InstrumentationMain {
             instrumenter.generateXML("output.xml");*/
 
             //-----------------
-            Pack wjtp = PackManager.v().getPack("wjtp");
-            InstrumenterXML  instrumenter = new InstrumenterXML(techniqueName);
-            wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
 
-            Scene.v().setSootClassPath(sootClasspath);
-
-            argsList.add("-w");
-            argsList.add("-p");
-            argsList.add("cg");
-            argsList.add("all-reachable:true");
-            argsList.add("-keep-line-number");
-            argsList.add("-pp");
-            argsList.add("-allow-phantom-refs");
-
-            int inputDirNameIndex = inputDirIndex + 1;
-            String inputDirName = argsList.get(inputDirNameIndex);
-            System.out.println("====inp"+inputDirName);
-            List<String> classNames = getClassesFromDirectory(new File(inputDirName));
-
-            for (String className : classNames) {
-                System.out.println("---cls---"+className);
-                SootClass clazz = Scene.v().forceResolve(className, SootClass.BODIES);
-                clazz.setApplicationClass();
-            }
-
-            for (SootClass sc : Scene.v().getClasses()) {
-                Scene.v().addBasicClass(sc.getName(), SootClass.BODIES);
-            }
-
-
-            String[] sootArgs = argsList.toArray(new String[0]);
-
-            soot.Main.main(sootArgs);
-            instrumenter.generateXML("output.xml");
         }
 
     }

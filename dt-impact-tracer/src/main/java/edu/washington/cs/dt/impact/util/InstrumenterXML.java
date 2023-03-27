@@ -24,6 +24,8 @@ public class InstrumenterXML  extends SceneTransformer {
     private Document doc;
     private Element rootElement;
     private Set<String> visitedMethods = new HashSet<>();
+    private int testMethodIdCounter = 1;
+    private Map<String, Element> testClassElements = new HashMap<>();
 
     public InstrumenterXML (Constants.TECHNIQUE t) {
         this.technique = t;
@@ -71,28 +73,36 @@ public class InstrumenterXML  extends SceneTransformer {
         SootMethod method = body.getMethod();
         if (isTestMethod(method)) {
             if (rootElement == null) {
-                rootElement = doc.createElement("testMethods");
+                rootElement = doc.createElement("testList");
                 doc.appendChild(rootElement);
             }
-            processMethodCallTree(method, doc, rootElement);
+            Element testClassElement = getTestClassElement(method.getDeclaringClass().getName());
+            processMethodCallTree(method, doc, testClassElement, testMethodIdCounter++); // Increment the testMethodIdCounter after processing
         }
     }
 
-    private void processMethodCallTree(SootMethod method, Document doc, Element parentElement) {
-        /*if (visitedMethods.contains(method.getSignature())) {
-            return;
-        }*/
+    private Element getTestClassElement(String className) {
+        Element testClassElement = testClassElements.get(className);
+        if (testClassElement == null) {
+            testClassElement = doc.createElement("testClass");
+            testClassElement.setAttribute("name", className);
+            rootElement.appendChild(testClassElement);
+            testClassElements.put(className, testClassElement);
+        }
+        return testClassElement;
+    }
+
+    private void processMethodCallTree(SootMethod method, Document doc, Element parentElement, int index) {
         visitedMethods.add(method.getSignature());
         if (method.hasActiveBody()) {
-            processMethod(method, doc, parentElement);
+            processMethod(method, doc, parentElement, index);
         }
     }
 
-    private void processMethod(SootMethod method, Document doc, Element parentElement) {
+    private void processMethod(SootMethod method, Document doc, Element parentElement, int index) {
         try {
             System.out.println("Processing method: " + method.getSignature());
 
-            // Skip <init> methods
             if (method.getName().equals("<init>")) {
                 return;
             }
@@ -100,11 +110,18 @@ public class InstrumenterXML  extends SceneTransformer {
             if (method.hasActiveBody()) {
                 Body body = method.getActiveBody();
 
-                Element methodElement = doc.createElement("method");
-                methodElement.setAttribute("name", method.getName());
-                methodElement.setAttribute("signature", method.getSignature());
-                parentElement.appendChild(methodElement);
+                Element methodElement = parentElement;
+                if (!parentElement.getTagName().equals("testMethod")) {
+                    methodElement = doc.createElement(isTestMethod(method) ? "testMethod" : "method");
+                    methodElement.setAttribute("id", Integer.toString(index));
+                    methodElement.setAttribute("name", method.getDeclaringClass().getName() + "." + method.getName());
+                    methodElement.setAttribute("testType", Boolean.toString(isTestMethod(method)));
+                    methodElement.setAttribute("time", "");
+                    methodElement.setAttribute("throwException", "false");
+                    parentElement.appendChild(methodElement);
+                }
 
+                int invokedMethodIndex = 1;
                 for (Unit unit : body.getUnits()) {
                     if (unit instanceof Stmt) {
                         Stmt stmt = (Stmt) unit;
@@ -112,29 +129,33 @@ public class InstrumenterXML  extends SceneTransformer {
                             InvokeExpr invokeExpr = stmt.getInvokeExpr();
                             SootMethod invokedMethod = invokeExpr.getMethod();
 
-                            // Skip processing <init> methods
-                            if (invokedMethod.getName().equals("<init>")) {
+                            if ((invokedMethod.getName().equals("<init>"))) {
                                 continue;
                             }
 
+                            String invokedMethodId = methodElement.getAttribute("id") + "." + invokedMethodIndex++;
+
                             Element invokedMethodElement = doc.createElement("invokedMethod");
-                            invokedMethodElement.setAttribute("name", invokedMethod.getName());
-                            invokedMethodElement.setAttribute("signature", invokedMethod.getSignature());
+                            invokedMethodElement.setAttribute("id", invokedMethodId);
+                            invokedMethodElement.setAttribute("name", invokedMethod.getDeclaringClass().getName() + "." + invokedMethod.getName());
+                            invokedMethodElement.setAttribute("testType", Boolean.toString(isTestMethod(invokedMethod)));
+                            invokedMethodElement.setAttribute("time", "");
+                            invokedMethodElement.setAttribute("throwException", "false");
                             methodElement.appendChild(invokedMethodElement);
 
-                            // Recursively process the invoked methods, only if the current method is a test method
                             if (isTestMethod(method)) {
-                                processMethodCallTree(invokedMethod, doc, invokedMethodElement);
+                                // Recursively process the invoked method and its children
+                                processMethod(invokedMethod, doc, invokedMethodElement, invokedMethodIndex - 1);
                             }
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            // Handle the error
             System.err.println("Error while processing method " + method.getSignature() + ": " + e.getMessage());
         }
     }
+
 
     public void generateXML(String outputFilePath) {
         try {

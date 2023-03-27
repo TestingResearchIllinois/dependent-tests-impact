@@ -12,20 +12,22 @@ rm -rf sootException/
 rm -rf sootTracerData/
 rm -rf sootXMLOutput/
 #rm -rf sootCsvOutput/
-echo "[DEBUG] checking vars"
+#echo "[DEBUG] checking vars"
 #echo $DT_TESTS
 #echo $DT_CLASS
-echo $DT_LIBS
-echo "[DEBUG] checking 2nd vars"
+#echo $DT_LIBS
+#echo $DT_TOOLS
+#echo "[DEBUG] checking 2nd vars"
+
 #echo $NEW_DT_CLASS
 #echo $NEW_DT_TESTS
 #echo $NEW_DT_LIBS
+#echo $NEW_DT_SUBJ_ROOT
 
 # 1. Find the human-written tests in the old subject.
 cd $DT_SUBJ
 echo "[DEBUG] Finding human written tests in old subject."
 bash "$DT_SCRIPTS/shared/get-test-order.sh" old
-
 
 # 2. Instrument the source and test files.
 echo "[DEBUG] Instrumenting source and test files for old subject."
@@ -34,7 +36,6 @@ rm -rf methodOutput/
 #echo "java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_TESTS --soot-cp $DT_LIBS:$DT_CLASS:$DT_TESTS:$JAVA_HOME/jre/lib/*"
 java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_TESTS --soot-cp $DT_LIBS:$DT_CLASS:$DT_TESTS:$JAVA_HOME/jre/lib/*
 
-exit 1
 #echo "java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_CLASS --soot-cp $DT_LIBS:$DT_CLASS:$JAVA_HOME/jre/lib/*"
 java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_CLASS --soot-cp $DT_LIBS:$DT_CLASS:$JAVA_HOME/jre/lib/*
 
@@ -62,9 +63,14 @@ java -cp $DT_TOOLS: edu.washington.cs.dt.impact.Main.RunnerMain -classpath $DT_L
 echo "[DEBUG] Generating runtime for each test method under test cases"
 java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeGenerator -inputFile $DT_SUBJ/../ -inputName $DT_SUBJ
 
+
+
 rm -rf $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootTestOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootXMLOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootXML-${VER_NAME}/
+
+echo "[DEBUG] Generating first-var vs second-var xml"
+java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $NEW_DT_TESTS --soot-cp $NEW_DT_LIBS:$NEW_DT_CLASS:$NEW_DT_TESTS:$JAVA_HOME/jre/lib/* -compare
 
 echo "[DEBUG] Generating report for surefire vs our test result"
 java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeComparator -inputFile $DT_SUBJ/../ -inputName $DT_SCRIPTS/${SUBJ_NAME}-results/
