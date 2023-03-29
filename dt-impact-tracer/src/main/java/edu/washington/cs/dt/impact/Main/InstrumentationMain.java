@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import edu.washington.cs.dt.impact.tools.FailedTestRemover;
 import edu.washington.cs.dt.impact.util.InstrumenterXML;
@@ -22,7 +23,7 @@ import edu.washington.cs.dt.impact.util.Constants;
 import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
 import edu.washington.cs.dt.impact.util.Instrumenter;
 public class InstrumentationMain {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         /* check the arguments */
         if (args.length == 0) {
             System.err.println("Usage: java InstrumentationMain [options] classname");
@@ -100,18 +101,10 @@ public class InstrumentationMain {
         int inputModeIndex= argsList.indexOf("-compare");
         if (inputModeIndex != -1)
         {
-            //System.out.println("--tc-"+techniqueName);
-            /*int inputModeNameIndex = inputModeIndex + 1;
-            if (inputModeNameIndex >= argsList.size()) {
-                System.err.println("Input mode argument is specified but mode name is not specified!");
-                System.exit(0);
-            }*/
             argsList.remove(inputModeIndex);
-            //System.out.println("----------try---"+argsList);
-            //String inputDirName = argsList.get(inputModeNameIndex);
-            ///System.out.println("input mode- "+inputDirName);
             Pack wjtp = PackManager.v().getPack("wjtp");
-            InstrumenterXML  instrumenter = new InstrumenterXML(techniqueName);
+            String targetTestMethodName="com.github.kevinsawicki.http.EncodeTest.encode";
+            InstrumenterXML  instrumenter = new InstrumenterXML(techniqueName,targetTestMethodName);
             wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
 
             Scene.v().setSootClassPath(sootClasspath);
@@ -126,7 +119,10 @@ public class InstrumentationMain {
 
             int inputDirNameIndex = inputDirIndex + 1;
             String inputDirName = argsList.get(inputDirNameIndex);
+            System.out.println("input dir - "+inputDirName);
+
             List<String> classNames = getClassesFromDirectory(new File(inputDirName));
+            // System.out.println("--------classes----------"+classNames);
 
             for (String className : classNames) {
                 SootClass clazz = Scene.v().forceResolve(className, SootClass.BODIES);
@@ -141,7 +137,7 @@ public class InstrumentationMain {
             String[] sootArgs = argsList.toArray(new String[0]);
 
             soot.Main.main(sootArgs);
-            instrumenter.generateXML("output.xml");
+            instrumenter.generateXML("/home/pious/Documents/work/dependent-tests-impact/lib-results/output.xml");
         }
         else {
             //System.out.println("mode not set");
@@ -202,5 +198,20 @@ public class InstrumentationMain {
             }
         }
         return classNames;
+    }
+    public static String getFullyQualifiedMethodName(String filePath, String methodName) {
+        String packageName = extractPackageName(filePath);
+        String className = extractClassName(filePath);
+        return packageName + "." + className + "." + methodName;
+    }
+
+    private static String extractPackageName(String filePath) {
+        String packagePath = filePath.substring(filePath.indexOf("java") + 5, filePath.lastIndexOf(File.separator));
+        return packagePath.replace(File.separator, ".");
+    }
+
+    private static String extractClassName(String filePath) {
+        String fileName = filePath.substring(filePath.lastIndexOf(File.separator) + 1);
+        return fileName.replace(".java", "");
     }
 }

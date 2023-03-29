@@ -44,7 +44,7 @@ if [[ ! -d "secondVers" ]]; then
     cd ${scripts_folder}
 fi
 # Clear any existing results
-rm -rf lib-results/
+#rm -rf lib-results/
 
 #rm -rf lib-results/methodOutput-plugins
 #rm -rf lib-results/sootComparedCSV-plugins

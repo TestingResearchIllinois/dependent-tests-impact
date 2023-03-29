@@ -1,4 +1,5 @@
 package edu.washington.cs.dt.impact.util;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -17,7 +18,8 @@ public class Method {
     private long time;
     @JacksonXmlProperty(isAttribute = true)
     private boolean throwException=false;
-
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "method")
     public ArrayList<Method> method;
 
     public Method(String id,String name,long time,boolean testType,boolean throwException) {
@@ -129,41 +131,9 @@ public class Method {
 
     public void addTime(long timeDiff)
     {
-        /*ArrayList<Method> meth=this.method;
-        ListIterator<Method> e
-                = meth.listIterator();
-        int i=0;
-        while ((e.hasNext())) {
-            Method newTemp= e.next();
-            System.out.println("----name"+newTemp.getName());
-
-        }*/
-        //System.out.println("-----depth----"+i);
         this.time+=timeDiff;
     }
 
-    /*public void addAllTime(long time,ArrayList<Method> meth,String parentname)
-    {
-        System.out.println("-----parent----"+parentname);
-        ListIterator<Method> e
-                = meth.listIterator(meth.size());
-        int i=0;
-        while ((e.hasPrevious())) {
-            Method newTemp= e.previous();
-            if(i==1)
-            {
-                System.out.println("-----addeed----"+newTemp.getName());
-                long newtime= newTemp.getTime()+time;
-                newTemp.setTime(newtime);
-            }
-            if(Objects.equals(newTemp.getName(), parentname))
-            {
-                System.out.println("-----not----"+newTemp.getName());
-                i=1;
-            }
-
-        }
-    }*/
 
 
     public String getId() {

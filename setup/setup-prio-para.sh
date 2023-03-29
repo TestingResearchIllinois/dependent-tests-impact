@@ -27,7 +27,7 @@ rm -rf sootXMLOutput/
 # 1. Find the human-written tests in the old subject.
 cd $DT_SUBJ
 echo "[DEBUG] Finding human written tests in old subject."
-bash "$DT_SCRIPTS/shared/get-test-order.sh" old
+#bash "$DT_SCRIPTS/shared/get-test-order.sh" old
 
 # 2. Instrument the source and test files.
 echo "[DEBUG] Instrumenting source and test files for old subject."

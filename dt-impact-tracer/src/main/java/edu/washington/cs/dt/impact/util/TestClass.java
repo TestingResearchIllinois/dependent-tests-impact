@@ -1,5 +1,6 @@
 package edu.washington.cs.dt.impact.util;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -10,6 +11,7 @@ import java.util.List;
 public class TestClass {
     @JacksonXmlProperty(isAttribute = true, localName = "name")
     private String name;
+    @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "testMethod")
     private ArrayList<Method> method;
     private static List<TestClass> allTestClasses = new ArrayList<>();
