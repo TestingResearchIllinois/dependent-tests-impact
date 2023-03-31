@@ -17,7 +17,7 @@ fi
 export DT_SUBJ_SRC="$DT_SUBJ_ROOT"
 export DT_SUBJ="$DT_SUBJ_ROOT/target"
 if [[ ! -d "$DT_SUBJ" ]]; then
-    echo "Path to DT_SUBJ does not exist. You must run mvn mvn install -DskipTests in $DT_SUBJ_ROOT first."
+    echo "Path to DT_SUBJ does not exist. You must run mvn mvn install -DskipTests in $DT_SUBJ first."
     exit 1
 fi
 
@@ -27,7 +27,8 @@ if [[ ! -d "$libs_dir" ]]; then
     echo "Path to DT_LIBS does not exist. You must run mvn dependency:copy-dependencies in $DT_SUBJ_ROOT first."
     exit 1
 fi
-LIBS=$(find "$DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+#LIBS=$(find "$DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+LIBS=$(find "$DT_SUBJ/dependency/" -name "*.jar")
 export DT_LIBS=$(echo $LIBS | sed -E "s/ /:/g")
 
 # Compiled class files of the old subject
@@ -65,7 +66,8 @@ if [[ ! -d "$libs_dir" ]]; then
     echo "Path to NEW_DT_LIBS does not exist. You must run mvn dependency:copy-dependencies in $NEW_DT_SUBJ_ROOT first."
     exit 1
 fi
-LIBS=$(find "$NEW_DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+#LIBS=$(find "$NEW_DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+LIBS=$(find "$DT_SUBJ/dependency/" -name "*.jar")
 export NEW_DT_LIBS=$(echo $LIBS | sed -E "s/ /:/g")
 
 # Compiled class files of the new subject

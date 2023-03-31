@@ -1,17 +1,16 @@
 /**
  * Copyright 2014 University of Washington. All Rights Reserved.
  * @author Wing Lam
- * 
+ *
  * Used by the Instrumenter to record the statements a test case covers.
  */
 
 package edu.washington.cs.dt.impact.util;
 
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.util.Collections;
@@ -58,7 +57,8 @@ public class Tracer {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            //throw new RuntimeException(e);
+            System.out.println(e);
         } finally {
             try {
                 if (writer != null) {
@@ -152,27 +152,54 @@ public class Tracer {
         timer.setEndTime();
     }
 
-    public static void exceptionMessage(String packageMethodName, String prefix){
-        endExecution(packageMethodName, prefix, "Exception");
+    public static void exceptionMessage(String packageMethodName, String prefix,String type) throws IOException {
+        packageMethodName=packageMethodName.replaceAll("\\$\\d+", "");
+        long time=System.currentTimeMillis();
+        type = type.replaceAll(",",";");
+        writeforinputXML("sootTracerData",packageMethodName,"Exception:"+type, time);
+        //endExecution(packageMethodName, prefix, "Exception: "+type);
         writeToFile("sootException", "Caught Exception in : " + packageMethodName + "\n", "functionException");
     }
 
-    public static void timerOutput(String packageMethodName, String methodName, String declaringClass){
+    public static void timerOutput(String packageMethodName, String methodName, String declaringClass) throws IOException {
 //        long elapsedTime = timer.getTotalTime();
 //        timer.reset();
+        packageMethodName=packageMethodName.replaceAll("\\$\\d+", "");
+        methodName=methodName.replaceAll("\\$\\d+", "");
+        declaringClass=declaringClass.replaceAll("\\$\\d+", "");
+        long time=System.currentTimeMillis();
+        writeforinputXML("sootTracerData",packageMethodName,declaringClass + "." +methodName, time);
         String text = packageMethodName + " >>> " + declaringClass + "." + methodName + " : " + System.currentTimeMillis() + "\n";
         writeToFile("sootTimerOutput", text, packageMethodName);
     }
 
-    public static void startExecution(String packageMethodName, String prefix){
+    public static void startExecution(String packageMethodName, String prefix) throws IOException {
 //        totalExecutionTime.setStartTime();
+        packageMethodName=packageMethodName.replaceAll("\\$\\d+", "");
+        String[] arrOfStr = packageMethodName.split("\\.");
+        packageMethodName="";
+        for (int i=0;i<arrOfStr.length-1;i++)
+        {
+            if(i==arrOfStr.length-2)
+            {
+                packageMethodName+=arrOfStr[i];
+            }
+            else {
+                packageMethodName+=arrOfStr[i]+".";
+            }
+        }
+        long time=System.currentTimeMillis();
+        writeforinputXML("sootTracerData","START",packageMethodName, time);
         writeToFile("sootSeqOutput", "Started > " + prefix +" >> " + packageMethodName+"#"+System.currentTimeMillis() , "functionSequence");
     }
 
-    public static void endExecution(String packageMethodName, String prefix, String endMethod){
+    public static void endExecution(String packageMethodName, String prefix, String endMethod) throws IOException {
 //        totalExecutionTime.setEndTime();
 //        long elapsedTime = totalExecutionTime.getTotalTime();
 //        totalExecutionTime.reset();
+        packageMethodName=packageMethodName.replaceAll("\\$\\d+", "");
+        long time=System.currentTimeMillis();
+        writeforinputXML("sootTracerData",packageMethodName,"END", time);
         String text = " > Ended > " + packageMethodName+"#"+System.currentTimeMillis()  + " > " + endMethod + " >> " + "Time : " + "elapsedTime" + " " + "\n";
         writeToFile("sootSeqOutput", text, "functionSequence");
     }
@@ -202,5 +229,32 @@ public class Tracer {
                 System.err.println(e.toString());
             }
         }
+    }
+    public static void writeforinputXML(String folderPath, String startMethod,String endMethod, long time) throws IOException {
+        File theDir = new File(folderPath);
+        tryCreateDirectory(theDir);
+        FileWriter output = null;
+        BufferedWriter writer = null;
+        String text=startMethod+","+endMethod+","+time+"\n";
+        try {
+            output = new FileWriter(folderPath + File.separator + "tempTracerData.txt", true);
+            writer = new BufferedWriter(output);
+            writer.write(text);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+                if (output != null) {
+                    output.close();
+                }
+            } catch (IOException e) {
+                // Ignore issues during closing
+                System.err.println(e.toString());
+            }
+        }
+
     }
 }

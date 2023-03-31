@@ -20,11 +20,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.reedoei.testrunner.data.framework.TestFramework;
-import com.reedoei.testrunner.data.results.Result;
-import com.reedoei.testrunner.data.results.TestRunResult;
-import com.reedoei.testrunner.runner.SmartRunner;
-import com.reedoei.testrunner.runner.TestInfoStore;
+import edu.illinois.cs.testrunner.data.framework.TestFramework;
+import edu.illinois.cs.testrunner.data.results.Result;
+import edu.illinois.cs.testrunner.data.results.TestRunResult;
+import edu.illinois.cs.testrunner.runner.SmartRunner;
+import edu.illinois.cs.testrunner.runner.TestInfoStore;
 
 import edu.washington.cs.dt.impact.util.Constants;
 

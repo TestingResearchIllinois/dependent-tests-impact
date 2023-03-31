@@ -8,20 +8,22 @@
 package edu.washington.cs.dt.impact.Main;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import edu.washington.cs.dt.impact.tools.FailedTestRemover;
-import soot.Pack;
-import soot.PackManager;
-import soot.Scene;
-import soot.Transform;
+import edu.washington.cs.dt.impact.util.InstrumenterXML;
+import soot.*;
 import edu.washington.cs.dt.impact.util.Constants;
 import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
 import edu.washington.cs.dt.impact.util.Instrumenter;
 public class InstrumentationMain {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         /* check the arguments */
         if (args.length == 0) {
             System.err.println("Usage: java InstrumentationMain [options] classname");
@@ -89,30 +91,127 @@ public class InstrumentationMain {
 
         int sootClasspathIndex = argsList.indexOf("--soot-cp");
         String sootClasspath = System.getProperty("java.class.path");
+        //System.out.println("------dd-----"+argsList);
         if (sootClasspathIndex != -1) {
             sootClasspath = FailedTestRemover.buildClassPath(argsList.get(sootClasspathIndex + 1).split(":"));
             argsList.remove(sootClasspathIndex + 1);
             argsList.remove(sootClasspathIndex);
+
+        }
+        int inputModeIndex= argsList.indexOf("-compare");
+        if (inputModeIndex != -1)
+        {
+            argsList.remove(inputModeIndex);
+            Pack wjtp = PackManager.v().getPack("wjtp");
+            String targetTestMethodName="com.github.kevinsawicki.http.EncodeTest.encode";
+            InstrumenterXML  instrumenter = new InstrumenterXML(techniqueName,targetTestMethodName);
+            wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
+
+            Scene.v().setSootClassPath(sootClasspath);
+
+            argsList.add("-w");
+            argsList.add("-p");
+            argsList.add("cg");
+            argsList.add("all-reachable:true");
+            argsList.add("-keep-line-number");
+            argsList.add("-pp");
+            argsList.add("-allow-phantom-refs");
+
+            int inputDirNameIndex = inputDirIndex + 1;
+            String inputDirName = argsList.get(inputDirNameIndex);
+            System.out.println("input dir - "+inputDirName);
+
+            List<String> classNames = getClassesFromDirectory(new File(inputDirName));
+            // System.out.println("--------classes----------"+classNames);
+
+            for (String className : classNames) {
+                SootClass clazz = Scene.v().forceResolve(className, SootClass.BODIES);
+                clazz.setApplicationClass();
+            }
+
+            for (SootClass sc : Scene.v().getClasses()) {
+                Scene.v().addBasicClass(sc.getName(), SootClass.BODIES);
+            }
+
+
+            String[] sootArgs = argsList.toArray(new String[0]);
+
+            soot.Main.main(sootArgs);
+            instrumenter.generateXML("/home/pious/Documents/work/dependent-tests-impact/lib-results/output.xml");
+        }
+        else {
+            //System.out.println("mode not set");
+           //add a phase to transformer pack by call Pack.add
+            Pack jtp = PackManager.v().getPack("jtp");
+            jtp.add(new Transform("jtp.instrumenter",
+                    new Instrumenter(techniqueName)));
+
+            Scene.v().setSootClassPath(sootClasspath);
+
+            argsList.add("-keep-line-number");
+            argsList.add("-pp");
+            argsList.add("-allow-phantom-refs");
+            String[] sootArgs = argsList.toArray(new String[0]);
+
+
+
+             /**Give control to Soot to process all options,
+             * Instrumenter.internalTransform will get called.*/
+
+            soot.Main.main(sootArgs);
+
+
+            //-------------
+            /*Pack jtp = PackManager.v().getPack("jtp");
+            Instumrnterxml instrumenter = new Instumrnterxml(techniqueName);
+            jtp.add(new Transform("jtp.instrumenter", instrumenter));
+
+            Scene.v().setSootClassPath(sootClasspath);
+
+            argsList.add("-keep-line-number");
+            argsList.add("-pp");
+            argsList.add("-allow-phantom-refs");
+            String[] sootArgs = argsList.toArray(new String[0]);
+
+            soot.Main.main(sootArgs);
+            instrumenter.generateXML("output.xml");*/
+
+            //-----------------
+
         }
 
-        /* add a phase to transformer pack by call Pack.add */
-        Pack jtp = PackManager.v().getPack("jtp");
-        jtp.add(new Transform("jtp.instrumenter",
-                new Instrumenter(techniqueName)));
+    }
+    public static List<String> getClassesFromDirectory(File directory) {
+        List<String> classNames = new ArrayList<>();
+        if (directory.exists() && directory.isDirectory()) {
+            try {
+                Path basePath = directory.toPath();
+                Files.walk(basePath).forEach(path -> {
+                    if (Files.isRegularFile(path) && path.toString().endsWith(".class")) {
+                        String className = basePath.relativize(path).toString().replace(File.separator, ".");
+                        className = className.substring(0, className.length() - ".class".length());
+                        classNames.add(className);
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException("Error getting classes from directory", e);
+            }
+        }
+        return classNames;
+    }
+    public static String getFullyQualifiedMethodName(String filePath, String methodName) {
+        String packageName = extractPackageName(filePath);
+        String className = extractClassName(filePath);
+        return packageName + "." + className + "." + methodName;
+    }
 
-        Scene.v().setSootClassPath(sootClasspath);
+    private static String extractPackageName(String filePath) {
+        String packagePath = filePath.substring(filePath.indexOf("java") + 5, filePath.lastIndexOf(File.separator));
+        return packagePath.replace(File.separator, ".");
+    }
 
-        argsList.add("-keep-line-number");
-        argsList.add("-pp");
-        argsList.add("-allow-phantom-refs");
-        String[] sootArgs = argsList.toArray(new String[0]);
-
-        System.out.println(argsList);
-
-        /*
-         * Give control to Soot to process all options,
-         * Instrumenter.internalTransform will get called.
-         */
-        soot.Main.main(sootArgs);
+    private static String extractClassName(String filePath) {
+        String fileName = filePath.substring(filePath.lastIndexOf(File.separator) + 1);
+        return fileName.replace(".java", "");
     }
 }

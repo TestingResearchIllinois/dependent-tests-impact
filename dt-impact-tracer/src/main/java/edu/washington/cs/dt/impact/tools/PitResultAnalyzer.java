@@ -7,9 +7,9 @@ import com.reedoei.eunomia.string.Context;
 import com.reedoei.eunomia.string.matching.LineMatch;
 import com.reedoei.eunomia.string.searching.Searcher;
 import com.reedoei.eunomia.string.searching.StringSearch;
-import com.reedoei.eunomia.util.FileUtil;
+import com.reedoei.eunomia.io.files.FileUtil;
 import com.reedoei.eunomia.util.StandardMain;
-import com.reedoei.eunomia.util.StringUtil;
+import com.reedoei.eunomia.string.StringUtil;
 import edu.washington.cs.dt.impact.util.Constants;
 import org.dom4j.DocumentException;
 

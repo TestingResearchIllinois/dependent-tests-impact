@@ -10,7 +10,7 @@ import com.reedoei.eunomia.string.searching.Searcher;
 import com.reedoei.eunomia.string.searching.StringSearch;
 import com.reedoei.eunomia.util.OptUtil;
 
-import com.reedoei.testrunner.data.results.Result;
+import edu.illinois.cs.testrunner.data.results.Result;
 
 import edu.washington.cs.dt.impact.data.EnhancedValues;
 import edu.washington.cs.dt.impact.data.TestInfo;

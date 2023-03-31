@@ -1,7 +1,7 @@
 package edu.washington.cs.dt.impact.tools;
 
-import com.reedoei.eunomia.io.CaptureOutStream;
-import com.reedoei.eunomia.io.CapturedOutput;
+import com.reedoei.eunomia.io.capture.CapturedOutput;
+import com.reedoei.eunomia.io.capture.CaptureOutStream;
 import edu.washington.cs.dt.TestExecResult;
 import edu.washington.cs.dt.runners.FixedOrderRunner;
 

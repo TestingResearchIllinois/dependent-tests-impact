@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.reedoei.testrunner.data.results.TestRunResult;
-import com.reedoei.testrunner.runner.SmartRunner;
+import edu.illinois.cs.testrunner.data.results.TestRunResult;
+import edu.illinois.cs.testrunner.runner.SmartRunner;
 
 import edu.washington.cs.dt.TestExecResult;
 import edu.washington.cs.dt.TestExecResults;
