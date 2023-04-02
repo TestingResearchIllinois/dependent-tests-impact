@@ -1,5 +1,7 @@
 package edu.washington.cs.dt.impact.util;
 
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 import soot.*;
 import soot.jimple.InvokeExpr;
 import soot.jimple.Stmt;
@@ -8,16 +10,22 @@ import soot.tagkit.Tag;
 import soot.tagkit.VisibilityAnnotationTag;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 
 public class InstrumenterXML  extends SceneTransformer {
     private static Constants.TECHNIQUE technique = Constants.DEFAULT_TECHNIQUE;
@@ -26,11 +34,11 @@ public class InstrumenterXML  extends SceneTransformer {
     private Set<String> visitedMethods = new HashSet<>();
     private int testMethodIdCounter = 1;
     private Map<String, Element> testClassElements = new HashMap<>();
-    private String targetTestMethodName;
+    private List<String> targetTestMethodNames;
 
-    public InstrumenterXML(Constants.TECHNIQUE t, String targetTestMethodName) {
+    public InstrumenterXML(Constants.TECHNIQUE t, List<String> targetTestMethodNames) {
         this.technique = t;
-        this.targetTestMethodName = targetTestMethodName;
+        this.targetTestMethodNames = targetTestMethodNames;
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -64,8 +72,9 @@ public class InstrumenterXML  extends SceneTransformer {
         for (SootClass sootClass : Scene.v().getApplicationClasses()) {
             for (SootMethod method : sootClass.getMethods()) {
 
-                String fullyQualifiedName=method.getDeclaringClass().getName()+"."+method.getName();
-                if (method.hasActiveBody() && isTestMethod(method) && fullyQualifiedName.contains(targetTestMethodName)) {
+                String fullyQualifiedName = method.getDeclaringClass().getName() + "." + method.getName();
+                boolean containsTargetTestMethod = targetTestMethodNames.stream().anyMatch(fullyQualifiedName::equals);
+                if (method.hasActiveBody() && isTestMethod(method) && containsTargetTestMethod) {
                     internalTransform(method.getActiveBody(), phaseName, options);
                 }
             }
@@ -138,7 +147,6 @@ public class InstrumenterXML  extends SceneTransformer {
                 for (Unit unit : body.getUnits()) {
                     if (unit instanceof Stmt) {
                         Stmt stmt = (Stmt) unit;
-                        System.out.println("-----stmt---"+stmt);
                         if (stmt.containsInvokeExpr()) {
                             InvokeExpr invokeExpr = stmt.getInvokeExpr();
                             SootMethod invokedMethod = invokeExpr.getMethod();
@@ -184,10 +192,170 @@ public class InstrumenterXML  extends SceneTransformer {
             outputStream.close();
 
             System.out.println("XML saved to " + outputFilePath);
+            String xmlFile1 = "/home/pious/Documents/work/dependent-tests-impact/lib-results/sootXML-firstVers/firstVers-runtime.xml";
+            String xmlFile2 = "/home/pious/Documents/work/dependent-tests-impact/lib-results/output.xml";
+            String outputFile = "/home/pious/Documents/work/dependent-tests-impact/lib-results/resulted.xml";
+            try {
+                compareAndGenerateXML(xmlFile1, xmlFile2, outputFile);
+            } catch (IOException | ParserConfigurationException | TransformerException e) {
+                e.printStackTrace();
+            }
         } catch (Exception e) {
             throw new RuntimeException("Error generating XML", e);
         }
     }
+    public static void compareAndGenerateXML(String inputFile1, String inputFile2, String outputFile) throws IOException, ParserConfigurationException, TransformerException, SAXException {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+        Document input1 = dBuilder.parse(new File(inputFile1));
+        Document input2 = dBuilder.parse(new File(inputFile2));
+        Document output = dBuilder.newDocument();
+
+        input1.getDocumentElement().normalize();
+        input2.getDocumentElement().normalize();
+
+        Element testList = output.createElement("testList");
+        output.appendChild(testList);
+
+        Map<String, Node> input1TestClassesMap = new HashMap<>();
+        Map<String, Node> input2TestClassesMap = new HashMap<>();
+
+        NodeList input1TestClasses = input1.getElementsByTagName("testClass");
+        NodeList input2TestClasses = input2.getElementsByTagName("testClass");
+
+        for (int i = 0; i < input1TestClasses.getLength(); i++) {
+            Node input1TestClass = input1TestClasses.item(i);
+            input1TestClassesMap.put(input1TestClass.getAttributes().getNamedItem("name").getNodeValue(), input1TestClass);
+        }
+
+        for (int i = 0; i < input2TestClasses.getLength(); i++) {
+            Node input2TestClass = input2TestClasses.item(i);
+            input2TestClassesMap.put(input2TestClass.getAttributes().getNamedItem("name").getNodeValue(), input2TestClass);
+        }
+
+        Set<String> allTestClassNames = new HashSet<>(input1TestClassesMap.keySet());
+        allTestClassNames.addAll(input2TestClassesMap.keySet());
+
+        for (String testClassName : allTestClassNames) {
+            Node input1TestClass = input1TestClassesMap.get(testClassName);
+            Node input2TestClass = input2TestClassesMap.get(testClassName);
+
+            if (input1TestClass == null && input2TestClass != null) {
+                testList.appendChild(output.importNode(input2TestClass, true));
+                continue;
+            } else if (input1TestClass != null && input2TestClass == null) {
+                testList.appendChild(output.importNode(input1TestClass, true));
+                continue;
+            }
+
+            Element outputTestClass = output.createElement("testClass");
+            outputTestClass.setAttribute("name", testClassName);
+            testList.appendChild(outputTestClass);
+
+            Map<String, Node> input1TestMethodsMap = new HashMap<>();
+            Map<String, Node> input2TestMethodsMap = new HashMap<>();
+
+            NodeList input1TestMethods = input1TestClass.getChildNodes();
+            NodeList input2TestMethods = input2TestClass.getChildNodes();
+
+            for (int j = 0; j < input1TestMethods.getLength(); j++) {
+                Node input1TestMethod = input1TestMethods.item(j);
+                if (input1TestMethod.getNodeType() == Node.ELEMENT_NODE) {
+                    input1TestMethodsMap.put(input1TestMethod.getAttributes().getNamedItem("name").getNodeValue(), input1TestMethod);
+                }
+            }
+
+            for (int j = 0; j < input2TestMethods.getLength(); j++) {
+                Node input2TestMethod = input2TestMethods.item(j);
+                if (input2TestMethod.getNodeType() == Node.ELEMENT_NODE) {
+                    input2TestMethodsMap.put(input2TestMethod.getAttributes().getNamedItem("name").getNodeValue(), input2TestMethod);
+                }
+            }
+
+            Set<String> allTestMethodNames = new HashSet<>(input1TestMethodsMap.keySet());
+            allTestMethodNames.addAll(input2TestMethodsMap.keySet());
+
+            for (String testMethodName : allTestMethodNames) {
+                Node input1TestMethod = input1TestMethodsMap.get(testMethodName);
+                Node input2TestMethod = input2TestMethodsMap.get(testMethodName);
+
+                if (input1TestMethod == null && input2TestMethod != null) {
+                    outputTestClass.appendChild(output.importNode(input2TestMethod, true));
+                } else if (input1TestMethod != null && input2TestMethod == null) {
+                    outputTestClass.appendChild(output.importNode(input1TestMethod, true));
+                } else {
+                    Element mergedTestMethod = mergeTestMethods(output, input1TestMethod, input2TestMethod);
+                    outputTestClass.appendChild(mergedTestMethod);
+                }
+            }
+        }
+
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        DOMSource source = new DOMSource(output);
+        StreamResult result = new StreamResult(new File(outputFile));
+        transformer.transform(source, result);
+    }
+    private static Element mergeTestMethods(Document output, Node input1TestMethod, Node input2TestMethod) {
+        Element mergedTestMethod = (Element) output.importNode(input2TestMethod, true);
+        NodeList input1Methods = input1TestMethod.getChildNodes();
+        NodeList mergedMethods = mergedTestMethod.getChildNodes();
+        System.out.println("---merged----" + mergedMethods);
+
+        Map<String, List<Element>> input1NestedMethodsMap = new HashMap<>();
+        buildNestedMethodsList(input1Methods, input1NestedMethodsMap, 0); // Include level parameter
+        System.out.println("---nested input1----" + input1NestedMethodsMap);
+
+        mergeChildMethods(mergedMethods, input1NestedMethodsMap, 0);
+
+        // Update mergedTestMethod attributes
+        mergedTestMethod.setAttribute("id", input1TestMethod.getAttributes().getNamedItem("id").getNodeValue());
+        mergedTestMethod.setAttribute("name", input2TestMethod.getAttributes().getNamedItem("name").getNodeValue());
+        mergedTestMethod.setAttribute("testType", input2TestMethod.getAttributes().getNamedItem("testType").getNodeValue());
+        mergedTestMethod.setAttribute("throwException", input2TestMethod.getAttributes().getNamedItem("throwException").getNodeValue());
+        mergedTestMethod.setAttribute("time", input2TestMethod.getAttributes().getNamedItem("time").getNodeValue());
+
+        return mergedTestMethod;
+    }
+
+
+    private static void buildNestedMethodsList(NodeList nodes, Map<String, List<Element>> map, int level) {
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) node;
+                String key = level + "-" + element.getTagName();
+                List<Element> elements = map.getOrDefault(key, new ArrayList<>());
+                elements.add(element);
+                map.put(key, elements);
+
+                buildNestedMethodsList(node.getChildNodes(), map, level + 1);
+            }
+        }
+    }
+
+
+    private static void mergeChildMethods(NodeList mergedMethods, Map<String, List<Element>> input1NestedMethodsMap, int level) {
+        for (int i = 0; i < mergedMethods.getLength(); i++) {
+            Node mergedMethod = mergedMethods.item(i);
+            if (mergedMethod.getNodeType() == Node.ELEMENT_NODE) {
+                String key = level + "-" + mergedMethod.getNodeName();
+                List<Element> input1Methods = input1NestedMethodsMap.getOrDefault(key, new ArrayList<>());
+                if (!input1Methods.isEmpty()) {
+                    Element input1Method = input1Methods.get(0);
+                    if (mergedMethod.getAttributes().getNamedItem("name").getNodeValue().equals(input1Method.getAttribute("name"))) {
+                        mergedMethod.getAttributes().getNamedItem("time").setNodeValue(input1Method.getAttribute("time"));
+                        input1Methods.remove(0);
+                    }
+                }
+                mergeChildMethods(mergedMethod.getChildNodes(), input1NestedMethodsMap, level + 1);
+            }
+        }
+    }
+
+
+
 
 
 }

@@ -103,8 +103,14 @@ public class InstrumentationMain {
         {
             argsList.remove(inputModeIndex);
             Pack wjtp = PackManager.v().getPack("wjtp");
-            String targetTestMethodName="com.github.kevinsawicki.http.EncodeTest.encode";
-            InstrumenterXML  instrumenter = new InstrumenterXML(techniqueName,targetTestMethodName);
+            Pack wjop = PackManager.v().getPack("wjop");
+            wjop.remove("wjtp");
+            List<String> targetTestMethodNames = new ArrayList<String>();
+            targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.encode");
+            /*targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.condition");
+            targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.loop");
+            targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.testFactorial");*/
+            InstrumenterXML instrumenter = new InstrumenterXML(techniqueName, targetTestMethodNames);
             wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
 
             Scene.v().setSootClassPath(sootClasspath);
@@ -116,13 +122,22 @@ public class InstrumentationMain {
             argsList.add("-keep-line-number");
             argsList.add("-pp");
             argsList.add("-allow-phantom-refs");
+            /*argsList.add("-p");
+            argsList.add("jb");
+            argsList.add("use-original-names:true");*/
+//            argsList.add("-p");
+//            argsList.add("wjtp.tnlp");
+//            argsList.add("enabled:false");
+            /*argsList.add("--no-bodies-for-excluded");
+            argsList.add("--loop-opts-enabled");*/
+            /*argsList.add("--num-loop-detection");
+            argsList.add("3");*/
 
             int inputDirNameIndex = inputDirIndex + 1;
             String inputDirName = argsList.get(inputDirNameIndex);
             System.out.println("input dir - "+inputDirName);
 
             List<String> classNames = getClassesFromDirectory(new File(inputDirName));
-            // System.out.println("--------classes----------"+classNames);
 
             for (String className : classNames) {
                 SootClass clazz = Scene.v().forceResolve(className, SootClass.BODIES);
