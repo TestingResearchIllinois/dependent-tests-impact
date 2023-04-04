@@ -74,6 +74,7 @@ public class InstrumenterXML  extends SceneTransformer {
 
                 String fullyQualifiedName = method.getDeclaringClass().getName() + "." + method.getName();
                 boolean containsTargetTestMethod = targetTestMethodNames.stream().anyMatch(fullyQualifiedName::equals);
+                targetTestMethodNames.removeIf(fullyQualifiedName::equals);
                 if (method.hasActiveBody() && isTestMethod(method) && containsTargetTestMethod) {
                     internalTransform(method.getActiveBody(), phaseName, options);
                 }
@@ -179,10 +180,25 @@ public class InstrumenterXML  extends SceneTransformer {
     }
 
 
-    public void generateXML(String outputFilePath) {
+    public void generateXML(String dirpath){
+        String outputFilePath=dirpath+"output.xml";
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
+
+            // Check if the document is empty
+            if (doc.getDocumentElement() == null || doc.getDocumentElement().getChildNodes().getLength() == 0) {
+                // Create a new XML document with the desired root element
+                DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
+                Document newDoc = documentBuilder.newDocument();
+                Element rootElement = newDoc.createElement("testList");
+                newDoc.appendChild(rootElement);
+
+                // Update the doc reference
+                doc = newDoc;
+            }
+
             DOMSource source = new DOMSource(doc);
 
             OutputStream outputStream = new FileOutputStream(outputFilePath);
@@ -190,13 +206,13 @@ public class InstrumenterXML  extends SceneTransformer {
 
             transformer.transform(source, result);
             outputStream.close();
-
             System.out.println("XML saved to " + outputFilePath);
-            String xmlFile1 = "/home/pious/Documents/work/dependent-tests-impact/lib-results/sootXML-firstVers/firstVers-runtime.xml";
-            String xmlFile2 = "/home/pious/Documents/work/dependent-tests-impact/lib-results/output.xml";
-            String outputFile = "/home/pious/Documents/work/dependent-tests-impact/lib-results/resulted.xml";
+            String xmlFile1 = dirpath+"sootXML-firstVers/firstVers-runtime.xml";
+            String xmlFile2 = outputFilePath;
+            String outputFile = dirpath+"resulted.xml";
+            //System.out.println("---targeted-----"+targetTestMethodNames);
             try {
-                compareAndGenerateXML(xmlFile1, xmlFile2, outputFile);
+                compareAndGenerateXML(xmlFile1, xmlFile2, outputFile, targetTestMethodNames);
             } catch (IOException | ParserConfigurationException | TransformerException e) {
                 e.printStackTrace();
             }
@@ -204,7 +220,7 @@ public class InstrumenterXML  extends SceneTransformer {
             throw new RuntimeException("Error generating XML", e);
         }
     }
-    public static void compareAndGenerateXML(String inputFile1, String inputFile2, String outputFile) throws IOException, ParserConfigurationException, TransformerException, SAXException {
+    public static void compareAndGenerateXML(String inputFile1, String inputFile2, String outputFile, List<String> targetTestMethodNames) throws IOException, ParserConfigurationException, TransformerException, SAXException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
@@ -277,6 +293,20 @@ public class InstrumenterXML  extends SceneTransformer {
             allTestMethodNames.addAll(input2TestMethodsMap.keySet());
 
             for (String testMethodName : allTestMethodNames) {
+                int deletedflag=0;
+                System.out.println("---target---"+targetTestMethodNames);
+                System.out.println("---tomatch---"+testMethodName);
+                for (String testName : targetTestMethodNames) {
+
+                    if (testName.equals(testMethodName)) {
+                        deletedflag=1;
+                        break;
+                    }
+                }
+                if(deletedflag==1)
+                {
+                    continue;
+                }
                 Node input1TestMethod = input1TestMethodsMap.get(testMethodName);
                 Node input2TestMethod = input2TestMethodsMap.get(testMethodName);
 
@@ -301,11 +331,9 @@ public class InstrumenterXML  extends SceneTransformer {
         Element mergedTestMethod = (Element) output.importNode(input2TestMethod, true);
         NodeList input1Methods = input1TestMethod.getChildNodes();
         NodeList mergedMethods = mergedTestMethod.getChildNodes();
-        System.out.println("---merged----" + mergedMethods);
 
         Map<String, List<Element>> input1NestedMethodsMap = new HashMap<>();
         buildNestedMethodsList(input1Methods, input1NestedMethodsMap, 0); // Include level parameter
-        System.out.println("---nested input1----" + input1NestedMethodsMap);
 
         mergeChildMethods(mergedMethods, input1NestedMethodsMap, 0);
 
@@ -334,28 +362,35 @@ public class InstrumenterXML  extends SceneTransformer {
             }
         }
     }
-
-
-    private static void mergeChildMethods(NodeList mergedMethods, Map<String, List<Element>> input1NestedMethodsMap, int level) {
+    private static boolean mergeChildMethods(NodeList mergedMethods, Map<String, List<Element>> input1NestedMethodsMap, int level) {
+        boolean notMatchedFlag = false;
         for (int i = 0; i < mergedMethods.getLength(); i++) {
             Node mergedMethod = mergedMethods.item(i);
             if (mergedMethod.getNodeType() == Node.ELEMENT_NODE) {
                 String key = level + "-" + mergedMethod.getNodeName();
                 List<Element> input1Methods = input1NestedMethodsMap.getOrDefault(key, new ArrayList<>());
+                boolean currentMethodMatched = false;
                 if (!input1Methods.isEmpty()) {
                     Element input1Method = input1Methods.get(0);
                     if (mergedMethod.getAttributes().getNamedItem("name").getNodeValue().equals(input1Method.getAttribute("name"))) {
-                        mergedMethod.getAttributes().getNamedItem("time").setNodeValue(input1Method.getAttribute("time"));
+                        if(!notMatchedFlag)
+                        {
+                            mergedMethod.getAttributes().getNamedItem("time").setNodeValue(input1Method.getAttribute("time"));
+                        }
                         input1Methods.remove(0);
+                        currentMethodMatched = true;
                     }
                 }
-                mergeChildMethods(mergedMethod.getChildNodes(), input1NestedMethodsMap, level + 1);
+
+                boolean childNotMatched = mergeChildMethods(mergedMethod.getChildNodes(), input1NestedMethodsMap, level + 1);
+
+                // If current method and its children didn't match, set the time attribute to an empty string
+                if (!currentMethodMatched || childNotMatched) {
+                    mergedMethod.getAttributes().getNamedItem("time").setNodeValue("");
+                    notMatchedFlag = true;
+                }
             }
         }
+        return notMatchedFlag;
     }
-
-
-
-
-
 }

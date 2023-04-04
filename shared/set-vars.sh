@@ -161,3 +161,36 @@ if [[ "$MACHINES" != "2" ]] && [[ "$MACHINES" != "4" ]] && [[ "$MACHINES" != "8"
 fi
 
 export medianTimes=1
+
+# ===========Get changed files
+cd $(dirname "$DT_SUBJ_ROOT")
+
+COMMIT1=2d62a3e9da726942a93cf16b6e91c0187e6c0136
+COMMIT2=d0ba95cf3c621c74a023887814e8c1f73b5da1b2
+
+fullyQualifiedMethodNames=""
+
+for file in $(git diff $COMMIT1 $COMMIT2 --name-only | grep "Test.java"); do
+
+  added_methods=$(git diff -U1 $COMMIT1 $COMMIT2 -- $file | awk '/^\+ *@Test/ {getline; sub(/^\+ *public void /, ""); sub(/\(.*/, ""); print}' || true)
+  deleted_methods=$(git diff -U1 $COMMIT1 $COMMIT2 -- $file | awk '/^- *@Test/ {getline; sub(/^- *public void /, ""); sub(/\(.*/, ""); print}' || true)
+
+  className=$(echo "$file" | sed 's/\//./g' | sed 's/.*\.src\.test\.java\.//' | sed 's/\.java//')
+
+  while read -r methodName; do
+    fullyQualifiedMethodNames+="$className.$methodName,"
+  done <<< "$added_methods"
+
+  while read -r methodName; do
+    fullyQualifiedMethodNames+="$className.$methodName,"
+  done <<< "$deleted_methods"
+
+done
+fullyQualifiedMethodNames=${fullyQualifiedMethodNames%,}
+
+if [[ -z "$fullyQualifiedMethodNames" ]]; then
+  echo "[DEBUG] No test methods were changed"
+else
+  echo -e "$fullyQualifiedMethodNames"
+fi
+export fullyQualifiedMethodNames

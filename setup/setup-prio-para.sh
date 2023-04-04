@@ -23,11 +23,11 @@ rm -rf sootXMLOutput/
 #echo $NEW_DT_TESTS
 #echo $NEW_DT_LIBS
 #echo $NEW_DT_SUBJ_ROOT
-
+echo $fullyQualifiedMethodNames
 # 1. Find the human-written tests in the old subject.
 cd $DT_SUBJ
 echo "[DEBUG] Finding human written tests in old subject."
-#bash "$DT_SCRIPTS/shared/get-test-order.sh" old
+bash "$DT_SCRIPTS/shared/get-test-order.sh" old
 
 # 2. Instrument the source and test files.
 echo "[DEBUG] Instrumenting source and test files for old subject."
@@ -70,7 +70,7 @@ mv sootTestOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootXMLOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootXML-${VER_NAME}/
 
 echo "[DEBUG] Generating first-var vs second-var xml"
-java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $NEW_DT_TESTS --soot-cp $NEW_DT_LIBS:$NEW_DT_CLASS:$NEW_DT_TESTS:$JAVA_HOME/jre/lib/* -compare
+java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $NEW_DT_TESTS --soot-cp $NEW_DT_LIBS:$NEW_DT_CLASS:$NEW_DT_TESTS:$JAVA_HOME/jre/lib/* -compare -outputPath $DT_SCRIPTS/${SUBJ_NAME}-results/ -changedFiles $fullyQualifiedMethodNames
 
 echo "[DEBUG] Generating report for surefire vs our test result"
 java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeComparator -inputFile $DT_SUBJ/../ -inputName $DT_SCRIPTS/${SUBJ_NAME}-results/

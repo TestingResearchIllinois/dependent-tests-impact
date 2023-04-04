@@ -1,7 +1,7 @@
 /**
  * Copyright 2014 University of Washington. All Rights Reserved.
  * @author Wing Lam
- * 
+ *
  * Main class to instrument a project.
  */
 
@@ -67,8 +67,8 @@ public class InstrumentationMain {
             int techniqueNameIndex = techniqueIndex + 1;
             if (techniqueNameIndex >= argsList.size()) {
                 System.err
-                .println("Technique argument is specified but technique name is not."
-                        + " Please use the format: -technique aTechniqueName");
+                        .println("Technique argument is specified but technique name is not."
+                                + " Please use the format: -technique aTechniqueName");
                 System.exit(0);
             }
 
@@ -81,8 +81,8 @@ public class InstrumentationMain {
                 techniqueName = TECHNIQUE.PARALLELIZATION;
             } else {
                 System.err
-                .println("Technique name is invalid. Try \"prioritization-absolute\","
-                        + " \"prioritization-relative\", \"random\" or \"selection\".");
+                        .println("Technique name is invalid. Try \"prioritization-absolute\","
+                                + " \"prioritization-relative\", \"random\" or \"selection\".");
                 System.exit(0);
             }
             argsList.remove(techniqueNameIndex);
@@ -91,12 +91,20 @@ public class InstrumentationMain {
 
         int sootClasspathIndex = argsList.indexOf("--soot-cp");
         String sootClasspath = System.getProperty("java.class.path");
-        //System.out.println("------dd-----"+argsList);
         if (sootClasspathIndex != -1) {
             sootClasspath = FailedTestRemover.buildClassPath(argsList.get(sootClasspathIndex + 1).split(":"));
             argsList.remove(sootClasspathIndex + 1);
             argsList.remove(sootClasspathIndex);
 
+        }
+        int outputPathindex= argsList.indexOf("-outputPath");
+        String outputPath="";
+        if(outputPathindex!=-1)
+        {
+            int outputPathNameindex = outputPathindex + 1;
+            outputPath= argsList.get(outputPathNameindex);
+            argsList.remove(outputPathNameindex);
+            argsList.remove(outputPathindex);
         }
         int inputModeIndex= argsList.indexOf("-compare");
         if (inputModeIndex != -1)
@@ -106,10 +114,21 @@ public class InstrumentationMain {
             Pack wjop = PackManager.v().getPack("wjop");
             wjop.remove("wjtp");
             List<String> targetTestMethodNames = new ArrayList<String>();
-            targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.encode");
-            /*targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.condition");
-            targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.loop");
-            targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.testFactorial");*/
+            /*targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.encode");
+            targetTestMethodNames.add("com.github.kevinsawicki.http.HttpRequestTest.getNoContent");
+            targetTestMethodNames.add("com.github.kevinsawicki.http.HttpRequestTest.appendListQueryParams");*/
+
+            int changedMethodIndex= argsList.indexOf("-changedFiles");
+            if(changedMethodIndex!=-1)
+            {
+                int changedMethodNameIndex = changedMethodIndex + 1;
+                for (String methodname : argsList.get(changedMethodNameIndex).split(",")) {
+                    targetTestMethodNames.add(methodname);
+                }
+                argsList.remove(changedMethodNameIndex);
+                argsList.remove(changedMethodIndex);
+            }
+
             InstrumenterXML instrumenter = new InstrumenterXML(techniqueName, targetTestMethodNames);
             wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
 
@@ -135,7 +154,6 @@ public class InstrumentationMain {
 
             int inputDirNameIndex = inputDirIndex + 1;
             String inputDirName = argsList.get(inputDirNameIndex);
-            System.out.println("input dir - "+inputDirName);
 
             List<String> classNames = getClassesFromDirectory(new File(inputDirName));
 
@@ -152,11 +170,10 @@ public class InstrumentationMain {
             String[] sootArgs = argsList.toArray(new String[0]);
 
             soot.Main.main(sootArgs);
-            instrumenter.generateXML("/home/pious/Documents/work/dependent-tests-impact/lib-results/output.xml");
+            instrumenter.generateXML(outputPath);
         }
         else {
-            //System.out.println("mode not set");
-           //add a phase to transformer pack by call Pack.add
+
             Pack jtp = PackManager.v().getPack("jtp");
             jtp.add(new Transform("jtp.instrumenter",
                     new Instrumenter(techniqueName)));
@@ -170,28 +187,10 @@ public class InstrumentationMain {
 
 
 
-             /**Give control to Soot to process all options,
+            /**Give control to Soot to process all options,
              * Instrumenter.internalTransform will get called.*/
 
             soot.Main.main(sootArgs);
-
-
-            //-------------
-            /*Pack jtp = PackManager.v().getPack("jtp");
-            Instumrnterxml instrumenter = new Instumrnterxml(techniqueName);
-            jtp.add(new Transform("jtp.instrumenter", instrumenter));
-
-            Scene.v().setSootClassPath(sootClasspath);
-
-            argsList.add("-keep-line-number");
-            argsList.add("-pp");
-            argsList.add("-allow-phantom-refs");
-            String[] sootArgs = argsList.toArray(new String[0]);
-
-            soot.Main.main(sootArgs);
-            instrumenter.generateXML("output.xml");*/
-
-            //-----------------
 
         }
 
