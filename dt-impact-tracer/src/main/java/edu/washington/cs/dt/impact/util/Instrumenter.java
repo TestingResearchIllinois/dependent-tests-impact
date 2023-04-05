@@ -150,7 +150,7 @@ public class Instrumenter extends BodyTransformer{
 
         // exclude the instrumentation of setups/teardowns
         // and JUnit3 methods that are not tests
-        if ((extendsJUnit && !isJUnit3)) {
+        if ((extendsJUnit && !isJUnit3) || isSetupOrTeardown) {
             return;
         }
 

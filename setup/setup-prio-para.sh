@@ -40,7 +40,7 @@ java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.Instru
 java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_CLASS --soot-cp $DT_LIBS:$DT_CLASS:$JAVA_HOME/jre/lib/*
 
 rm -rf $DT_SCRIPTS/${SUBJ_NAME}-results/methodOutput-${VER_NAME}/
-mv methodOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/methodOutput-${VER_NAME}/
+#mv methodOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/methodOutput-${VER_NAME}/
 
 # Copy over any resource files from the classes/ and test-classes/ directories (e.g. configuration files).
 # Make sure we don't copy any .class files though.

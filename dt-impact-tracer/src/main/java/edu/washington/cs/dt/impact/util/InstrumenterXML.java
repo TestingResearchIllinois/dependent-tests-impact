@@ -220,6 +220,22 @@ public class InstrumenterXML  extends SceneTransformer {
             throw new RuntimeException("Error generating XML", e);
         }
     }
+    private static Element createOutputTestClassWithoutTargetMethods(Document output, Node inputTestClass, List<String> targetTestMethodNames) {
+        NodeList inputTestMethods = inputTestClass.getChildNodes();
+        Element outputTestClass = output.createElement("testClass");
+        outputTestClass.setAttribute("name", inputTestClass.getAttributes().getNamedItem("name").getNodeValue());
+
+        boolean hasTestMethod = false;
+        for (int i = 0; i < inputTestMethods.getLength(); i++) {
+            Node inputTestMethod = inputTestMethods.item(i);
+            if (inputTestMethod.getNodeType() == Node.ELEMENT_NODE && !targetTestMethodNames.contains(inputTestMethod.getAttributes().getNamedItem("name").getNodeValue())) {
+                outputTestClass.appendChild(output.importNode(inputTestMethod, true));
+                hasTestMethod = true;
+            }
+        }
+
+        return hasTestMethod ? outputTestClass : null;
+    }
     public static void compareAndGenerateXML(String inputFile1, String inputFile2, String outputFile, List<String> targetTestMethodNames) throws IOException, ParserConfigurationException, TransformerException, SAXException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -258,10 +274,16 @@ public class InstrumenterXML  extends SceneTransformer {
             Node input2TestClass = input2TestClassesMap.get(testClassName);
 
             if (input1TestClass == null && input2TestClass != null) {
-                testList.appendChild(output.importNode(input2TestClass, true));
+                Element outputTestClass = createOutputTestClassWithoutTargetMethods(output, input2TestClass, targetTestMethodNames);
+                if (outputTestClass != null) {
+                    testList.appendChild(outputTestClass);
+                }
                 continue;
             } else if (input1TestClass != null && input2TestClass == null) {
-                testList.appendChild(output.importNode(input1TestClass, true));
+                Element outputTestClass = createOutputTestClassWithoutTargetMethods(output, input1TestClass, targetTestMethodNames);
+                if (outputTestClass != null) {
+                    testList.appendChild(outputTestClass);
+                }
                 continue;
             }
 
@@ -294,8 +316,6 @@ public class InstrumenterXML  extends SceneTransformer {
 
             for (String testMethodName : allTestMethodNames) {
                 int deletedflag=0;
-                System.out.println("---target---"+targetTestMethodNames);
-                System.out.println("---tomatch---"+testMethodName);
                 for (String testName : targetTestMethodNames) {
 
                     if (testName.equals(testMethodName)) {

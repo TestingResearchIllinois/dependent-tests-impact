@@ -165,8 +165,8 @@ export medianTimes=1
 # ===========Get changed files
 cd $(dirname "$DT_SUBJ_ROOT")
 
-COMMIT1=2d62a3e9da726942a93cf16b6e91c0187e6c0136
-COMMIT2=d0ba95cf3c621c74a023887814e8c1f73b5da1b2
+COMMIT1=ef89ec663e6d192c08b77dd1d9b8649975c1419c
+COMMIT2=2d62a3e9da726942a93cf16b6e91c0187e6c0136
 
 fullyQualifiedMethodNames=""
 
