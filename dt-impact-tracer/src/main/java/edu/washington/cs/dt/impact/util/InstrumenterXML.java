@@ -209,7 +209,7 @@ public class InstrumenterXML  extends SceneTransformer {
             System.out.println("XML saved to " + outputFilePath);
             String xmlFile1 = dirpath+"sootXML-firstVers/firstVers-runtime.xml";
             String xmlFile2 = outputFilePath;
-            String outputFile = dirpath+"resulted.xml";
+            String outputFile = dirpath+"secondVers-merged.xml";
             //System.out.println("---targeted-----"+targetTestMethodNames);
             try {
                 compareAndGenerateXML(xmlFile1, xmlFile2, outputFile, targetTestMethodNames);

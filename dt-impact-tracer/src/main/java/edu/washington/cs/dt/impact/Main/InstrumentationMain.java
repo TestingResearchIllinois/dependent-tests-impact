@@ -114,9 +114,7 @@ public class InstrumentationMain {
             Pack wjop = PackManager.v().getPack("wjop");
             wjop.remove("wjtp");
             List<String> targetTestMethodNames = new ArrayList<String>();
-            /*targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.encode");
-            targetTestMethodNames.add("com.github.kevinsawicki.http.HttpRequestTest.getNoContent");
-            targetTestMethodNames.add("com.github.kevinsawicki.http.HttpRequestTest.appendListQueryParams");*/
+            //targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.encode");
 
             int changedMethodIndex= argsList.indexOf("-changedFiles");
             if(changedMethodIndex!=-1)
@@ -141,16 +139,7 @@ public class InstrumentationMain {
             argsList.add("-keep-line-number");
             argsList.add("-pp");
             argsList.add("-allow-phantom-refs");
-            /*argsList.add("-p");
-            argsList.add("jb");
-            argsList.add("use-original-names:true");*/
-//            argsList.add("-p");
-//            argsList.add("wjtp.tnlp");
-//            argsList.add("enabled:false");
-            /*argsList.add("--no-bodies-for-excluded");
-            argsList.add("--loop-opts-enabled");*/
-            /*argsList.add("--num-loop-detection");
-            argsList.add("3");*/
+
 
             int inputDirNameIndex = inputDirIndex + 1;
             String inputDirName = argsList.get(inputDirNameIndex);
@@ -171,6 +160,16 @@ public class InstrumentationMain {
 
             soot.Main.main(sootArgs);
             instrumenter.generateXML(outputPath);
+            /*argsList.add("-p");
+            argsList.add("jb");
+            argsList.add("use-original-names:true");*/
+//            argsList.add("-p");
+//            argsList.add("wjtp.tnlp");
+//            argsList.add("enabled:false");
+            /*argsList.add("--no-bodies-for-excluded");
+            argsList.add("--loop-opts-enabled");*/
+            /*argsList.add("--num-loop-detection");
+            argsList.add("3");*/
         }
         else {
 

@@ -165,32 +165,50 @@ export medianTimes=1
 # ===========Get changed files
 cd $(dirname "$DT_SUBJ_ROOT")
 
-COMMIT1=ef89ec663e6d192c08b77dd1d9b8649975c1419c
-COMMIT2=2d62a3e9da726942a93cf16b6e91c0187e6c0136
+COMMIT1=cdfef32728573e8eb6252ae43e7ba0ef9e35e660
+COMMIT2=f2bcf108e421dbf0e82fc9564de66b3adedecaa1
 
 fullyQualifiedMethodNames=""
 
-for file in $(git diff $COMMIT1 $COMMIT2 --name-only | grep "Test.java"); do
+changed_files=$(git diff $COMMIT1 $COMMIT2 --name-only | grep "Test.java")
+modified_methods=""
 
-  added_methods=$(git diff -U1 $COMMIT1 $COMMIT2 -- $file | awk '/^\+ *@Test/ {getline; sub(/^\+ *public void /, ""); sub(/\(.*/, ""); print}' || true)
-  deleted_methods=$(git diff -U1 $COMMIT1 $COMMIT2 -- $file | awk '/^- *@Test/ {getline; sub(/^- *public void /, ""); sub(/\(.*/, ""); print}' || true)
+for file in $changed_files; do
+  git_diff_output=$(git diff --unified=10000 $COMMIT1 $COMMIT2 -- $file)
+  package_name=$(echo "$git_diff_output" | grep -oP '(?<=package ).*?(?=;)')
+  class_name=$(basename "$file" .java)
+  method_name=""
+  brace_count=0
+  modified=0
+  inside_test_method=0
 
-  className=$(echo "$file" | sed 's/\//./g' | sed 's/.*\.src\.test\.java\.//' | sed 's/\.java//')
+  while read -r line; do
+    if [[ $line =~ "@Test" ]]; then
+      inside_test_method=1
+    elif [[ $inside_test_method -eq 1 && $line =~ "public void" ]]; then
+      method_name=$(echo "$line" | grep -oP '(?<=public void ).*?(?=\()')
+      if [[ $line =~ "{" ]]; then
+         ((brace_count++))
+      fi
+    elif [[ $line =~ "{" ]] && [[ $inside_test_method -eq 1 ]]; then
+      ((brace_count++))
+    elif [[ $line =~ "}" ]] && [[ $inside_test_method -eq 1 ]]; then
+      ((brace_count--))
+      if [[ $brace_count -eq 0 ]]; then
+        inside_test_method=0
+        if [[ $modified -eq 1 ]]; then
+          modified_methods="${modified_methods},${package_name}.${class_name}.${method_name}"
+          modified=0
+        fi
+      fi
+    elif [[ $inside_test_method -eq 1 && ($line =~ ^[+-]) && (!($line =~ "public void")) && (!($line =~ "@Test")) ]]; then
+      modified=1
+      #echo "Changed line: $line for method: ${package_name}.${class_name}.${method_name}"
+    fi
+  done <<< "$(echo "$git_diff_output")"
 
-  while read -r methodName; do
-    fullyQualifiedMethodNames+="$className.$methodName,"
-  done <<< "$added_methods"
-
-  while read -r methodName; do
-    fullyQualifiedMethodNames+="$className.$methodName,"
-  done <<< "$deleted_methods"
-
+  echo ""
 done
-fullyQualifiedMethodNames=${fullyQualifiedMethodNames%,}
 
-if [[ -z "$fullyQualifiedMethodNames" ]]; then
-  echo "[DEBUG] No test methods were changed"
-else
-  echo -e "$fullyQualifiedMethodNames"
-fi
+fullyQualifiedMethodNames=$(echo "$modified_methods" | sed 's/^,//')
 export fullyQualifiedMethodNames
