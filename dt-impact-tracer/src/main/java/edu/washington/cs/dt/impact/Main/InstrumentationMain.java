@@ -22,6 +22,10 @@ import soot.*;
 import edu.washington.cs.dt.impact.util.Constants;
 import edu.washington.cs.dt.impact.util.Constants.TECHNIQUE;
 import edu.washington.cs.dt.impact.util.Instrumenter;
+import soot.PackManager;
+import soot.Transform;
+import soot.options.Options;
+
 public class InstrumentationMain {
     public static void main(String[] args) throws Exception {
         /* check the arguments */
@@ -111,8 +115,6 @@ public class InstrumentationMain {
         {
             argsList.remove(inputModeIndex);
             Pack wjtp = PackManager.v().getPack("wjtp");
-            Pack wjop = PackManager.v().getPack("wjop");
-            wjop.remove("wjtp");
             List<String> targetTestMethodNames = new ArrayList<String>();
             //targetTestMethodNames.add("com.github.kevinsawicki.http.EncodeTest.encode");
 
@@ -132,6 +134,11 @@ public class InstrumentationMain {
 
             Scene.v().setSootClassPath(sootClasspath);
 
+            Options.v().set_output_format(Options.output_format_class);
+
+            // Set the output directory for the instrumented .class files
+            Options.v().set_output_dir("/home/pious/Documents/work/dependent-tests-impact/testgui");
+
             argsList.add("-w");
             argsList.add("-p");
             argsList.add("cg");
@@ -139,6 +146,24 @@ public class InstrumentationMain {
             argsList.add("-keep-line-number");
             argsList.add("-pp");
             argsList.add("-allow-phantom-refs");
+            argsList.add("-p");
+            argsList.add("jb");
+            argsList.add("use-original-names:true");
+            // enable loop unrolling optimization pack and set unroll depth to 4
+            /*argsList.add("-p");
+            argsList.add("jb.ls:unroll-depth=4");
+
+// enable loop peeling optimization pack and set peel depth to 2
+            argsList.add("-p");
+            argsList.add("jb.ulp:peel-depth=2");*/
+            /**/
+//            argsList.add("-p");
+//            argsList.add("wjtp.tnlp");
+//            argsList.add("enabled:false");
+            /*argsList.add("--no-bodies-for-excluded");
+            argsList.add("--loop-opts-enabled");*/
+            /*argsList.add("--num-loop-detection");
+            argsList.add("3");*/
 
 
             int inputDirNameIndex = inputDirIndex + 1;
@@ -160,16 +185,6 @@ public class InstrumentationMain {
 
             soot.Main.main(sootArgs);
             instrumenter.generateXML(outputPath);
-            /*argsList.add("-p");
-            argsList.add("jb");
-            argsList.add("use-original-names:true");*/
-//            argsList.add("-p");
-//            argsList.add("wjtp.tnlp");
-//            argsList.add("enabled:false");
-            /*argsList.add("--no-bodies-for-excluded");
-            argsList.add("--loop-opts-enabled");*/
-            /*argsList.add("--num-loop-detection");
-            argsList.add("3");*/
         }
         else {
 

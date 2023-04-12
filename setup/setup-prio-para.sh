@@ -23,7 +23,7 @@ rm -rf sootXMLOutput/
 #echo $NEW_DT_TESTS
 #echo $NEW_DT_LIBS
 #echo $NEW_DT_SUBJ_ROOT
-echo $fullyQualifiedMethodNames
+#echo $fullyQualifiedMethodNames
 # 1. Find the human-written tests in the old subject.
 cd $DT_SUBJ
 echo "[DEBUG] Finding human written tests in old subject."

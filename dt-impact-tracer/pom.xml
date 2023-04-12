@@ -62,7 +62,7 @@
     <repositories>
         <repository>
             <id>maven-central</id>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2</url>
         </repository>
         <repository>
             <id>soot-snapshot</id>
@@ -93,9 +93,24 @@
             <version>1.2.1</version>
         </dependency>
         <dependency>
-            <groupId>ca.mcgill.sable</groupId>
+            <groupId>org.soot-oss</groupId>
             <artifactId>soot</artifactId>
-            <version>3.2.0</version>
+            <version>4.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-commons</artifactId>
+            <version>9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-tree</artifactId>
+            <version>9.2</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>

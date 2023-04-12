@@ -3,8 +3,11 @@ package edu.washington.cs.dt.impact.util;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import soot.*;
-import soot.jimple.InvokeExpr;
-import soot.jimple.Stmt;
+
+
+import soot.jimple.*;
+import soot.jimple.toolkits.annotation.logic.Loop;
+import soot.jimple.toolkits.annotation.logic.LoopFinder;
 import soot.tagkit.AnnotationTag;
 import soot.tagkit.Tag;
 import soot.tagkit.VisibilityAnnotationTag;
@@ -21,12 +24,25 @@ import java.util.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import soot.toolkits.graph.BriefUnitGraph;
+import soot.toolkits.graph.ExceptionalUnitGraph;
+import soot.toolkits.graph.UnitGraph;
+import soot.toolkits.scalar.SimpleLocalDefs;
+import soot.toolkits.scalar.SimpleLocalUses;
+import soot.*;
+import soot.jimple.*;
+import soot.tagkit.*;
+import soot.toolkits.graph.ExceptionalUnitGraph;
+import soot.toolkits.scalar.SimpleLocalDefs;
+import soot.toolkits.scalar.SimpleLocalUses;
+import soot.toolkits.scalar.UnitValueBoxPair;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
-
+import soot.toolkits.graph.StronglyConnectedComponentsFast;
+import soot.toolkits.scalar.ArraySparseSet;
 public class InstrumenterXML  extends SceneTransformer {
     private static Constants.TECHNIQUE technique = Constants.DEFAULT_TECHNIQUE;
     private Document doc;
@@ -35,6 +51,8 @@ public class InstrumenterXML  extends SceneTransformer {
     private int testMethodIdCounter = 1;
     private Map<String, Element> testClassElements = new HashMap<>();
     private List<String> targetTestMethodNames;
+    private int loopIterationMinLimit = 2;
+    private int loopIterationMaxLimit = 5;
 
     public InstrumenterXML(Constants.TECHNIQUE t, List<String> targetTestMethodNames) {
         this.technique = t;
@@ -76,6 +94,7 @@ public class InstrumenterXML  extends SceneTransformer {
                 boolean containsTargetTestMethod = targetTestMethodNames.stream().anyMatch(fullyQualifiedName::equals);
                 targetTestMethodNames.removeIf(fullyQualifiedName::equals);
                 if (method.hasActiveBody() && isTestMethod(method) && containsTargetTestMethod) {
+                    System.out.println("Instrumenting method: " + method.getSignature());
                     internalTransform(method.getActiveBody(), phaseName, options);
                 }
             }
@@ -84,6 +103,7 @@ public class InstrumenterXML  extends SceneTransformer {
 
     protected void internalTransform(Body body, String phaseName, Map<String, String> options) {
         SootMethod method = body.getMethod();
+        //injectLoopIterationLimit(body, loopIterationMinLimit,loopIterationMaxLimit);
         if (isTestMethod(method)) {
             if (rootElement == null) {
                 rootElement = doc.createElement("testList");
@@ -93,6 +113,57 @@ public class InstrumenterXML  extends SceneTransformer {
             processMethodCallTree(method, doc, testClassElement, testMethodIdCounter++); // Increment the testMethodIdCounter after processing
         }
     }
+    private void injectLoopIterationLimit(Body body, int minLimit, int maxLimit) {
+        PatchingChain<Unit> units = body.getUnits();
+        Iterator<Unit> unitIterator = units.snapshotIterator();
+
+        while (unitIterator.hasNext()) {
+            Unit unit = unitIterator.next();
+            Stmt stmt = (Stmt) unit;
+
+            // Add this flag to identify for loops
+            boolean isForLoop = false;
+
+            // Check for the for loop pattern
+            if (stmt instanceof AssignStmt) {
+                Stmt nextStmt = (Stmt) units.getSuccOf(stmt);
+                if (nextStmt instanceof GotoStmt) {
+                    Stmt targetStmt = (Stmt) ((GotoStmt) nextStmt).getTarget();
+                    if (targetStmt instanceof IfStmt) {
+                        // Found a for loop pattern
+                        isForLoop = true;
+                        stmt = targetStmt; // Set stmt to the loop condition (IfStmt)
+                    }
+                }
+            }
+
+            if (stmt instanceof IfStmt || isForLoop) {
+                // Inject a counter variable for the loop
+                Local counter = Jimple.v().newLocal("loopCounter", IntType.v());
+                body.getLocals().add(counter);
+
+                // Initialize the counter to zero
+                units.insertBefore(Jimple.v().newAssignStmt(counter, IntConstant.v(0)), stmt);
+
+                // Increment the counter in the loop body
+                Stmt incStmt = Jimple.v().newAssignStmt(counter, Jimple.v().newAddExpr(counter, IntConstant.v(1)));
+                units.insertAfter(incStmt, stmt);
+
+                // Check if the counter variable is less than the specified min limit, and if so, continue the loop
+                ConditionExpr minCondition = Jimple.v().newLtExpr(counter, IntConstant.v(minLimit));
+                IfStmt continueMinStmt = Jimple.v().newIfStmt(minCondition, stmt);
+                units.insertBefore(continueMinStmt, incStmt);
+
+                // Check if the counter variable exceeds the specified max limit, and if so, break out of the loop
+                ConditionExpr maxCondition = Jimple.v().newGeExpr(counter, IntConstant.v(maxLimit));
+                IfStmt breakStmt = Jimple.v().newIfStmt(maxCondition, stmt);
+                units.insertBefore(breakStmt, incStmt);
+            }
+        }
+    }
+
+
+
 
     private Element getTestClassElement(String className) {
         Element testClassElement = testClassElements.get(className);
@@ -124,7 +195,7 @@ public class InstrumenterXML  extends SceneTransformer {
 
     private void processMethod(SootMethod method, Document doc, Element parentElement, int index) {
         try {
-            //System.out.println("Processing method: " + method.getSignature());
+            System.out.println("Processing method: " + method.getSignature());
 
             if (method.getName().equals("<init>")) {
                 return;
@@ -132,8 +203,42 @@ public class InstrumenterXML  extends SceneTransformer {
 
             if (method.hasActiveBody()) {
                 Body body = method.getActiveBody();
-
                 Element methodElement = parentElement;
+
+                // Create a List to store method call information in order
+                List<MethodCallInfo> methodCallInfos = new ArrayList<>();
+
+                // Create a LoopFinder to identify loops in the method
+                LoopFinder loopFinder = new LoopFinder();
+                loopFinder.transform(body);
+                UnitGraph graph = new BriefUnitGraph(body);
+                Set<Loop> loops = loopFinder.getLoops(graph);
+
+                // Iterate through all units in the method's body
+                for (Unit unit : body.getUnits()) {
+                    if (unit instanceof Stmt) {
+                        Stmt stmt = (Stmt) unit;
+                        if (stmt.containsInvokeExpr()) {
+                            InvokeExpr invokeExpr = stmt.getInvokeExpr();
+                            SootMethod invokedMethod = invokeExpr.getMethod();
+
+                            // Calculate loop multiplier
+                            int loopMultiplier = 1;
+                            for (Loop loop : loops) {
+                                if (loop.getLoopStatements().contains(stmt)) {
+                                    // Estimate the loop count
+                                    loopMultiplier = 4; // Use a constant for now
+                                    break;
+                                }
+                            }
+
+                            // Add the method call info to the List
+                            String methodSignature = invokedMethod.getSignature();
+                            methodCallInfos.add(new MethodCallInfo(methodSignature, loopMultiplier));
+                        }
+                    }
+                }
+
                 if (!hasAncestorWithTag(parentElement, "testMethod")) {
                     methodElement = doc.createElement(isTestMethod(method) ? "testMethod" : "method");
                     methodElement.setAttribute("id", Integer.toString(index));
@@ -144,32 +249,31 @@ public class InstrumenterXML  extends SceneTransformer {
                     parentElement.appendChild(methodElement);
                 }
 
+                // Process the method call counts and create XML elements
                 int invokedMethodIndex = 1;
-                for (Unit unit : body.getUnits()) {
-                    if (unit instanceof Stmt) {
-                        Stmt stmt = (Stmt) unit;
-                        if (stmt.containsInvokeExpr()) {
-                            InvokeExpr invokeExpr = stmt.getInvokeExpr();
-                            SootMethod invokedMethod = invokeExpr.getMethod();
+                for (MethodCallInfo methodCallInfo : methodCallInfos) {
+                    String methodSignature = methodCallInfo.methodSignature;
+                    int callCount = methodCallInfo.callCount;
+                    SootMethod invokedMethod = Scene.v().getMethod(methodSignature);
 
-                            if ((invokedMethod.getName().equals("<init>"))) {
-                                continue;
-                            }
+                    if ((invokedMethod.getName().equals("<init>"))) {
+                        continue;
+                    }
 
-                            String invokedMethodId = methodElement.getAttribute("id") + "." + invokedMethodIndex++;
+                    for (int i = 0; i < callCount; i++) {
+                        String invokedMethodId = methodElement.getAttribute("id") + "." + invokedMethodIndex++;
 
-                            Element invokedMethodElement = doc.createElement("method");
-                            invokedMethodElement.setAttribute("id", invokedMethodId);
-                            invokedMethodElement.setAttribute("name", invokedMethod.getDeclaringClass().getName() + "." + invokedMethod.getName());
-                            invokedMethodElement.setAttribute("testType", Boolean.toString(isTestMethod(invokedMethod)));
-                            invokedMethodElement.setAttribute("time", "");
-                            invokedMethodElement.setAttribute("throwException", "false");
-                            methodElement.appendChild(invokedMethodElement);
+                        Element invokedMethodElement = doc.createElement("method");
+                        invokedMethodElement.setAttribute("id", invokedMethodId);
+                        invokedMethodElement.setAttribute("name", invokedMethod.getDeclaringClass().getName() + "." + invokedMethod.getName());
+                        invokedMethodElement.setAttribute("testType", Boolean.toString(isTestMethod(invokedMethod)));
+                        invokedMethodElement.setAttribute("time", "");
+                        invokedMethodElement.setAttribute("throwException", "false");
+                        methodElement.appendChild(invokedMethodElement);
 
-                            if (isTestMethod(method)) {
-                                // Recursively process the invoked method and its children
-                                processMethod(invokedMethod, doc, invokedMethodElement, invokedMethodIndex - 1);
-                            }
+                        if (isTestMethod(method)) {
+                            // Recursively process the invoked method and its children
+                            processMethod(invokedMethod, doc, invokedMethodElement, invokedMethodIndex - 1);
                         }
                     }
                 }
@@ -178,8 +282,6 @@ public class InstrumenterXML  extends SceneTransformer {
             System.err.println("Error while processing method " + method.getSignature() + ": " + e.getMessage());
         }
     }
-
-
     public void generateXML(String dirpath){
         String outputFilePath=dirpath+"output.xml";
         try {
@@ -412,5 +514,14 @@ public class InstrumenterXML  extends SceneTransformer {
             }
         }
         return notMatchedFlag;
+    }
+}
+class MethodCallInfo {
+    String methodSignature;
+    int callCount;
+
+    public MethodCallInfo(String methodSignature, int callCount) {
+        this.methodSignature = methodSignature;
+        this.callCount = callCount;
     }
 }

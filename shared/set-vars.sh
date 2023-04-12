@@ -165,8 +165,9 @@ export medianTimes=1
 # ===========Get changed files
 cd $(dirname "$DT_SUBJ_ROOT")
 
+
 COMMIT1=cdfef32728573e8eb6252ae43e7ba0ef9e35e660
-COMMIT2=f2bcf108e421dbf0e82fc9564de66b3adedecaa1
+COMMIT2=0697c420f3a8b0ddb07d27727bcd8585fb5a5b3a
 
 fullyQualifiedMethodNames=""
 
@@ -184,6 +185,10 @@ for file in $changed_files; do
 
   while read -r line; do
     if [[ $line =~ "@Test" ]]; then
+      if [[ $inside_test_method -eq 1 && $modified -eq 1 ]]; then
+        modified_methods="${modified_methods},${package_name}.${class_name}.${method_name}"
+        modified=0
+      fi
       inside_test_method=1
     elif [[ $inside_test_method -eq 1 && $line =~ "public void" ]]; then
       method_name=$(echo "$line" | grep -oP '(?<=public void ).*?(?=\()')
@@ -211,4 +216,5 @@ for file in $changed_files; do
 done
 
 fullyQualifiedMethodNames=$(echo "$modified_methods" | sed 's/^,//')
+echo $fullyQualifiedMethodNames
 export fullyQualifiedMethodNames
