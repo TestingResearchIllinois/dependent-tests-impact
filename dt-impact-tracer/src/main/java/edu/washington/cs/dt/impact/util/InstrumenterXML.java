@@ -6,6 +6,8 @@ import soot.*;
 
 
 import soot.jimple.*;
+import soot.jimple.internal.JLookupSwitchStmt;
+import soot.jimple.internal.JTableSwitchStmt;
 import soot.jimple.toolkits.annotation.logic.Loop;
 import soot.jimple.toolkits.annotation.logic.LoopFinder;
 import soot.tagkit.AnnotationTag;
@@ -51,12 +53,11 @@ public class InstrumenterXML  extends SceneTransformer {
     private int testMethodIdCounter = 1;
     private Map<String, Element> testClassElements = new HashMap<>();
     private List<String> targetTestMethodNames;
-    private int loopIterationMinLimit = 2;
-    private int loopIterationMaxLimit = 5;
-
-    public InstrumenterXML(Constants.TECHNIQUE t, List<String> targetTestMethodNames) {
+    private int conditionControlFlag;
+    public InstrumenterXML(Constants.TECHNIQUE t, List<String> targetTestMethodNames,int conditionControlFlag) {
         this.technique = t;
         this.targetTestMethodNames = targetTestMethodNames;
+        this.conditionControlFlag = conditionControlFlag;
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -103,7 +104,6 @@ public class InstrumenterXML  extends SceneTransformer {
 
     protected void internalTransform(Body body, String phaseName, Map<String, String> options) {
         SootMethod method = body.getMethod();
-        //injectLoopIterationLimit(body, loopIterationMinLimit,loopIterationMaxLimit);
         if (isTestMethod(method)) {
             if (rootElement == null) {
                 rootElement = doc.createElement("testList");
@@ -113,58 +113,6 @@ public class InstrumenterXML  extends SceneTransformer {
             processMethodCallTree(method, doc, testClassElement, testMethodIdCounter++); // Increment the testMethodIdCounter after processing
         }
     }
-    private void injectLoopIterationLimit(Body body, int minLimit, int maxLimit) {
-        PatchingChain<Unit> units = body.getUnits();
-        Iterator<Unit> unitIterator = units.snapshotIterator();
-
-        while (unitIterator.hasNext()) {
-            Unit unit = unitIterator.next();
-            Stmt stmt = (Stmt) unit;
-
-            // Add this flag to identify for loops
-            boolean isForLoop = false;
-
-            // Check for the for loop pattern
-            if (stmt instanceof AssignStmt) {
-                Stmt nextStmt = (Stmt) units.getSuccOf(stmt);
-                if (nextStmt instanceof GotoStmt) {
-                    Stmt targetStmt = (Stmt) ((GotoStmt) nextStmt).getTarget();
-                    if (targetStmt instanceof IfStmt) {
-                        // Found a for loop pattern
-                        isForLoop = true;
-                        stmt = targetStmt; // Set stmt to the loop condition (IfStmt)
-                    }
-                }
-            }
-
-            if (stmt instanceof IfStmt || isForLoop) {
-                // Inject a counter variable for the loop
-                Local counter = Jimple.v().newLocal("loopCounter", IntType.v());
-                body.getLocals().add(counter);
-
-                // Initialize the counter to zero
-                units.insertBefore(Jimple.v().newAssignStmt(counter, IntConstant.v(0)), stmt);
-
-                // Increment the counter in the loop body
-                Stmt incStmt = Jimple.v().newAssignStmt(counter, Jimple.v().newAddExpr(counter, IntConstant.v(1)));
-                units.insertAfter(incStmt, stmt);
-
-                // Check if the counter variable is less than the specified min limit, and if so, continue the loop
-                ConditionExpr minCondition = Jimple.v().newLtExpr(counter, IntConstant.v(minLimit));
-                IfStmt continueMinStmt = Jimple.v().newIfStmt(minCondition, stmt);
-                units.insertBefore(continueMinStmt, incStmt);
-
-                // Check if the counter variable exceeds the specified max limit, and if so, break out of the loop
-                ConditionExpr maxCondition = Jimple.v().newGeExpr(counter, IntConstant.v(maxLimit));
-                IfStmt breakStmt = Jimple.v().newIfStmt(maxCondition, stmt);
-                units.insertBefore(breakStmt, incStmt);
-            }
-        }
-    }
-
-
-
-
     private Element getTestClassElement(String className) {
         Element testClassElement = testClassElements.get(className);
         if (testClassElement == null) {
@@ -215,29 +163,41 @@ public class InstrumenterXML  extends SceneTransformer {
                 Set<Loop> loops = loopFinder.getLoops(graph);
 
                 // Iterate through all units in the method's body
+                int conditionLevel = 0;
                 for (Unit unit : body.getUnits()) {
+                    if (unit instanceof IfStmt || unit instanceof SwitchStmt) {
+                        conditionLevel++;
+                    } else if (unit instanceof ExitMonitorStmt) {
+                        conditionLevel--;
+                    }
+
                     if (unit instanceof Stmt) {
                         Stmt stmt = (Stmt) unit;
                         if (stmt.containsInvokeExpr()) {
-                            InvokeExpr invokeExpr = stmt.getInvokeExpr();
-                            SootMethod invokedMethod = invokeExpr.getMethod();
+                            if ((conditionControlFlag == 1 && conditionLevel <= 1) ||
+                                    (conditionControlFlag == 2 && conditionLevel == 0) ||
+                                    (conditionControlFlag == 0)) {
+                                InvokeExpr invokeExpr = stmt.getInvokeExpr();
+                                SootMethod invokedMethod = invokeExpr.getMethod();
 
-                            // Calculate loop multiplier
-                            int loopMultiplier = 1;
-                            for (Loop loop : loops) {
-                                if (loop.getLoopStatements().contains(stmt)) {
-                                    // Estimate the loop count
-                                    loopMultiplier = 4; // Use a constant for now
-                                    break;
+                                // Calculate loop multiplier
+                                int loopMultiplier = 1;
+                                for (Loop loop : loops) {
+                                    if (loop.getLoopStatements().contains(stmt)) {
+                                        // Estimate the loop count
+                                        loopMultiplier = 5; // Use a constant for now
+                                        break;
+                                    }
                                 }
-                            }
 
-                            // Add the method call info to the List
-                            String methodSignature = invokedMethod.getSignature();
-                            methodCallInfos.add(new MethodCallInfo(methodSignature, loopMultiplier));
+                                // Add the method call info to the List
+                                String methodSignature = invokedMethod.getSignature();
+                                methodCallInfos.add(new MethodCallInfo(methodSignature, loopMultiplier));
+                            }
                         }
                     }
                 }
+
 
                 if (!hasAncestorWithTag(parentElement, "testMethod")) {
                     methodElement = doc.createElement(isTestMethod(method) ? "testMethod" : "method");
@@ -282,6 +242,19 @@ public class InstrumenterXML  extends SceneTransformer {
             System.err.println("Error while processing method " + method.getSignature() + ": " + e.getMessage());
         }
     }
+    private boolean processConditionalStatements(Stmt stmt, int conditionControlFlag) {
+        if (conditionControlFlag == 1) {
+            if (stmt instanceof IfStmt) {
+                return true;
+            } else if (stmt instanceof JLookupSwitchStmt || stmt instanceof JTableSwitchStmt) {
+                return false;
+            }
+        } else if (conditionControlFlag == 2) {
+            return !(stmt instanceof IfStmt || stmt instanceof JLookupSwitchStmt || stmt instanceof JTableSwitchStmt);
+        }
+        return true;
+    }
+
     public void generateXML(String dirpath){
         String outputFilePath=dirpath+"output.xml";
         try {

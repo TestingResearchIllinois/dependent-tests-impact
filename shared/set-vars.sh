@@ -167,7 +167,7 @@ cd $(dirname "$DT_SUBJ_ROOT")
 
 
 COMMIT1=cdfef32728573e8eb6252ae43e7ba0ef9e35e660
-COMMIT2=0697c420f3a8b0ddb07d27727bcd8585fb5a5b3a
+COMMIT2=319979640215c7735607ce158d1abbaed4a57d12
 
 fullyQualifiedMethodNames=""
 

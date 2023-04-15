@@ -128,8 +128,8 @@ public class InstrumentationMain {
                 argsList.remove(changedMethodNameIndex);
                 argsList.remove(changedMethodIndex);
             }
-
-            InstrumenterXML instrumenter = new InstrumenterXML(techniqueName, targetTestMethodNames);
+            int ifelselimit=0;
+            InstrumenterXML instrumenter = new InstrumenterXML(techniqueName, targetTestMethodNames,ifelselimit);
             wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
 
             Scene.v().setSootClassPath(sootClasspath);

@@ -39,7 +39,7 @@ if [[ ! -d "secondVers" ]]; then
     git clone https://github.com/pioushasan2305/mytest secondVers &> ${scripts_folder}/logs/secondVers-clone-log.txt
     echo "Compiling secondVers"
     cd secondVers/lib
-    git checkout 0697c420f3a8b0ddb07d27727bcd8585fb5a5b3a &> ${scripts_folder}/logs/checkout-secondVers.txt
+    git checkout 319979640215c7735607ce158d1abbaed4a57d12 &> ${scripts_folder}/logs/checkout-secondVers.txt
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-secondVers.txt
     cd ${scripts_folder}
 fi
