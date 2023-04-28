@@ -111,6 +111,7 @@ public class InstrumentationMain {
             argsList.remove(outputPathindex);
         }
         int inputModeIndex= argsList.indexOf("-compare");
+        int inputStaticIndex= argsList.indexOf("-staticAnalysis");
         if (inputModeIndex != -1)
         {
             argsList.remove(inputModeIndex);
@@ -128,8 +129,9 @@ public class InstrumentationMain {
                 argsList.remove(changedMethodNameIndex);
                 argsList.remove(changedMethodIndex);
             }
-            int ifelselimit=0;
-            InstrumenterXML instrumenter = new InstrumenterXML(techniqueName, targetTestMethodNames,ifelselimit);
+            int conditionalStatementLimit=0;
+            int loopIterationCount=4;
+            InstrumenterXML instrumenter = new InstrumenterXML(techniqueName, targetTestMethodNames,conditionalStatementLimit,loopIterationCount,true);
             wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
 
             Scene.v().setSootClassPath(sootClasspath);
@@ -184,7 +186,56 @@ public class InstrumentationMain {
             String[] sootArgs = argsList.toArray(new String[0]);
 
             soot.Main.main(sootArgs);
-            instrumenter.generateXML(outputPath);
+            instrumenter.generateXML(outputPath,"output.xml");
+            instrumenter.mergeXML(outputPath);
+        }
+        else if(inputStaticIndex!= -1)
+        {
+            argsList.remove(inputStaticIndex);
+            Pack wjtp = PackManager.v().getPack("wjtp");
+            int conditionalStatementLimit=0;
+            int loopIterationCount=4;
+            List<String> targetTestMethodNames = new ArrayList<String>();
+            InstrumenterXML instrumenter = new InstrumenterXML(techniqueName, targetTestMethodNames,conditionalStatementLimit,loopIterationCount,false);
+            wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
+
+            Scene.v().setSootClassPath(sootClasspath);
+
+            Options.v().set_output_format(Options.output_format_class);
+
+            // Set the output directory for the instrumented .class files
+            //Options.v().set_output_dir("/home/pious/Documents/work/dependent-tests-impact/testgui");
+
+            argsList.add("-w");
+            argsList.add("-p");
+            argsList.add("cg");
+            argsList.add("all-reachable:true");
+            argsList.add("-keep-line-number");
+            argsList.add("-pp");
+            argsList.add("-allow-phantom-refs");
+            argsList.add("-p");
+            argsList.add("jb");
+            argsList.add("use-original-names:true");
+            int inputDirNameIndex = inputDirIndex + 1;
+            String inputDirName = argsList.get(inputDirNameIndex);
+
+            List<String> classNames = getClassesFromDirectory(new File(inputDirName));
+
+            for (String className : classNames) {
+                SootClass clazz = Scene.v().forceResolve(className, SootClass.BODIES);
+                clazz.setApplicationClass();
+            }
+
+            for (SootClass sc : Scene.v().getClasses()) {
+                Scene.v().addBasicClass(sc.getName(), SootClass.BODIES);
+            }
+
+
+            String[] sootArgs = argsList.toArray(new String[0]);
+
+            soot.Main.main(sootArgs);
+            //outputPath=outputPath+"sootXML-firstVers/";
+            instrumenter.generateXML(outputPath,"firstVers-static.xml");
         }
         else {
 

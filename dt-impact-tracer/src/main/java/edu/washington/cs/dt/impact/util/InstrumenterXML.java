@@ -53,11 +53,15 @@ public class InstrumenterXML  extends SceneTransformer {
     private int testMethodIdCounter = 1;
     private Map<String, Element> testClassElements = new HashMap<>();
     private List<String> targetTestMethodNames;
+    private boolean useTargetTestMethodNamesFilter;
+    private int loopIterationCount;
     private int conditionControlFlag;
-    public InstrumenterXML(Constants.TECHNIQUE t, List<String> targetTestMethodNames,int conditionControlFlag) {
+    public InstrumenterXML(Constants.TECHNIQUE t, List<String> targetTestMethodNames,int conditionControlFlag,int loopIterationCount, boolean useTargetTestMethodNamesFilter) {
         this.technique = t;
         this.targetTestMethodNames = targetTestMethodNames;
         this.conditionControlFlag = conditionControlFlag;
+        this.loopIterationCount=loopIterationCount;
+        this.useTargetTestMethodNamesFilter = useTargetTestMethodNamesFilter;
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -90,17 +94,19 @@ public class InstrumenterXML  extends SceneTransformer {
     protected void internalTransform(String phaseName, Map<String, String> options) {
         for (SootClass sootClass : Scene.v().getApplicationClasses()) {
             for (SootMethod method : sootClass.getMethods()) {
-
                 String fullyQualifiedName = method.getDeclaringClass().getName() + "." + method.getName();
                 boolean containsTargetTestMethod = targetTestMethodNames.stream().anyMatch(fullyQualifiedName::equals);
                 targetTestMethodNames.removeIf(fullyQualifiedName::equals);
-                if (method.hasActiveBody() && isTestMethod(method) && containsTargetTestMethod) {
+
+                // check if the method should be instrumented based on the useTargetTestMethodNamesFilter flag
+                if (method.hasActiveBody() && (useTargetTestMethodNamesFilter ? isTestMethod(method) && containsTargetTestMethod : true)) {
                     System.out.println("Instrumenting method: " + method.getSignature());
                     internalTransform(method.getActiveBody(), phaseName, options);
                 }
             }
         }
     }
+
 
     protected void internalTransform(Body body, String phaseName, Map<String, String> options) {
         SootMethod method = body.getMethod();
@@ -185,7 +191,7 @@ public class InstrumenterXML  extends SceneTransformer {
                                 for (Loop loop : loops) {
                                     if (loop.getLoopStatements().contains(stmt)) {
                                         // Estimate the loop count
-                                        loopMultiplier = 5; // Use a constant for now
+                                        loopMultiplier = loopIterationCount; // Use a constant for now
                                         break;
                                     }
                                 }
@@ -255,8 +261,8 @@ public class InstrumenterXML  extends SceneTransformer {
         return true;
     }
 
-    public void generateXML(String dirpath){
-        String outputFilePath=dirpath+"output.xml";
+    public void generateXML(String dirpath,String filename){
+        String outputFilePath=dirpath+filename;
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
@@ -282,17 +288,21 @@ public class InstrumenterXML  extends SceneTransformer {
             transformer.transform(source, result);
             outputStream.close();
             System.out.println("XML saved to " + outputFilePath);
-            String xmlFile1 = dirpath+"sootXML-firstVers/firstVers-runtime.xml";
-            String xmlFile2 = outputFilePath;
-            String outputFile = dirpath+"secondVers-merged.xml";
-            //System.out.println("---targeted-----"+targetTestMethodNames);
-            try {
-                compareAndGenerateXML(xmlFile1, xmlFile2, outputFile, targetTestMethodNames);
-            } catch (IOException | ParserConfigurationException | TransformerException e) {
-                e.printStackTrace();
-            }
         } catch (Exception e) {
             throw new RuntimeException("Error generating XML", e);
+        }
+    }
+    public void mergeXML(String dirpath)
+    {
+        String xmlFile1 = dirpath+"sootXML-firstVers/firstVers-runtime.xml";
+        String xmlFile2 = dirpath+"output.xml";
+        String outputFile = dirpath+"secondVers-merged.xml";
+        try {
+            compareAndGenerateXML(xmlFile1, xmlFile2, outputFile, targetTestMethodNames);
+        } catch (IOException | ParserConfigurationException | TransformerException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            throw new RuntimeException(e);
         }
     }
     private static Element createOutputTestClassWithoutTargetMethods(Document output, Node inputTestClass, List<String> targetTestMethodNames) {

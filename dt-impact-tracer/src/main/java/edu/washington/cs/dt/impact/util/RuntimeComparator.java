@@ -101,7 +101,7 @@ public class RuntimeComparator {
 
                         NodeList nListxml= docxml.getElementsByTagName("testMethod");
 
-                        String time="";
+                        float time=0.1F;
                         String testResult="";
                         for (int tempxml = 0; tempxml < nListxml.getLength(); tempxml++) {
                             Node nNodexml = nListxml.item(tempxml);
@@ -111,7 +111,11 @@ public class RuntimeComparator {
 
                                     if((Objects.equals(eElementxml.getAttribute("name"), eElement.getAttribute("classname")+"."+eElement.getAttribute("name"))) && (eElementxml.getAttribute("testType").equals("true")))
                                     {
-                                        time=eElementxml.getAttribute("time");
+                                        time=Float.parseFloat(eElementxml.getAttribute("time"));
+                                        if(time==0)
+                                        {
+                                            time=0.5F;
+                                        }
                                         if((eElementxml.getAttribute("throwException").equals("true")))
                                         {
                                             testResult="failed";
@@ -130,7 +134,11 @@ public class RuntimeComparator {
 
                         }
                         float surefireTime=Float.parseFloat(eElement.getAttribute("time"))*1000;
-                        csvPrinter.printRecord(eElement.getAttribute("classname"),eElement.getAttribute("name"),surefireTestResult,testResult,(int)surefireTime,time);
+                        if(surefireTime==0)
+                        {
+                            surefireTime= 0.5F;
+                        }
+                        csvPrinter.printRecord(eElement.getAttribute("classname"),eElement.getAttribute("name"),surefireTestResult,testResult,surefireTime,time);
 
                     }
                 }

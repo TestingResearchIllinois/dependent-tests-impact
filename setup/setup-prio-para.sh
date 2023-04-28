@@ -30,9 +30,12 @@ echo "[DEBUG] Finding human written tests in old subject."
 bash "$DT_SCRIPTS/shared/get-test-order.sh" old
 
 # 2. Instrument the source and test files.
-echo "[DEBUG] Instrumenting source and test files for old subject."
 rm -rf sootOutput/
 rm -rf methodOutput/
+echo "[DEBUG] Static analysis source and test files for old subject."
+java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_TESTS --soot-cp $DT_LIBS:$DT_CLASS:$DT_TESTS:$JAVA_HOME/jre/lib/* -staticAnalysis -outputPath $DT_SCRIPTS/${SUBJ_NAME}-results/
+
+echo "[DEBUG] Instrumenting source and test files for old subject."
 #echo "java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_TESTS --soot-cp $DT_LIBS:$DT_CLASS:$DT_TESTS:$JAVA_HOME/jre/lib/*"
 java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $DT_TESTS --soot-cp $DT_LIBS:$DT_CLASS:$DT_TESTS:$JAVA_HOME/jre/lib/*
 
