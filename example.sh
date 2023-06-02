@@ -17,17 +17,17 @@ machines=$2
 # Clear any existing logs
 rm -rf ${scripts_folder}/logs/
 mkdir -p ${scripts_folder}/logs/
-
 # Clone the firstVers if it doesn't exist
 if [[ ! -d "firstVers" ]]; then
     echo "Cloning firstVers"
-    git clone https://github.com/kevinsawicki/http-request firstVers &> ${scripts_folder}/logs/firstVers-clone-log.txt
+    git clone https://github.com/Apache/Struts firstVers &> ${scripts_folder}/logs/firstVers-clone-log.txt
     echo "Compiling firstVers"
-    cd firstVers/lib
-    git checkout 2d62a3e9da726942a93cf16b6e91c0187e6c0136 &> ${scripts_folder}/logs/checkout-firstVers.txt
+    cd firstVers
+    git checkout 13d9053050c9e4fb2ef049db6a37d3f6eebf48fa &> ${scripts_folder}/logs/checkout-firstVers.txt
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-firstVers.txt
     cd ${scripts_folder}
 fi
+exit 1
 #cd firstVers
 #git checkout b19048b72669fc0e96665b1b125dc1fda21f5993 &> ${scripts_folder}/logs/checkout-firstVers.txt
 #mvn install dependency:copy-dependencies -DskipTests
@@ -39,13 +39,12 @@ if [[ ! -d "secondVers" ]]; then
     git clone https://github.com/kevinsawicki/http-request secondVers &> ${scripts_folder}/logs/secondVers-clone-log.txt
     echo "Compiling secondVers"
     cd secondVers/lib
-    git checkout 2d62a3e9da726942a93cf16b6e91c0187e6c0136 &> ${scripts_folder}/logs/checkout-secondVers.txt
+    git checkout f6600a6df2dce52b18cc985a1897a47f510547b6 &> ${scripts_folder}/logs/checkout-secondVers.txt
     mvn install dependency:copy-dependencies -DskipTests &> ${scripts_folder}/logs/install-log-secondVers.txt
     cd ${scripts_folder}
 fi
 # Clear any existing results
 rm -rf lib-results/
-
 #rm -rf lib-results/methodOutput-plugins
 #rm -rf lib-results/sootComparedCSV-plugins
 #rm -rf lib-results/sootTestOutput-orig

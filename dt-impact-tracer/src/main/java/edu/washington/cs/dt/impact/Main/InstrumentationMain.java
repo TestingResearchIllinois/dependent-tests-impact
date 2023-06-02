@@ -130,7 +130,7 @@ public class InstrumentationMain {
                 argsList.remove(changedMethodIndex);
             }
             int conditionalStatementLimit=0;
-            int loopIterationCount=4;
+            int loopIterationCount=1;
             InstrumenterXML instrumenter = new InstrumenterXML(techniqueName, targetTestMethodNames,conditionalStatementLimit,loopIterationCount,true);
             wjtp.add(new Transform("wjtp.instrumenter", instrumenter));
 

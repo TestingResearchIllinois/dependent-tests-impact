@@ -45,6 +45,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import soot.toolkits.graph.StronglyConnectedComponentsFast;
 import soot.toolkits.scalar.ArraySparseSet;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 public class InstrumenterXML  extends SceneTransformer {
     private static Constants.TECHNIQUE technique = Constants.DEFAULT_TECHNIQUE;
     private Document doc;
@@ -100,7 +103,7 @@ public class InstrumenterXML  extends SceneTransformer {
 
                 // check if the method should be instrumented based on the useTargetTestMethodNamesFilter flag
                 if (method.hasActiveBody() && (useTargetTestMethodNamesFilter ? isTestMethod(method) && containsTargetTestMethod : true)) {
-                    System.out.println("Instrumenting method: " + method.getSignature());
+                    //System.out.println("Instrumenting method: " + method.getSignature());
                     internalTransform(method.getActiveBody(), phaseName, options);
                 }
             }
@@ -149,7 +152,7 @@ public class InstrumenterXML  extends SceneTransformer {
 
     private void processMethod(SootMethod method, Document doc, Element parentElement, int index) {
         try {
-            System.out.println("Processing method: " + method.getSignature());
+            //System.out.println("Processing method: " + method.getSignature());
 
             if (method.getName().equals("<init>")) {
                 return;
@@ -261,7 +264,7 @@ public class InstrumenterXML  extends SceneTransformer {
         return true;
     }
 
-    public void generateXML(String dirpath,String filename){
+    /*public void generateXML(String dirpath,String filename){
         String outputFilePath=dirpath+filename;
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -291,7 +294,60 @@ public class InstrumenterXML  extends SceneTransformer {
         } catch (Exception e) {
             throw new RuntimeException("Error generating XML", e);
         }
+    }*/
+    public void generateXML(String dirpath, String filename){
+        String outputFilePath = dirpath + filename;
+        String csvOutputFilePath = dirpath + "methodList.csv"; // output csv file path
+
+        Set<String> methodNames = new HashSet<>(); // to store unique method names
+
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+
+            // Check if the document is empty
+            if (doc.getDocumentElement() == null || doc.getDocumentElement().getChildNodes().getLength() == 0) {
+                // Create a new XML document with the desired root element
+                DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
+                Document newDoc = documentBuilder.newDocument();
+                Element rootElement = newDoc.createElement("testList");
+                newDoc.appendChild(rootElement);
+
+                // Update the doc reference
+                doc = newDoc;
+            }
+
+            DOMSource source = new DOMSource(doc);
+
+            OutputStream outputStream = new FileOutputStream(outputFilePath);
+            StreamResult result = new StreamResult(outputStream);
+
+            transformer.transform(source, result);
+            outputStream.close();
+            System.out.println("XML saved to " + outputFilePath);
+
+            // After generating the XML, iterate through all method and testMethod elements and add their names to the set
+            NodeList methodNodes = doc.getElementsByTagName("method");
+            NodeList testMethodNodes = doc.getElementsByTagName("testMethod");
+
+            for (int i = 0; i < methodNodes.getLength(); i++) {
+                methodNames.add(((Element) methodNodes.item(i)).getAttribute("name"));
+            }
+
+            for (int i = 0; i < testMethodNodes.getLength(); i++) {
+                methodNames.add(((Element) testMethodNodes.item(i)).getAttribute("name"));
+            }
+
+
+            // Now write the method names to the CSV file
+            Files.write(Paths.get(csvOutputFilePath), (Iterable<String>) methodNames.stream()::iterator);
+            System.out.println("CSV saved to " + csvOutputFilePath);
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating XML or CSV", e);
+        }
     }
+
     public void mergeXML(String dirpath)
     {
         String xmlFile1 = dirpath+"sootXML-firstVers/firstVers-runtime.xml";

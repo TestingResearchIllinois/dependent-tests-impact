@@ -71,7 +71,7 @@ java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeGenerator -inputFile
 rm -rf $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootTestOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
 mv sootXMLOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootXML-${VER_NAME}/
-
+exit 1
 echo "[DEBUG] Generating first-var vs second-var xml"
 java -cp $DT_TOOLS:$JAVA_HOME/jre/lib/*: edu.washington.cs.dt.impact.Main.InstrumentationMain -inputDir $NEW_DT_TESTS --soot-cp $NEW_DT_LIBS:$NEW_DT_CLASS:$NEW_DT_TESTS:$JAVA_HOME/jre/lib/* -compare -outputPath $DT_SCRIPTS/${SUBJ_NAME}-results/ -changedFiles $fullyQualifiedMethodNames
 
