@@ -1,19 +1,20 @@
 package edu.washington.cs.dt.impact.util;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.io.FileUtils;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import java.io.*;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+
+import static com.github.javaparser.utils.Utils.assertNotNull;
 
 /**
- * This class is responsible for creating runtime csv
+ * This class is responsible for creating runtime xml
  */
 public class RuntimeGenerator {
     private static void tryCreateDirectory(final File theDir) {
@@ -25,123 +26,171 @@ public class RuntimeGenerator {
             throw new RuntimeException(e);
         }
     }
-    public static void main(String[] args) throws IOException {
+
+    public static void main(String[] args) throws IOException{
         List<String> argsList = new ArrayList<String>(Arrays.asList(args));
         int inputTestListIndex = argsList.indexOf("-inputFile");
         int inputTestList = inputTestListIndex + 1;
-        File theDir = new File("sootCsvOutput");
+        File theDir = new File("sootXMLOutput");
         String[] paths = argsList.get(inputTestList).split("/");
         System.out.println("File: " + paths[paths.length - 4]);
         tryCreateDirectory(theDir);
         FileWriter fileWriter = null;
-        BufferedWriter bufferedWriter = null;
-        try {
-            fileWriter = new FileWriter("sootCsvOutput" + File.separator + paths[paths.length - 4] + "-runtime.csv");
-            bufferedWriter = new BufferedWriter(fileWriter);
-            CSVPrinter csvPrinter = new CSVPrinter(bufferedWriter, CSVFormat.DEFAULT.withHeader("Test Name", "Part", "Method Under Test Name", "Execution Time", "Throw Exception"));
-            try {
-                File rootFile = new File(argsList.get(inputTestList)+"sootSeqOutput/functionSequence");
-                Scanner fileReader = new Scanner(rootFile);
-                while (fileReader.hasNextLine()) {
-                    String data = fileReader.nextLine();
-                    String[] testInfo = data.split(" > ");
-                    String initial = testInfo[0].trim();
-                    if (!initial.equals("Started")){
-                        continue;
-                    }
-                    String nameInfo = testInfo[1].trim();
-                    String part = nameInfo.split(" >> ")[0].trim();
-                    String nameWithTime = nameInfo.split(" >> ")[1].trim();
-                    String name = nameWithTime.split("#")[0];
-                    String timeStamp = nameWithTime.split("#")[1];
+        File rootFile = new File(argsList.get(inputTestList) + "sootTracerData/tempTracerData.txt");
+        //tryCreateDirectory(rootFile);
+        Scanner fileReader = new Scanner(rootFile);
+        String path="sootXMLOutput" + File.separator + paths[paths.length - 4] + "-runtime.xml";
+        FileWriter xmlFile = new FileWriter(path);
+        xmlFile.write("<?xml version=\"1.0\"?>\n");
+        xmlFile.write("<testList>");
+        //String id="1";
+        int parentId=1;
+        String dataParent=null;
+        String prevData="";
+        XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        xmlMapper.getFactory().getXMLOutputFactory().setProperty("javax.xml.stream.isRepairingNamespaces", false);
+        TestClass tc = new TestClass("");
+        while (fileReader.hasNextLine())
+        {
 
-                    String execInfo = testInfo[4].trim();
-                    String returnFrom = execInfo.split(" >> ").length == 1 ? "" : execInfo.split(">>")[0].trim();
-                    String startTest = "startTest", endTest = "endTest";
-                    if (part.contains("before")) {
-                        startTest = "startBefore";
-                        endTest = "endBefore";
-                    } else if (part.contains("after")) {
-                        startTest = "startAfter";
-                        endTest = "endAfter";
-                    }
-                    csvPrinter.printRecord(name, startTest, "", timeStamp, "");
-                    if (part.contains("body")) {
-                        String subFile = argsList.get(inputTestList) + "sootTimerOutput/";
-                        try {
-                            File subDir = new File(subFile+name);
-                            Scanner subReader = new Scanner(subDir);
-                            while(subReader.hasNextLine()){
-                                String fullMethodName = subReader.nextLine();
-                                String methodNameInfo = fullMethodName.split(" >>> ")[1];
-                                csvPrinter.printRecord(name, part, methodNameInfo.split(" : ")[0].trim(), methodNameInfo.split(" : ")[1].trim(), returnFrom);
-                            }
-                            subReader.close();
-                        } catch (FileNotFoundException e) {
-                            System.err.println(e.getMessage());
-                        }
-                    } else {
-                        String testOutput = argsList.get(inputTestList)+"target/testOutput/";
-                        String subFile = argsList.get(inputTestList)+"sootTimerOutput/";
-                        ArrayList<String> result = new ArrayList<String>();
-                        try {
-                            File testDir = new File(testOutput+name);
-                            Scanner testReader = new Scanner(testDir);
-                            File temp = new File("new_csv.txt");
-                            FileWriter output = new FileWriter(temp);
-                            BufferedWriter writer_2 = new BufferedWriter(output);
-                            while(testReader.hasNextLine()){
-                                String fullMethodName = testReader.nextLine();
-                                File subDir = new File(subFile+name);
-                                Scanner subReader = new Scanner(subDir);
-                                while(subReader.hasNextLine()){
-                                    String method_name = subReader.nextLine();
-                                    String subMethod = method_name.split(" >>> ")[1];
-                                    if(subMethod.split(" : ")[0].trim().equals(fullMethodName.trim())){
-                                        csvPrinter.printRecord(name, part, subMethod.split(" : ")[0].trim(), subMethod.split(" : ")[1].trim(), returnFrom);
-                                        result.add(subMethod);
-                                        break;
-                                    }
-                                }
-                                subReader.close();
-                            }
-                            testReader.close();
-                            File subDir = new File(subFile+name);
-                            Scanner subReader = new Scanner(subDir);
-                            while(subReader.hasNextLine()){
-                                String methodName = subReader.nextLine();
-                                String subMethod = methodName.split(" >>> ")[1];
-                                Boolean found = false;
-                                for (int i = 0; i < result.size(); i++) {
-                                    if(subMethod.trim().equals(result.get(i).trim())){
-                                        result.remove(i);
-                                        found = true;
-                                        break;
-                                    }
-                                }
-                                if (!found) {
-                                    writer_2.write(methodName + "\n");
-                                }
-                            }
-                            subReader.close();
-                            writer_2.close();
-                            temp.renameTo(subDir);
-                        } catch (FileNotFoundException e) {
-                            System.err.println(e.getMessage());
-                        }
-                    }
-                    csvPrinter.printRecord(name, endTest, "", testInfo[3].trim().split("#")[1], "");
-                }
-                fileReader.close();
-            } catch (FileNotFoundException e) {
-                System.err.println(e.getMessage());
+
+            if(parentId==1){
+
+                prevData= fileReader.nextLine();
+                String[] prevInfo = prevData.split(",");
+                tc.setName(prevInfo[1]);
+                dataParent=fileReader.nextLine();
             }
-            csvPrinter.flush();
-        } catch (IOException e){
-            System.err.println(e.getMessage());
-        } finally {
-            fileWriter.close();
-            bufferedWriter.close();
+            else
+            {
+                String[] prevInfo = prevData.split(",");
+                //tc.setName(prevInfo[1]);
+                if(tc.getTestClassByName(prevInfo[1])==null)
+                {
+                    String xml = xmlMapper.writeValueAsString(tc);
+                    assertNotNull(xml);
+                    xmlFile.write(xml + "\n");
+                    tc = new TestClass(prevInfo[1]);
+
+                }
+                dataParent=fileReader.nextLine();
+            }
+            String[] testInfoParent = dataParent.split(",");
+
+            String parentMethod=testInfoParent[0];
+            String nextmethod=testInfoParent[1];
+            long prevTime= Long.parseLong(testInfoParent[2]);
+            int prev=0;
+            long timeDiff=0;
+            Method parent = new Method(Integer.toString(parentId),parentMethod,timeDiff,true,false);
+            int expectedexceptionflag=0;
+            String expectedexc="";
+            if(nextmethod.contains("Exception:-expected-"))
+            {
+                expectedexceptionflag=1;
+                expectedexc=nextmethod.replaceAll("Exception:-expected- ", "");
+            }
+            String childId="0";
+            int skipflag=0;
+            int exceptionflag=0;
+            while (fileReader.hasNextLine())
+            {
+                String data = fileReader.nextLine();
+                prevData=data;
+                String[] testInfo = data.split(",");
+
+                String startMethod=testInfo[0];
+                String endMethod=testInfo[1];
+                long time= Long.parseLong(testInfo[2]);
+                if((expectedexceptionflag==1)&&(endMethod.contains(expectedexc)))
+                {
+                    timeDiff=time-prevTime;
+                    prevTime=time;
+                    String currentId=parent.addChild(startMethod,childId,endMethod,timeDiff,true);
+                    String[] arrOfStr = currentId.split("\\.");
+                    childId="";
+                    for (int i=1;i<arrOfStr.length;i++)
+                    {
+                        if(i==arrOfStr.length-1)
+                        {
+                            childId+=arrOfStr[i];
+                        }
+                        else {
+                            childId+=arrOfStr[i]+".";
+                        }
+                    }
+                    parent.addTime(timeDiff);
+                    expectedexceptionflag=2;
+                }
+                if(endMethod.contains("Exception:"))
+                {
+                    exceptionflag=1;
+                }
+                if(Objects.equals(startMethod, "START"))
+                {
+                    dataParent=data;
+                    break;
+                }
+                else if(skipflag==1)
+                {
+                    continue;
+                }
+                else if(Objects.equals(endMethod, "END"))
+                {
+                    timeDiff=time-prevTime;
+                    skipflag=1;
+                    parent.addChild(startMethod,childId,endMethod,timeDiff,false);
+
+                }
+                else if(Objects.equals(endMethod, "<init>") || Objects.equals(endMethod, " "))
+                {
+                    continue;
+                }
+                else if(endMethod.toString().contains("<init>"))
+                {
+                    continue;
+                }
+                else{
+                    timeDiff=time-prevTime;
+                    prevTime=time;
+                    String currentId=parent.addChild(startMethod,childId,endMethod,timeDiff,false);
+                    String[] arrOfStr = currentId.split("\\.");
+                    childId="";
+                    for (int i=1;i<arrOfStr.length;i++)
+                    {
+                        if(i==arrOfStr.length-1)
+                        {
+                            childId+=arrOfStr[i];
+                        }
+                        else {
+                            childId+=arrOfStr[i]+".";
+                        }
+                    }
+                    parent.addTime(timeDiff);
+                }
+            }
+            if((skipflag==0) &&(exceptionflag==1))
+            {
+                parent.setThrowException(true);
+            }
+            if(expectedexceptionflag==2)
+            {
+                parent.setThrowException(false);
+            }
+
+            tc.addMethod(parent);
+
+            parentId++;
         }
+        String xml = xmlMapper.writeValueAsString(tc);
+        assertNotNull(xml);
+        xmlFile.write(xml + "\n");
+        xmlFile.write("</testList>");
+        xmlFile.flush();
+        xmlFile.close();
     }
+
+
+
 }

@@ -26,16 +26,16 @@ public class RemoveFailedTestRunner extends StandardMain {
 
     @Override
     protected void run() throws Exception {
-        final String classPath = getArgValue("classpath")
+        final String classPath = getArg("classpath")
                 .map(s -> ImpactMain.buildClassPath(s.split(":")))
                 .orElse(System.getProperty("java.class.path"));
         Preconditions.checkArgument(Arrays.stream(classPath.split(":")).allMatch(s -> Files.exists(Paths.get(s))),
                 "Some directories or files in the classpath do not exist!");
 
-        final List<String> testOrder = Files.readAllLines(Paths.get(getRequiredArg("testOrder")));
+        final List<String> testOrder = Files.readAllLines(Paths.get(getArgRequired("testOrder")));
         final TestExecResults results = new FixedOrderRunner(classPath, testOrder).run();
 
-        final Path outputFile = Paths.get(getArgValue("output").orElse("failing-tests.txt"));
+        final Path outputFile = Paths.get(getArg("output").orElse("failing-tests.txt"));
 
         final Map<String, RESULT> failingTests = results.getExecutionRecords().get(0).getNameToResultsMap();
 

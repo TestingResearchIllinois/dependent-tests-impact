@@ -7,10 +7,10 @@ import com.reedoei.eunomia.data.caching.FileCache;
 import com.reedoei.eunomia.io.files.FileUtil;
 import com.reedoei.eunomia.util.RuntimeThrower;
 import com.reedoei.eunomia.util.Util;
-import com.reedoei.testrunner.data.results.Result;
-import com.reedoei.testrunner.data.results.TestRunResult;
-import com.reedoei.testrunner.mavenplugin.TestPluginPlugin;
-import com.reedoei.testrunner.runner.SmartRunner;
+import edu.illinois.cs.testrunner.data.results.Result;
+import edu.illinois.cs.testrunner.data.results.TestRunResult;
+import edu.illinois.cs.testrunner.mavenplugin.TestPluginPlugin;
+import edu.illinois.cs.testrunner.runner.SmartRunner;
 
 import java.nio.file.Files;
 import java.util.ArrayList;

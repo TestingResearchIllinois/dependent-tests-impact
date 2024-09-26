@@ -17,7 +17,7 @@ fi
 export DT_SUBJ_SRC="$DT_SUBJ_ROOT"
 export DT_SUBJ="$DT_SUBJ_ROOT/target"
 if [[ ! -d "$DT_SUBJ" ]]; then
-    echo "Path to DT_SUBJ does not exist. You must run mvn mvn install -DskipTests in $DT_SUBJ_ROOT first."
+    echo "Path to DT_SUBJ does not exist. You must run mvn mvn install -DskipTests in $DT_SUBJ first."
     exit 1
 fi
 
@@ -27,7 +27,8 @@ if [[ ! -d "$libs_dir" ]]; then
     echo "Path to DT_LIBS does not exist. You must run mvn dependency:copy-dependencies in $DT_SUBJ_ROOT first."
     exit 1
 fi
-LIBS=$(find "$DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+#LIBS=$(find "$DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+LIBS=$(find "$DT_SUBJ/dependency/" -name "*.jar")
 export DT_LIBS=$(echo $LIBS | sed -E "s/ /:/g")
 
 # Compiled class files of the old subject
@@ -65,7 +66,8 @@ if [[ ! -d "$libs_dir" ]]; then
     echo "Path to NEW_DT_LIBS does not exist. You must run mvn dependency:copy-dependencies in $NEW_DT_SUBJ_ROOT first."
     exit 1
 fi
-LIBS=$(find "$NEW_DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+#LIBS=$(find "$NEW_DT_SUBJ/dependency/" -name "*.jar" -not -name "junit*.jar")
+LIBS=$(find "$DT_SUBJ/dependency/" -name "*.jar")
 export NEW_DT_LIBS=$(echo $LIBS | sed -E "s/ /:/g")
 
 # Compiled class files of the new subject
@@ -159,3 +161,60 @@ if [[ "$MACHINES" != "2" ]] && [[ "$MACHINES" != "4" ]] && [[ "$MACHINES" != "8"
 fi
 
 export medianTimes=1
+
+# ===========Get changed files
+cd $(dirname "$DT_SUBJ_ROOT")
+
+
+COMMIT1=2d62a3e9da726942a93cf16b6e91c0187e6c0136
+COMMIT2=f6600a6df2dce52b18cc985a1897a47f510547b6
+
+fullyQualifiedMethodNames=""
+
+changed_files=$(git diff $COMMIT1 $COMMIT2 --name-only | grep "Test.java")
+modified_methods=""
+
+for file in $changed_files; do
+  git_diff_output=$(git diff --unified=10000 $COMMIT1 $COMMIT2 -- $file)
+  package_name=$(echo "$git_diff_output" | grep -oP '(?<=package ).*?(?=;)')
+  class_name=$(basename "$file" .java)
+  method_name=""
+  brace_count=0
+  modified=0
+  inside_test_method=0
+
+  while read -r line; do
+    if [[ $line =~ "@Test" ]]; then
+      if [[ $inside_test_method -eq 1 && $modified -eq 1 ]]; then
+        modified_methods="${modified_methods},${package_name}.${class_name}.${method_name}"
+        modified=0
+      fi
+      inside_test_method=1
+    elif [[ $inside_test_method -eq 1 && $line =~ "public void" ]]; then
+      method_name=$(echo "$line" | grep -oP '(?<=public void ).*?(?=\()')
+      if [[ $line =~ "{" ]]; then
+         ((brace_count++))
+      fi
+    elif [[ $line =~ "{" ]] && [[ $inside_test_method -eq 1 ]]; then
+      ((brace_count++))
+    elif [[ $line =~ "}" ]] && [[ $inside_test_method -eq 1 ]]; then
+      ((brace_count--))
+      if [[ $brace_count -eq 0 ]]; then
+        inside_test_method=0
+        if [[ $modified -eq 1 ]]; then
+          modified_methods="${modified_methods},${package_name}.${class_name}.${method_name}"
+          modified=0
+        fi
+      fi
+    elif [[ $inside_test_method -eq 1 && ($line =~ ^[+-]) && (!($line =~ "public void")) && (!($line =~ "@Test")) ]]; then
+      modified=1
+      #echo "Changed line: $line for method: ${package_name}.${class_name}.${method_name}"
+    fi
+  done <<< "$(echo "$git_diff_output")"
+
+  echo ""
+done
+
+fullyQualifiedMethodNames=$(echo "$modified_methods" | sed 's/^,//')
+echo $fullyQualifiedMethodNames
+export fullyQualifiedMethodNames

@@ -11,12 +11,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.reedoei.testrunner.configuration.Configuration;
-import com.reedoei.testrunner.data.framework.TestFramework;
-import com.reedoei.testrunner.data.results.Result;
-import com.reedoei.testrunner.data.results.TestRunResult;
-import com.reedoei.testrunner.runner.SmartRunner;
-import com.reedoei.testrunner.runner.TestInfoStore;
+import edu.illinois.cs.testrunner.configuration.Configuration;
+import edu.illinois.cs.testrunner.data.framework.TestFramework;
+import edu.illinois.cs.testrunner.data.results.Result;
+import edu.illinois.cs.testrunner.data.results.TestRunResult;
+import edu.illinois.cs.testrunner.runner.SmartRunner;
+import edu.illinois.cs.testrunner.runner.TestInfoStore;
 
 import edu.washington.cs.dt.main.ImpactMain;
 
@@ -95,11 +95,14 @@ public class RunnerMain {
         SmartRunner runner = new SmartRunner(TestFramework.junitTestFramework(), new TestInfoStore(), classpath, new HashMap<String, String>(), Paths.get("/dev/null"));
         Configuration.config().setDefault("testplugin.classpath", "");
 
-        long start = System.nanoTime();
+        long start =System.currentTimeMillis();
         //TestExecResults results = runner.run();
+        //System.out.println(tests+"---------\n");
+        System.out.println(start+"----------start---------------");
         TestRunResult result = runner.runListWithCp(classpath, tests).get();
-        long total = System.nanoTime() - start;
-        System.out.println("Total execution time: " + total);
+        System.out.println(System.currentTimeMillis()+"--------------end-----------");
+        long total = System.currentTimeMillis() - start;
+        System.out.println("Total execution time--: " + total);
 
         // Print out the result in the format as expected by running ImpactMain
         // Assume only one run in one JVM of all tests
@@ -120,6 +123,13 @@ public class RunnerMain {
                     failing++;
                     break;
                 case ERROR:
+                    sb.append(result.results().get(test)+"\n");
+                    sb.append("----------------"+test+"\n");
+                    StackTraceElement[] res=result.results().get(test).stackTrace();
+                    //System.out.println("getStackTrace()");
+                    for (int i = 1; i < res.length; i++)
+                        //System.out.println("\tat " + res[i]);
+                        sb.append("\tat " + res[i]+"\n");
                     error++;
                     break;
                 case SKIPPED:

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.reedoei.eunomia.collections.ListUtil;
 import com.reedoei.eunomia.functional.Func;
 import com.reedoei.eunomia.io.files.FileUtil;
+import com.reedoei.eunomia.collections.ListUtil;
 import com.reedoei.eunomia.math.Averager;
 import com.reedoei.eunomia.util.Util;
 import edu.washington.cs.dt.impact.figure.generator.EnhancedResults;
@@ -108,7 +109,7 @@ public class EnhancedResultAverager {
                 // We only need the results files paths for the subject name, so we can just use the first one.
                 EnhancedResultsFigureGenerator.setup(true, origOrAuto, resultFilesPaths.get(0), outputPath);
 
-        final List<Double> values = Func.map(Averager::mean, averagers);
+        final List<Double> values = ListUtil.map(Averager::mean, averagers);
 
         switch (technique) {
             case PRIORITIZATION:

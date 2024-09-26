@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Runs commands for "Instructions to setup a subject for test selection" section.
-
+exit 1
 set -e
 
 cd $DT_SUBJ
@@ -10,6 +10,9 @@ cd ..
 rm -rf sootTimerOutput/
 rm -rf sootSeqOutput/
 rm -rf sootException/
+rm -rf sootTracerData/
+rm -rf sootXMLOutput/
+rm -rf sootCsvOutput/
 
 cd $DT_SUBJ
 echo "[DEBUG] Finding human written tests in old subject."
@@ -53,7 +56,7 @@ java -cp $DT_TOOLS: edu.washington.cs.dt.impact.util.RuntimeGenerator -inputFile
 
 rm -rf $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig-selection
 mv sootTestOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootTestOutput-orig
-mv sootCsvOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootCSV-${VER_NAME}/
+mv sootXMLOutput/ $DT_SCRIPTS/${SUBJ_NAME}-results/sootXML-${VER_NAME}/
 
 cd $DT_SUBJ
 rm -rf sootOutput/

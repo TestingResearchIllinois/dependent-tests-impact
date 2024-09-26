@@ -1,7 +1,8 @@
 package edu.washington.cs.dt.impact.plugins;
 
-import com.reedoei.testrunner.mavenplugin.TestPluginPlugin;
-import com.reedoei.testrunner.testobjects.TestLocator;
+import edu.illinois.cs.testrunner.data.framework.TestFramework;
+import edu.illinois.cs.testrunner.mavenplugin.TestPluginPlugin;
+import edu.illinois.cs.testrunner.testobjects.TestLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.cli.MavenCli;
 import org.apache.maven.project.MavenProject;
@@ -97,7 +98,7 @@ public class RunWithDependencies extends Plugins {
         TestPluginPlugin.info("Finding Human Written Tests (new version, original tests)");
         try {
             // Generates orig-order.txt
-            final List<String> tests = JavaConverters.bufferAsJavaList(TestLocator.tests(project).toBuffer());
+            final List<String> tests = JavaConverters.bufferAsJavaList(TestLocator.tests(project, TestFramework.junitTestFramework()).toBuffer());
             FileWriter writer = new FileWriter(new File(newDTResults + "/new-orig-order.txt"));
             for(String str: tests) {
                 writer.write(str);

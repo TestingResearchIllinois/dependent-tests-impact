@@ -22,7 +22,7 @@ public class Lifetimes {
         final String dirName = path.getFileName().toString();
         final List<String> parts = ListUtil.fromArray(dirName.split("-"));
         // Folders are in format: subj-name-yyyy-mm-dd-H-M-S-commit so we want just the date part.
-        final List<Integer> dateParts = Func.map(Integer::parseInt, parts.subList(parts.size() - 7, parts.size() - 1));
+        final List<Integer> dateParts = ListUtil.map(Integer::parseInt, parts.subList(parts.size() - 7, parts.size() - 1));
 
         return DateUtil.makeDate(dateParts.get(0), dateParts.get(1), dateParts.get(2), dateParts.get(3), dateParts.get(4), dateParts.get(5));
     }

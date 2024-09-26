@@ -4,7 +4,7 @@ import com.reedoei.eunomia.collections.MapUtil;
 import com.reedoei.eunomia.string.matching.LineMatch;
 import com.reedoei.eunomia.string.searching.Searcher;
 import com.reedoei.eunomia.string.searching.StringSearch;
-import com.reedoei.eunomia.util.FileUtil;
+import com.reedoei.eunomia.io.files.FileUtil;
 import edu.washington.cs.dt.RESULT;
 import edu.washington.cs.dt.impact.figure.generator.PrecomputedTimeFigureGenerator;
 import edu.washington.cs.dt.impact.util.Constants;

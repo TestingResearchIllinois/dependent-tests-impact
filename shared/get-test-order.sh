@@ -41,8 +41,9 @@ fi
     cd $ROOT_DIR
     mvn install -Dmavanagaiata.skip=true -Drat.skip=true -Ddependency-check.skip=true -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true -Dmaven-source.skip=true -Dcobertura.skip -DskipTests -pl . -am > "install-log.txt"
 )
-mvn test -Dmavanagaiata.skip=true -Drat.skip=true -Ddependency-check.skip=true -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true -Dmaven-source.skip=true -Dcobertura.skip > "test-log.txt"
 
+mvn test -Dmavanagaiata.skip=true -Drat.skip=true -Ddependency-check.skip=true -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true -Dmaven-source.skip=true -Dcobertura.skip -Dsurefire.runOrder=reversealphabetical > "test-log.txt"
+#mvn -X test | grep "Running" | awk '{print $2}'
 java -cp $DT_TOOLS: edu.washington.cs.dt.impact.tools.GetOriginalOrder $output_file_name "target/" "test-log.txt"
 mv "test-log.txt" $DT_SCRIPTS/${SUBJ_NAME}-results/
 mv "install-log.txt" $DT_SCRIPTS/${SUBJ_NAME}-results/

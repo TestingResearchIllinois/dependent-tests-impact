@@ -1,5 +1,5 @@
 #!/bin/bash
-
+exit 1
 # Runs commands for "Instructions to setup a subject for test selection" section.
 
 set -e

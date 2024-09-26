@@ -1,6 +1,6 @@
 package edu.washington.cs.dt.impact.data;
 
-import com.reedoei.testrunner.data.results.Result;
+import edu.illinois.cs.testrunner.data.results.Result;
 
 /**
  * Created by winglam on 7/1/18.
